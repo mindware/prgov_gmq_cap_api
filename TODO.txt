@@ -1,0 +1,13 @@
+
+	✅ Project: CAP API
+	==================
+
+
+	+Tasks:
+	-------
+	Pending: 
+		1. ☐ Basic Authentication
+		2. ☐ Fiber-based connection to APMQ
+
+---
+Auto-generated using: github.com/mindware/todo
