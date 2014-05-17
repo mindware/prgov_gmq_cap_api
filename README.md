@@ -1,5 +1,5 @@
 Requirements:
-* Install ruby > 1.9
+* Install ruby > 2.0
 * Install rubygems
 
 To start the Server:
