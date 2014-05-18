@@ -1,14 +1,21 @@
-# RESTful API for interacting with the GMQ
-# Some code and ideas recycled with permission from
+# RESTful API for interacting with the Government Message Queue (GMQ) of PR.Gov
+# Some code and ideas recycled with permission from:
 # github.com/mindware/Automata
-# Developed by: Andrés Colón Pérez for Office (2014)
+# CAP API 2014 (c) Office of the CIO of Puerto Rico
+# Developed by: Andrés Colón Pérez for Office of the CIO
 # For: Estado Libre Asociado de Puerto Rico
 # Load our Libraries, Settings and Helper Methods:
-require './app/helpers/library'
-require './app/models/errors'
 require 'json'
+require './app/helpers/library'
+require './app/helpers/authentication'
+require './app/helpers/errors'
+# Models contain information stored in an Object:
+require './app/models/transaction'
+require './app/models/user'
+# Grape-Entitty are API representations of a Model:
+require './app/entities/transaction'
 
-module PRGov
+module PRGMQ
 	module CAP
 		class API < Grape::API
 
@@ -16,8 +23,17 @@ module PRGov
 			format :json
 
 			helpers do
-				include PRGov::CAP::Library	# General Helper Methods
+				include PRGMQ::CAP::Library	# General Helper Methods
 			end
+
+
+			http_basic do |username, password|
+			  # verify user's password here
+			  Authentication.valid?(username, password)
+			end
+
+			# From here on the user is authenticated. Any checks should be for
+			# specific access.
 
 			## Resource cap:
 			## All the request below require a /v1/ before the resource, ie:
@@ -28,11 +44,12 @@ module PRGov
 						 "to see health information."
 				# Get cap/
 				get '/' do
-					# $MQ.tubes
-					{
-						:api => "CAP",
-						:version => 'v1'
-					}
+					# specify a list of user groups than can access this resource:
+					allowed_groups = ["all"]
+					# validate if this user belongs to the alllowed groups,
+					# if it does, get the User Object, else: we'll safely error out.
+					user = allowed?(env["REMOTE_USER"], allowed_groups)
+					{ :api	=> "CAP", :versions => "#{API::versions}"}
 				end # end of get '/'
 
 				## Resource cap/transaction:
@@ -95,12 +112,10 @@ module PRGov
 								optional :id, type: String, desc: "A valid transaction id."
 							end
 							get do
-									{
-											:transaction =>
-											{
-													:id => "The id is #{params[:id]}"
-											}
-									}
+									allowed_groups = ["admin"]
+									user = allowed?(env["REMOTE_USER"], allowed_groups)
+									@transaction = Transaction.new
+									present @transaction, with: PRGMQ::CAP::Entities::Transaction
 							end
 
 							# DELETE /v1/cap/transaction/:id
