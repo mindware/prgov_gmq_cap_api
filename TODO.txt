@@ -8,6 +8,7 @@
 	Pending: 
 		1. ☐ Basic Authentication
 		2. ☐ Fiber-based connection to APMQ
+		3. ☐ Add checks for user group access rights to resource
 
 ---
 Auto-generated using: github.com/mindware/todo
