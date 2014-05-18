@@ -1,1 +1,1 @@
-{"CAP API":{"+Tasks":{"Pending":["Basic Authentication","Fiber-based connection to APMQ","Add checks for user group access rights to resource"],"Done":[]}}}
+{"CAP API":{"+Tasks":{"Pending":["Basic Authentication","Fiber-based connection to APMQ","Add checks for user group access rights to resource","Add Syslog support for logger.","Evaluate em-logger - https://github.com/melito/em-syslog"],"Done":[]}}}

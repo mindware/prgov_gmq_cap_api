@@ -3,7 +3,8 @@ source "https://rubygems.org"
 
 gem 'tilt'
 gem 'goliath'
-gem 'grape' 
+gem 'grape'
+gem 'grape-entity' 
 gem 'dotenv'
 gem 'foreman'
-gem 'erubis' # for auto escaping HTML - http://www.sinatrarb.com/faq.html#escape_html 
+gem 'erubis' # for auto escaping HTML - http://www.sinatrarb.com/faq.html#escape_html
