@@ -9,6 +9,8 @@
 		1. ☐ Basic Authentication
 		2. ☐ Fiber-based connection to APMQ
 		3. ☐ Add checks for user group access rights to resource
+		4. ☐ Add Syslog support for logger.
+		5. ☐ Evaluate em-logger - https://github.com/melito/em-syslog
 
 ---
 Auto-generated using: github.com/mindware/todo

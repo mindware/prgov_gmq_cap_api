@@ -15,7 +15,7 @@ class Server < Goliath::API
 				[200, {}, erb(:index, :views => Goliath::Application.root_path('public'))]
 		else
 			# everything else, we route through the Grape RESTful API
-			PRGov::CAP::API.call(env)
+			PRGMQ::CAP::API.call(env)
 		end
 	end
 end # end of class
