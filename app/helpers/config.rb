@@ -5,25 +5,39 @@ module PRGMQ
       class Config
 
           class << self
-              attr_reader :data, :backtrace_errors
+              attr_reader :all, :backtrace_errors, :debug, :users
           end
 
           # def error(str)
           #   logger.warning str
           # end
 
-          @data = nil
+          @all = nil
+          # Set debug to true if we're in development mode.
+          @debug = (Goliath.env.to_s == "development")
           @backtrace_errors = false
 
+          # Returns the entire config for users. Used for authentication
+          # so this hash will contain passkeys. Tread lightly.
+          def self.users
+            # Make sure the server's config is loaded. Loads it if it isn't.
+            self.check
+            # @all["users"] = nil
+            return @all["users"] if @all.has_key? "users"
+            # if for some reason it doesn't exist, and no users exist,
+            # so lets create the empty list in memory.
+            @all["users"] = {}
+            return @all["users"]
+          end
 
           def self.check
-              if @data.nil?
-                 puts "Loading configuration."
-                 @data = self.load_config
+              if @all.nil?
+                @all = self.load_config
+                 puts "Loading configuration." if @debug
               else
-                 puts "Configuration already loaded. #{@data}"
+                 puts "Reading configuration from memory." if @debug
               end
-              true
+              return true
           end
 
           def self.load_config
@@ -32,15 +46,15 @@ module PRGMQ
              # we won't be doing round trips to check for users in a db,
              # as that will introduce latency into the system. Instead
              # we'll have a file in trusted directory, with salted/hashed
-             # password and a tool to generate passwords for these users. 
+             # password and a tool to generate passwords for these users.
              user_config = get_json_from_file("config/users.json")
              db_config   = get_json_from_file("config/db.json")
-             @data = {
+             @all = {
                          "users" => user_config,
                          "db"    => db_config,
              }
              user_config, db_config = nil,nil
-             return @data
+             return @all
           end
 
         	# Returns the JSON contents of the file.
