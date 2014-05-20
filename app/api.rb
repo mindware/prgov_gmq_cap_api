@@ -7,6 +7,7 @@
 # Load our Libraries, Settings and Helper Methods:
 require 'json'
 require './app/helpers/library'
+require './app/helpers/config'
 require './app/helpers/authentication'
 require './app/helpers/errors'
 # Models contain information stored in an Object:
@@ -22,10 +23,13 @@ module PRGMQ
 			version 'v1'
 			format :json
 
+			# Our middleware to trap exception and return json gracefully.
+			use ApiErrorHandler
+
+			# Our helpers
 			helpers do
 				include PRGMQ::CAP::Library	# General Helper Methods
 			end
-
 
 			http_basic do |username, password|
 			  # verify user's password here
@@ -49,8 +53,20 @@ module PRGMQ
 					# validate if this user belongs to the alllowed groups,
 					# if it does, get the User Object, else: we'll safely error out.
 					user = allowed?(env["REMOTE_USER"], allowed_groups)
-					{ :api	=> "CAP", :versions => "#{API::versions}"}
+					# logger.info "#{user} requested #{route.route_params[params]}"
+					{ :api	=> "CAP", :versions => "#{API::versions}" }
 				end # end of get '/'
+
+				# This resource is here for testing things. It's our own special lab.
+				# Get cap/test
+				get '/test' do
+					# specify a list of user groups than can access this resource:
+					allowed_groups = ["admin"]
+					# validate if this user belongs to the alllowed groups,
+					# if it does, get the User Object, else: we'll safely error out.
+					user = allowed?(env["REMOTE_USER"], allowed_groups)
+					{ :object => Config.data }
+				end # end of get '/test'
 
 				## Resource cap/transaction:
 				group :transaction do
