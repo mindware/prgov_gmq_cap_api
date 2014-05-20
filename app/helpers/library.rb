@@ -24,10 +24,12 @@ module PRGMQ
 
 			def logger
 				# This will return an instance of the Logger class from Ruby's
-				# standard library.
+				# standard library. The standard logger class is Thread-safe, btw.
 				API.logger
+				# API.logger.new('foo.log', 10, 1024000)
+				# Grape::API.logger = Logger.new(File.expand_path("../logs/#{ENV['RACK_ENV']}.log", __FILE__))
 			end
-			
+
 		end
 	end
 end
