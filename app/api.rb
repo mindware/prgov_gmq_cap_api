@@ -65,7 +65,17 @@ module PRGMQ
 					# validate if this user belongs to the alllowed groups,
 					# if it does, get the User Object, else: we'll safely error out.
 					user = allowed?(env["REMOTE_USER"], allowed_groups)
-					{ :object => Config.data }
+					{ :test_data => Config.all}
+				end # end of get '/test'
+
+				# This resource is here for admins.
+				get '/users' do
+					# specify a list of user groups than can access this resource:
+					allowed_groups = ["admin"]
+					# validate if this user belongs to the alllowed groups,
+					# if it does, get the User Object, else: we'll safely error out.
+					user = allowed?(env["REMOTE_USER"], allowed_groups)
+					{ :users => user_list }
 				end # end of get '/test'
 
 				## Resource cap/transaction:
