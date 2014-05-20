@@ -7,7 +7,10 @@ module PRGMQ
 						 "\n#{e.inspect}\n#{e.backtrace.join("\n")}"
 			end
 
-			# Determines if this user is allowed by belonging to an authorized group.
+			# When this is called, the user has *already* been authenticated.
+			# He had proper credentials to get into the API. Here we retrieve his
+			# groups to check if he is able to access a resource only available to
+			# allowed_groups.
 			def allowed?(username, allowed_groups)
 				user = Authentication.find_user(username)
 				# User should exist because we passed basic_auth to get here,
@@ -28,6 +31,11 @@ module PRGMQ
 				API.logger
 				# API.logger.new('foo.log', 10, 1024000)
 				# Grape::API.logger = Logger.new(File.expand_path("../logs/#{ENV['RACK_ENV']}.log", __FILE__))
+			end
+
+			def user_list
+					Config.users.keys if Config.users.keys.length > 0
+					# ["hi", "ho"]
 			end
 
 		end
