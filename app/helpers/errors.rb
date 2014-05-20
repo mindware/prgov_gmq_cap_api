@@ -39,6 +39,9 @@ module PRGMQ
               message["error"]["app_exception_error"]       = e.message
             end
 
+            # Add the name of the exception to all errors.
+            message["error"]["app_exception"] = "#{self.to_s}"
+
             if(PRGMQ::CAP::Config.backtrace_errors)
               # Provide a full backtrace:
               message["error"]["app_exception_backtrace"] = e.backtrace
@@ -61,8 +64,7 @@ module PRGMQ
                       "http_code" => 500,
                       "app_error" => "An unexpected internal error "+
                                      "has occurred.",
-                      "app_code" => 6000,
-                      "app_exception" => "#{self.to_s}",
+                      "app_code" => 6000
                     }
         }
       end
@@ -85,8 +87,7 @@ module PRGMQ
                        "http_code" => 401,
                        "app_error" => "Unauthorized: Username or "+
                                      "password is incorrect.",
-                       "app_code" => 4000,
-                       "exception" => "#{self.to_s}"
+                       "app_code" => 4000
                     }
         }
       end
@@ -98,8 +99,7 @@ module PRGMQ
                         "http_code" => 403 ,
                         "app_error" => "Forbidden: Your credentials do"+
                         " not allow you access to that resource.",
-                        "app_code" => 4500,
-                        "exception" => "#{self.to_s}"
+                        "app_code" => 4500
                     }
         }
       end
@@ -113,8 +113,7 @@ module PRGMQ
                        "improperly configured access group. "+
                        "The administrator needs to set a proper array as a "+
                        "data structure for the access group.",
-                       "app_code" => 6001,
-                       "exception" => "#{self.to_s}"
+                       "app_code" => 6001
                     }
         }
       end
@@ -128,8 +127,7 @@ module PRGMQ
                                     " group. The user database needs a proper "+
                                     "array as a data structure for the access "+
                                     "group.",
-                       "app_code" => 6001,
-                       "exception" => "#{self.to_s}"
+                       "app_code" => 6001
                     }
         }
       end
@@ -140,8 +138,7 @@ module PRGMQ
         { "error" => { "http_message" => "500 Internal Server Error",
                        "http_code" => 500,
                        "app_error"  => "The configuration could not be read.",
-                       "app_code" => 6002,
-                       "exception" => "#{self.to_s}"
+                       "app_code" => 6002
                     }
         }
       end
@@ -153,8 +150,31 @@ module PRGMQ
                        "http_code" => 500,
                        "app_error"  => "The API's configuration file is invalid "+
                                        "and could not be parsed.",
-                       "app_code" => 6002,
-                       "exception" => "#{self.to_s}"
+                       "app_code" => 6003
+                    }
+        }
+      end
+    end
+
+    class InvalidUserGroup < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_message" => "500 Internal Server Error",
+                       "http_code" => 500,
+                       "app_error"  => "The user's config has an invalid or "+
+                                       "missing security group.",
+                       "app_code" => 6004
+                    }
+        }
+      end
+    end
+
+    class InvalidPasskeyLength < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_message" => "500 Internal Server Error",
+                       "http_code" => 500,
+                       "app_error"  => "The system configured passkey for "+
+                                    "the user is of an invalid length.",
+                       "app_code" => 6005
                     }
         }
       end
