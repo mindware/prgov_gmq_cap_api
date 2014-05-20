@@ -1,3 +1,4 @@
+Please read this document before modifying any of the files. 
 You need the following properly JSON formatted files in this directory:
 - users.json
 - db.json
@@ -33,3 +34,7 @@ The second is 'db.json' which will contain the configuration for storage systems
   "storage01"     : { "user" : "password", "ip" : "xxx.xxx.xxx.xxx"},
   "storage02"     : { "user" : "password", "ip" : "xxx.xxx.xxx.xxx"}
 }
+
+-----
+A restart is required after any configuration files, due to the file being loaded
+in memory to avoid heavy IO use. 
