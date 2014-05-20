@@ -2,18 +2,27 @@ module PRGMQ
   module CAP
     class Authentication
 
+        # class << self
+        #     attr_reader :DB
+        # end
+
         def self.valid?(username=nil, password=nil)
             return false if(username.to_s.length == "" or password.to_s.length == "")
+
+            # Make sure the server's config is loaded. Loads it if it isn't.
+            if (PRGMQ::CAP::Config.check)
+            end
+
             # We'll have to change this in the future so that we actually authenticate
             # against some system
 
             #### CHANGE THIS INTEGRATE REDIS
-            # if redis is down, return peropr error:
+            # if redis is down, return proper error:
             #
             # Redis.get_record(user) if Redis.record_exists(username, password)
             # when succcessful, return the user and their access
             # (ie: web, policia, sijc, admin):
-            if((username == "andres" or username == "policia") and password == "password")
+            if((username == "dev" or username == "policia") and password == "password")
               return true
             else
               return false
@@ -36,8 +45,8 @@ module PRGMQ
             return false if(username.to_s.length == "")
             # Fetch user
             #### CHANGE THIS INTEGRATE REDIS
-            groups = ["admin"] if(username == "andres")
-            groups = ["policia"] if(username == "policia")
+            groups = ["admin"] if(username == "dev")
+            groups = ["policia", "admin"] if(username == "policia")
             return User.new(username, groups)
         end
 
