@@ -1,3 +1,5 @@
+require 'digest/md5'
+
 module PRGMQ
   module CAP
     class Authentication
@@ -9,27 +11,27 @@ module PRGMQ
         def self.valid?(username=nil, password=nil)
             return false if(username.to_s.length == "" or password.to_s.length == "")
 
-            # Make sure the server's config is loaded. Loads it if it isn't.
-            if (PRGMQ::CAP::Config.check)
-            end
-
-            # We'll have to change this in the future so that we actually authenticate
-            # against some system
-
-            #### CHANGE THIS INTEGRATE REDIS
-            # if redis is down, return proper error:
-            #
-            # Redis.get_record(user) if Redis.record_exists(username, password)
-            # when succcessful, return the user and their access
-            # (ie: web, policia, sijc, admin):
-            if((username == "dev" or username == "policia") and password == "password")
-              return true
+            if(Config.users.has_key? username)
+              # We currently require all password salts to be of length 24, based on
+              # the tool generation we've provided's SecureRandom implementation
+              # If this doesn't match, someone messed up a passkey manually.
+              raise InvalidPasskeyLength if(Config.users[username]["passkey"].length < 24)
+              salt = Config.users[username]["passkey"][0..23]
+              secure_password = Config.users[username]["passkey"][24..-1]
+              password = Digest::MD5.hexdigest(password + salt)
+              if(password == secure_password)
+                return true
+              else
+                return false
+              end
             else
               return false
             end
         end
 
-        # Finds a user by name.
+        # Finds a user by name. This is a user that has *already*
+        # been authenticated by the system using basic_authentication.
+        #
         # Since Grape can't store the credentials when it delegates
         # basic authentication to Rack, we must do this find here.
         # If we ever figure out how to save a result from the initial
@@ -44,10 +46,11 @@ module PRGMQ
         def self.find_user(username=nil)
             return false if(username.to_s.length == "")
             # Fetch user
-            #### CHANGE THIS INTEGRATE REDIS
-            groups = ["admin"] if(username == "dev")
-            groups = ["policia", "admin"] if(username == "policia")
-            return User.new(username, groups)
+            if(Config.users.has_key? username)
+                return User.new(username, Config.users[username]["groups"])
+            else
+              return false
+            end
         end
 
     end
