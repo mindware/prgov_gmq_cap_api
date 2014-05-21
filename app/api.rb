@@ -4,16 +4,22 @@
 # CAP API 2014 (c) Office of the CIO of Puerto Rico
 # Developed by: Andrés Colón Pérez for Office of the CIO
 # For: Estado Libre Asociado de Puerto Rico
-# Load our Libraries, Settings and Helper Methods:
+
+# Load our external libraries
+require 'redis/connection/synchrony'
+require 'redis'
 require 'json'
+
+# Load our Settings and Helper Methods:
 require './app/helpers/library'
+require './app/helpers/storage'
 require './app/helpers/config'
 require './app/helpers/authentication'
 require './app/helpers/errors'
-# Models contain information stored in an Object:
+# Load our Models. Models contain information stored in an Object:
 require './app/models/transaction'
 require './app/models/user'
-# Grape-Entitty are API representations of a Model:
+# Load our Entities. Grape-Entities are API representations of a Model:
 require './app/entities/transaction'
 
 module PRGMQ
@@ -28,7 +34,9 @@ module PRGMQ
 
 			# Our helpers
 			helpers do
-				include PRGMQ::CAP::Library	# General Helper Methods
+				include PRGMQ::CAP::LibraryHelper	# General Helper Methods
+				include PRGMQ::CAP::StorageHelper  # Storage Helper Methods
+
 			end
 
 			http_basic do |username, password|
@@ -48,11 +56,10 @@ module PRGMQ
 						 "to see health information."
 				# Get cap/
 				get '/' do
-					# specify a list of user groups than can access this resource:
-					allowed_groups = ["all"]
+					# specify a list of user groups than can access this resource
 					# validate if this user belongs to the alllowed groups,
 					# if it does, get the User Object, else: we'll safely error out.
-					user = allowed?(env["REMOTE_USER"], allowed_groups)
+					user = allowed?(["all"])
 					# logger.info "#{user} requested #{route.route_params[params]}"
 					{ :api	=> "CAP", :versions => "#{API::versions}" }
 				end # end of get '/'
@@ -61,20 +68,13 @@ module PRGMQ
 				# Get cap/test
 				get '/test' do
 					# specify a list of user groups than can access this resource:
-					allowed_groups = ["admin"]
-					# validate if this user belongs to the alllowed groups,
-					# if it does, get the User Object, else: we'll safely error out.
-					user = allowed?(env["REMOTE_USER"], allowed_groups)
-					{ :test_data => Config.all}
+					user = allowed?(["admin"])
+					{ :test_data =>  redis.get("mkey")}
 				end # end of get '/test'
 
 				# This resource is here for admins.
 				get '/users' do
-					# specify a list of user groups than can access this resource:
-					allowed_groups = ["admin"]
-					# validate if this user belongs to the alllowed groups,
-					# if it does, get the User Object, else: we'll safely error out.
-					user = allowed?(env["REMOTE_USER"], allowed_groups)
+					user = allowed?(["admin"])
 					{ :users => user_list }
 				end # end of get '/test'
 
@@ -90,6 +90,7 @@ module PRGMQ
 								requires :status, type: String, desc: "A valid status id."
 							end
 							get "/" do
+								user = allowed?(["all"])
 										{
 									     :transactions =>
 											 {
@@ -115,6 +116,10 @@ module PRGMQ
 								desc "Returns relevant status information on a specific "+
 										 "transaction id."
 								get "/" do
+										# so long as we only return general status info, we can
+										# leave this open to all systems. If we start providing
+										# specific user information, then only admin and workers.
+										user = allowed?(["all"])
 										{
 										    "transaction" => {
 										        "id" => "0-123-456",
@@ -138,8 +143,7 @@ module PRGMQ
 								optional :id, type: String, desc: "A valid transaction id."
 							end
 							get do
-									allowed_groups = ["admin"]
-									user = allowed?(env["REMOTE_USER"], allowed_groups)
+									user = allowed?(["admin", "worker"])
 									@transaction = Transaction.new
 									present @transaction, with: PRGMQ::CAP::Entities::Transaction
 							end
@@ -147,13 +151,14 @@ module PRGMQ
 							# DELETE /v1/cap/transaction/:id
 							desc "Deletes a specific transaction id so it cannot be processed. "+
 									"This will likely move the transaction to an alternative "+
-									"repository in the future, uso as to archive it. This is "+
+									"repository in the future, in order to archive it. This is "+
 									"mainly to be used by workers, or for administrative purposes"+
 									" such as when duplicates are detected."
 							params do
 								requires :id, type: String, desc: "A valid transaction id."
 							end
 							delete do
+								user = allowed?(["admin", "worker"])
 								{
 										"0-123-456" => "deleted"
 								}
@@ -164,6 +169,7 @@ module PRGMQ
 						desc "Returns an estimated number of existing transactions in "+
 								"the CAP Transaction system."
 						get '/' do
+							user = allowed?(["all"])
 							{
 								"transactions" =>
 								{
@@ -184,18 +190,19 @@ module PRGMQ
 							requires :payload, type: String, desc: "A valid transaction payload."
 						end
 						post '/' do
-						{
-						    "transaction" =>
-								{
-						        "id" => "0-123-456",
-						        "action" => {
-						            "id" => 1,
-						            "description" => "validating identity and rapsheet with DTOP & SIJC"
-						         },
-						        "status" => "pending",
-						        "location" => "prgmq_validate_rapsheet_with_sijc_queue",
-						    }
-						}
+							allowed_groups = ["admin", "webapp"]
+							{
+							    "transaction" =>
+									{
+							        "id" => "0-123-456",
+							        "action" => {
+							            "id" => 1,
+							            "description" => "validating identity and rapsheet with DTOP & SIJC"
+							         },
+							        "status" => "pending",
+							        "location" => "prgmq_validate_rapsheet_with_sijc_queue",
+							    }
+							}
 						end
 
 						# PUT /v1/cap/transaction/
@@ -209,35 +216,36 @@ module PRGMQ
 							requires :payload, type: String, desc: "A valid transaction payload."
 						end
 						post '/' do
-						{
-							    "transaction"=> {
-							        "id" => "0-123-456",
-							        "current_error_count" => 0,
-							        "total_error_count" => 1,
-							        "action" => {
-							            "id" => 10,
-							            "description" => "sending certificate via email"
-							         },
-							        "email" => "levipr@gmail.com",
-							        "history" => {
-							           "created_at"  => "5/10/2014 2=>30=>00AM",
-							           "updated_at" => "5/10/2014 2=>36=>53AM",
-							           "updates" => {
-							             "5/10/2014 2=>31=>00AM" => "Updating email per user request=> (params=> ‘email’ => ‘levipr@gmail.com’) ",
-							           },
-							           "failed" => {
-							                 "5/10/2014 2=>36=>52AM" => {
-							                        "sijc_rci_validate_dtop" => {
-							                                     "http_code" =>  502,
-							                                     "app_code" =>  8001,
-							                         },
-							                  },
-							            },
-											 },
-							         "status" => "processing",
-							         "location" => "prgmq_email_certificate_queue",
-							    }
-							}
+							user = allowed?(["admin", "worker"])
+							{
+								    "transaction"=> {
+								        "id" => "0-123-456",
+								        "current_error_count" => 0,
+								        "total_error_count" => 1,
+								        "action" => {
+								            "id" => 10,
+								            "description" => "sending certificate via email"
+								         },
+								        "email" => "levipr@gmail.com",
+								        "history" => {
+								           "created_at"  => "5/10/2014 2=>30=>00AM",
+								           "updated_at" => "5/10/2014 2=>36=>53AM",
+								           "updates" => {
+								             "5/10/2014 2=>31=>00AM" => "Updating email per user request=> (params=> ‘email’ => ‘levipr@gmail.com’) ",
+								           },
+								           "failed" => {
+								                 "5/10/2014 2=>36=>52AM" => {
+								                        "sijc_rci_validate_dtop" => {
+								                                     "http_code" =>  502,
+								                                     "app_code" =>  8001,
+								                         },
+								                  },
+								            },
+												 },
+								         "status" => "processing",
+								         "location" => "prgmq_email_certificate_queue",
+								    }
+								}
 						end
 				end # end of group: Resource cap/transaction:
 			end
