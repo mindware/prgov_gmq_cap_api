@@ -4,13 +4,10 @@ module PRGMQ
         attr_reader :name, :groups
 
         def initialize(name, groups)
-          raise InvalidUserGroup if groups.class != Array
           # if for some reason a user wasn't configured with a proper
-          # group, we delete whatever it is that was stored and
-          # setup the group properly. - Nevermind, we'll error out.
-          # if(groups.class != Array)
-          #    groups = []
-          # end
+          # group, we'll error out. This will let the admins know
+          # to properly configure the user.
+          raise InvalidUserGroup if groups.class != Array
           @name = name
           # By default, always add the 'all' group.
           # This group doesn't need to be stored in the server, since
