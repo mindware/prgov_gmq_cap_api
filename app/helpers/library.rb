@@ -1,6 +1,6 @@
 module PRGMQ
 	module CAP
-		module Library
+		module LibraryHelper
 
 			def error(e)
 				puts "::Error:: PRGMQ CAP API Server encountered an error: "+
@@ -11,8 +11,8 @@ module PRGMQ
 			# He had proper credentials to get into the API. Here we retrieve his
 			# groups to check if he is able to access a resource only available to
 			# allowed_groups.
-			def allowed?(username, allowed_groups)
-				user = Authentication.find_user(username)
+			def allowed?(allowed_groups)
+				user = Authentication.find_user(env["REMOTE_USER"])
 				# User should exist because we passed basic_auth to get here,
 				# but just in case it got deleted after we got acess, throw an error:
 				error!(InvalidCredentials.data,  InvalidCredentials.http_code) if(!user)
