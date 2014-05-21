@@ -15,6 +15,8 @@
 		7. ☐ Creat script to generate user db. Prompt for each user. Gen PWD.
 		8. ☐ Fix the logger.
 		9. ☐ Add Pass-key support. Extract salt from pass-key, validate password.
+		10. ☐ On deploying Goliath behind HAProxy https://github.com/postrank-labs/goliath/wiki/HAProxy
+		11. ☐ https://github.com/twitter/twemproxy - Redis Proxy
 
 ---
 Auto-generated using: github.com/mindware/todo
