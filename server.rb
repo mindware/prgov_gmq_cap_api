@@ -11,14 +11,14 @@ class Server < Goliath::API
 	# respond to http requests
 
 	def initialize()
-		puts "PR.Gov CAP Server is starting up in #{Goliath.env.to_s.capitalize}"
+		puts "PR.Gov's GMQ API Server is starting up in #{Goliath.env.to_s.capitalize}"
 	end
 
 	def response(env)
 		# any specific html document request that meets a criteria, we handle
 		# through the public directory:
-			if env['REQUEST_PATH'] == '/admin' or env['REQUEST_PATH'] == '/admin/'
-				[200, {}, erb(:index, :views => Goliath::Application.root_path('public'))]
+		if env['REQUEST_PATH'] == '/admin' or env['REQUEST_PATH'] == '/admin/'
+			[200, {}, erb(:index, :views => Goliath::Application.root_path('public'))]
 		else
 			# everything else, we route through the Grape RESTful API
 			PRGMQ::CAP::API.call(env)
