@@ -5,7 +5,8 @@ module PRGMQ
       class Config
 
           class << self
-              attr_reader :all, :backtrace_errors, :debug, :users
+              attr_reader :all, :backtrace_errors, :debug, :users, :downtime
+              attr_writer :downtime
           end
 
           # def error(str)
@@ -15,7 +16,10 @@ module PRGMQ
           @all = nil
           # Set debug to true if we're in development mode.
           @debug = (Goliath.env.to_s == "development")
+          # @debug = false
           @backtrace_errors = false
+          # variable that determines if we're down for maintenance.
+          @downtime = false
 
           # Returns the entire config for users. Used for authentication
           # so this hash will contain passkeys. Tread lightly.
@@ -74,7 +78,7 @@ module PRGMQ
           		file.close()
               rescue Exception => e
                 # When in doubt, print errors.
-                raise InvalidConfigFile
+                raise MissingConfigFile
               end
               begin
           		# convert the data to JSON:
