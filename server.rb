@@ -17,7 +17,7 @@ class Server < Goliath::API
 	def response(env)
 		# any specific html document request that meets a criteria, we handle
 		# through the public directory:
-		if env['REQUEST_PATH'] == '/admin' or env['REQUEST_PATH'] == '/admin/'
+		if env['REQUEST_PATH'] == '/admin' or env['REQUEST_PATH'] == '/panel/'
 			[200, {}, erb(:index, :views => Goliath::Application.root_path('public'))]
 		else
 			# everything else, we route through the Grape RESTful API
