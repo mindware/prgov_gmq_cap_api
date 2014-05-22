@@ -81,6 +81,285 @@ module PRGMQ
 
     class InvalidURL < RuntimeError; end
 
+    class MissingTransactionId < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: id is required.",
+                       "app_code" => 1000
+                    }
+        }
+      end
+    end
+
+    class MissingEmail < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: email is required.",
+                       "app_code" => 1001
+                    }
+        }
+      end
+    end
+
+    class MissingCertificateBase64 < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: certificate_base64 is required.",
+                       "app_code" => 1002
+                    }
+        }
+      end
+    end
+
+    class MissingSSN < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: ssn is required.",
+                       "app_code" => 1003
+                    }
+        }
+      end
+    end
+
+    class MissingLicenseNumber < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: license_number is required.",
+                       "app_code" => 1004
+                    }
+        }
+      end
+    end
+
+    class MissingFirstName < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: first_name is required.",
+                       "app_code" => 1005
+                    }
+        }
+      end
+    end
+
+    class MissingLastName < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: last_name is required.",
+                       "app_code" => 1006
+                    }
+        }
+      end
+    end
+
+    class MissingBirthDate < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: birth_date is required.",
+                       "app_code" => 1007
+                    }
+        }
+      end
+    end
+
+    class MissingResidency < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: residency is required.",
+                       "app_code" => 1008
+                    }
+        }
+      end
+    end
+
+    class MissingIP < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: last_name is required.",
+                       "app_code" => 1009
+                    }
+        }
+      end
+    end
+
+    class MissingStatus < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: status is required.",
+                       "app_code" => 1010
+                    }
+        }
+      end
+    end
+
+    class MissingReason < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: reason is required.",
+                       "app_code" => 1011
+                    }
+        }
+      end
+    end
+
+    class InvalidId < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid transaction id provided.",
+                       "app_code" => 2000
+                    }
+        }
+      end
+    end
+
+    class InvalidEmail < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid email provided.",
+                       "app_code" => 2001
+                    }
+        }
+      end
+    end
+
+    class InvalidStatus < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid transaction status. A valid "+
+                       "transaction status is one of the following: completed,"+
+                       " pending, retry, processing, failed.",
+                       "app_code" => 2002
+                    }
+        }
+      end
+    end
+
+    class InvalidSSN < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid ssn provided.",
+                       "app_code" => 2002
+                    }
+        }
+      end
+    end
+
+    class InvalidSSN < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid ssn provided.",
+                       "app_code" => 2003
+                    }
+        }
+      end
+    end
+
+    class InvalidLicenseNumber < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid license_number provided.",
+                       "app_code" => 2004
+                    }
+        }
+      end
+    end
+
+    class InvalidName < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid name provided.",
+                       "app_code" => 2005
+                    }
+        }
+      end
+    end
+
+
+    class InvalidBirthDate < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid birth_date provided.",
+                       "app_code" => 2006
+                    }
+        }
+      end
+    end
+
+    class InvalidResidency < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid residency provided.",
+                       "app_code" => 2007
+                    }
+        }
+      end
+    end
+
+    class InvalidIP < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid IP provided.",
+                       "app_code" => 2008
+                    }
+        }
+      end
+    end
+
+    class InvalidReason < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid reason provided.",
+                       "app_code" => 2009
+                    }
+        }
+      end
+    end
+
+    class InvalidCertificateBase64 < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid certificate_base64 provided.",
+                       "app_code" => 2010
+                    }
+        }
+      end
+    end
+
+    class InvalidActiveParameters < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid activate value provided "+
+                                      "(only true or false allowed).",
+                       "app_code" => 2010
+                    }
+        }
+      end
+    end
+
     class InvalidCredentials < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_error" => "401 Unauthorized",
@@ -95,11 +374,37 @@ module PRGMQ
 
     class InvalidAccess < PRGMQ::CAP::AppError
       def self.data
-        { "error" => {  "http_error" => "403 Unauthorized",
+        { "error" => {  "http_error" => "403 Forbidden",
                         "http_code" => 403 ,
                         "app_error" => "Forbidden: Your credentials do"+
                         " not allow you access to that resource.",
                         "app_code" => 4500
+                    }
+        }
+      end
+    end
+
+    class ResourceNotFound < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => {  "http_error" => "404 Not Found",
+                        "http_code" => 404,
+                        "app_error" => "Invalid resource request. The resource"+
+                        " provided in the URL doesn't exist. Check the API "+
+                        "documentation and version for valid URL resources.",
+                        "app_code" => 5000
+                    }
+        }
+      end
+    end
+
+    class ItemNotFound < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => {  "http_error" => "404 Not Found",
+                        "http_code" => 404,
+                        "app_error" => "The requested item could not be found."+
+                        " The item might've expired, been deleted or may have "+
+                        "never existed.",
+                        "app_code" => 5001
                     }
         }
       end
@@ -119,25 +424,12 @@ module PRGMQ
       end
     end
 
-    class InvalidAccessGroup < PRGMQ::CAP::AppError
-      def self.data
-        { "error" => { "http_message" => "500 Internal Server Error",
-                       "http_code" => 500,
-                       "app_error"  => "The user has an invalid access"+
-                                    " group. The user database needs a proper "+
-                                    "array as a data structure for the access "+
-                                    "group.",
-                       "app_code" => 6001
-                    }
-        }
-      end
-    end
-
     class MissingConfigFile < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_message" => "500 Internal Server Error",
                        "http_code" => 500,
-                       "app_error"  => "The configuration could not be read.",
+                       "app_error"  => "The configuration file is missing or "+
+                                       "access to it is unavailable",
                        "app_code" => 6002
                     }
         }
@@ -148,20 +440,20 @@ module PRGMQ
       def self.data
         { "error" => { "http_message" => "500 Internal Server Error",
                        "http_code" => 500,
-                       "app_error"  => "The API's configuration file is invalid "+
-                                       "and could not be parsed.",
+                       "app_error"  => "The API's configuration file is "+
+                                       "invalid and could not be parsed.",
                        "app_code" => 6003
                     }
         }
       end
     end
 
-    class InvalidUserGroup < PRGMQ::CAP::AppError
+    class MissingAccessGroup < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_message" => "500 Internal Server Error",
                        "http_code" => 500,
-                       "app_error"  => "The user's config has an invalid or "+
-                                       "missing security group.",
+                       "app_error"  => "The user's config is missing "+
+                                       "a security group.",
                        "app_code" => 6004
                     }
         }
@@ -175,6 +467,42 @@ module PRGMQ
                        "app_error"  => "The system configured passkey for "+
                                     "the user is of an invalid length.",
                        "app_code" => 6005
+                    }
+        }
+      end
+    end
+
+    class GMQUnavailable < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_message" => "502 Internal Server Error",
+                       "http_code" => 502,
+                       "app_error"  => "The Government Message "+
+                                       "Queue could not be accessed.",
+                       "app_code" => 7000
+                    }
+        }
+      end
+    end
+
+    class StorageUnavailable < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_message" => "502 Internal Server Error",
+                       "http_code" => 502,
+                       "app_error"  => "The Transaction Storage could not be "+
+                                       "accessed.",
+                       "app_code" => 7001
+                    }
+        }
+      end
+    end
+
+    class ServiceUnavailable < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_message" => "503 Service Unavailable",
+                       "http_code" => 502,
+                       "app_error"  => "This service is currently "+
+                                       "unavailable. Down for maintenance.",
+                       "app_code" => 8000
                     }
         }
       end
