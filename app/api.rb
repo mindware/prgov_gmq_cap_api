@@ -36,12 +36,17 @@ module PRGMQ
 			helpers do
 				include PRGMQ::CAP::LibraryHelper	# General Helper Methods
 				include PRGMQ::CAP::StorageHelper  # Storage Helper Methods
-
 			end
 
 			http_basic do |username, password|
 			  # verify user's password here
 			  Authentication.valid?(username, password)
+			end
+
+
+			before do
+				# If the system is down for maintenance, let the users know:
+			  error!(ServiceUnavailable.data, ServiceUnavailable.http_code) if Config.downtime
 			end
 
 			# From here on the user is authenticated. Any checks should be for
@@ -64,19 +69,43 @@ module PRGMQ
 					{ :api	=> "CAP", :versions => "#{API::versions}" }
 				end # end of get '/'
 
-				# This resource is here for testing things. It's our own special lab.
-				# Get cap/test
-				get '/test' do
-					# specify a list of user groups than can access this resource:
-					user = allowed?(["admin"])
-					{ :test_data =>  redis.get("mkey")}
-				end # end of get '/test'
 
-				# This resource is here for admins.
-				get '/users' do
-					user = allowed?(["admin"])
-					{ :users => user_list }
-				end # end of get '/test'
+				group :admin do
+					# This resource is here for testing things. It's our own special lab.
+					# Get cap/test
+					get '/test' do
+						# only allowed if we're in development or testing. Disabled on production.
+						if(Goliath.env.to_s == "development" or Goliath.env.to_s.include? == "test")
+							# specify a list of user groups than can access this resource:
+							user = allowed?(["admin"])
+							{ :test_data =>  redis.get("mkey")}
+						else
+							error!(ResourceNotFound.data,  ResourceNotFound.http_code)
+						end
+					end # end of get '/test'
+
+
+					# This resource is here for testing things. It's our own special lab.
+					# Get cap/maintenance
+					desc "Actives or deactives the system maintenance mode."
+					params do
+						optional :activate, type: Boolean, desc: "A boolean value that "+
+																		"determines if we're down for maintenance."
+					end
+					get '/maintenance' do
+						user = allowed?(["admin"])
+						return {"maintenance_status" => Config.downtime } if :activate.nil?
+						Config.downtime = :activate
+						{ "maintenance" => Config.downtime}
+					end # end of get '/maintenance'
+
+					# This resource is here for admins.
+					get '/users' do
+						user = allowed?(["admin"])
+						{ :users => user_list }
+					end # end of get '/test'
+
+				end # end of the administrator group
 
 				## Resource cap/transaction:
 				group :transaction do
@@ -247,7 +276,53 @@ module PRGMQ
 								    }
 								}
 						end
+
+
+						# PUT /v1/cap/transaction/certificate_ready
+						desc "."
+						params do
+							# Remove the following and add actual parameters later.
+							requires :payload, type: String, desc: "A valid transaction payload."
+						end
+						post '/' do
+							user = allowed?(["admin", "worker"])
+							{
+										"transaction"=> {
+												"id" => "0-123-456",
+												"current_error_count" => 0,
+												"total_error_count" => 1,
+												"action" => {
+														"id" => 10,
+														"description" => "sending certificate via email"
+												},
+												"email" => "levipr@gmail.com",
+												"history" => {
+													"created_at"  => "5/10/2014 2=>30=>00AM",
+													"updated_at" => "5/10/2014 2=>36=>53AM",
+													"updates" => {
+														"5/10/2014 2=>31=>00AM" => "Updating email per user request=> (params=> ‘email’ => ‘levipr@gmail.com’) ",
+													},
+													"failed" => {
+																"5/10/2014 2=>36=>52AM" => {
+																				"sijc_rci_validate_dtop" => {
+																										"http_code" =>  502,
+																										"app_code" =>  8001,
+																				},
+																	},
+														},
+												},
+												"status" => "processing",
+												"location" => "prgmq_email_certificate_queue",
+										}
+								}
+						end
 				end # end of group: Resource cap/transaction:
+			end
+
+			# This must always be the bottom route, nothing must be below it,
+			# this is a catch all to return proper 404 errors.
+			route :any, '*path' do
+			  error!(ResourceNotFound.data, ResourceNotFound.http_code) # or something else
 			end
 		end
 	end
