@@ -94,8 +94,8 @@ module PRGMQ
 					end
 					get '/maintenance' do
 						user = allowed?(["admin"])
-						return {"maintenance_status" => Config.downtime } if :activate.nil?
-						Config.downtime = :activate
+						return {"maintenance_status" => Config.downtime } if params[:activate].nil?
+						Config.downtime = params[:activate]
 						{ "maintenance" => Config.downtime}
 					end # end of get '/maintenance'
 

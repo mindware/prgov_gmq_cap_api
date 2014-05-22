@@ -38,7 +38,7 @@ class Gmq < Thor
 			# authenticate. Users must safeguard their passwords once generated
 			# and the passwords must travel through a tunnel on insecure lines.
 			random_salt = SecureRandom.hex(12)
-			random_password = SecureRandom.hex
+			random_password = SecureRandom.hex(12)
 			hash = Digest::MD5.hexdigest(random_password + random_salt)
 			puts "Hand this password (securely) to the user: #{random_password}"
 			puts "The salt for the system: #{random_salt}"
