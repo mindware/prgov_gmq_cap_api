@@ -30,7 +30,6 @@ module PRGMQ
 
 			def user_list
 					Config.users.keys if Config.users.keys.length > 0
-					# ["hi", "ho"]
 			end
 
 		end
