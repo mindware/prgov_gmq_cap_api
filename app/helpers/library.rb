@@ -2,11 +2,6 @@ module PRGMQ
 	module CAP
 		module LibraryHelper
 
-			def error(e)
-				puts "::Error:: PRGMQ CAP API Server encountered an error: "+
-						 "\n#{e.inspect}\n#{e.backtrace.join("\n")}"
-			end
-
 			# When this is called, the user has *already* been authenticated.
 			# He had proper credentials to get into the API. Here we retrieve his
 			# groups to check if he is able to access a resource only available to
