@@ -8,6 +8,8 @@ module PRGMQ
         #     attr_reader :DB
         # end
 
+        # This validates if a username and password combination are correct.
+        # Retruns true if correct, false if not.
         def self.valid?(username=nil, password=nil)
             return false if(username.to_s.length == "" or password.to_s.length == "")
 
