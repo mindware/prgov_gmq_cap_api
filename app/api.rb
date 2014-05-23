@@ -45,8 +45,17 @@ module PRGMQ
 
 
 			before do
-				# If the system is down for maintenance, let the users know:
-			  error!(ServiceUnavailable.data, ServiceUnavailable.http_code) if Config.downtime
+				# If the system is set up for downtime/maintenance:
+				if(Config.downtime)
+					# get the path:
+			  	path = route.route_path.gsub("/:version/cap", "")
+					# Only admin resources are allowed during maintenance mode.
+					# Throw an error if this isn't an admin path.
+					if !path.start_with?("/admin/")
+						# Let the users know this system is down for maintenance:
+			  		error!(ServiceUnavailable.data, ServiceUnavailable.http_code)
+					end
+				end
 			end
 
 			# From here on the user is authenticated. Any checks should be for
@@ -68,44 +77,6 @@ module PRGMQ
 					# logger.info "#{user} requested #{route.route_params[params]}"
 					{ :api	=> "CAP", :versions => "#{API::versions}" }
 				end # end of get '/'
-
-
-				group :admin do
-					# This resource is here for testing things. It's our own special lab.
-					# Get cap/test
-					get '/test' do
-						# only allowed if we're in development or testing. Disabled on production.
-						if(Goliath.env.to_s == "development" or Goliath.env.to_s.include? == "test")
-							# specify a list of user groups than can access this resource:
-							user = allowed?(["admin"])
-							{ :test_data =>  redis.get("mkey")}
-						else
-							error!(ResourceNotFound.data,  ResourceNotFound.http_code)
-						end
-					end # end of get '/test'
-
-
-					# This resource is here for testing things. It's our own special lab.
-					# Get cap/maintenance
-					desc "Actives or deactives the system maintenance mode."
-					params do
-						optional :activate, type: Boolean, desc: "A boolean value that "+
-																		"determines if we're down for maintenance."
-					end
-					get '/maintenance' do
-						user = allowed?(["admin"])
-						return {"maintenance_status" => Config.downtime } if params[:activate].nil?
-						Config.downtime = params[:activate]
-						{ "maintenance" => Config.downtime}
-					end # end of get '/maintenance'
-
-					# This resource is here for admins.
-					get '/users' do
-						user = allowed?(["admin"])
-						{ :users => user_list }
-					end # end of get '/test'
-
-				end # end of the administrator group
 
 				## Resource cap/transaction:
 				group :transaction do
@@ -317,13 +288,63 @@ module PRGMQ
 								}
 						end
 				end # end of group: Resource cap/transaction:
+
+				group :admin do
+					# This resource is here for testing things. It's our own special lab.
+					# Get cap/test
+					get '/test' do
+						# only allowed if we're in development or testing. Disabled on production.
+						if(Goliath.env.to_s == "development" or Goliath.env.to_s.include? == "test")
+							# specify a list of user groups than can access this resource:
+							user = allowed?(["admin"])
+							{ :test_data =>  redis.get("mkey")}
+						else
+							error!(ResourceNotFound.data,  ResourceNotFound.http_code)
+						end
+					end # end of get '/test'
+
+
+					# This resource is here for testing things. It's our own special lab.
+					# Get cap/maintenance
+					desc "Actives or deactives the system maintenance mode."
+					params do
+						optional :activate, type: Boolean, desc: "A boolean value that "+
+																		"determines if we're down for maintenance."
+					end
+					get '/maintenance' do
+						user = allowed?(["admin"])
+						return {"maintenance_status" => Config.downtime } if params[:activate].nil?
+						Config.downtime = params[:activate]
+						{ "maintenance_status" => Config.downtime}
+					end # end of get '/maintenance'
+
+					# This resource is here for admins.
+					get '/users' do
+						user = allowed?(["admin"])
+						{ :users => user_list }
+					end # end of get '/test'
+
+					# Prints available admin routes. Hard-coded
+					# Let's later do some meta-programming and catch these.
+					get '/' do
+						{
+							"available_routes" => ["maintenance", "test", "users"]
+						}
+					end
+				end # end of the administrator group
 			end
 
+			# consider adding a self documenting route, that simply lists all
+			# routes, their descriptions and their parameters. Similar to:
+			# http://code.dblock.org/grape-describing-and-documenting-an-api
+
+			# Trap all errors, return proper 404:
 			# This must always be the bottom route, nothing must be below it,
 			# this is a catch all to return proper 404 errors.
 			route :any, '*path' do
 			  error!(ResourceNotFound.data, ResourceNotFound.http_code) # or something else
 			end
-		end
-	end
-end
+
+		end # end of API class
+	end # end of CAP module
+end # end of GMQ module
