@@ -144,12 +144,14 @@ module PRGMQ
 							end
 							get do
 									user = allowed?(["admin", "worker"])
-									if(Transaction.read(params[:id]))
-										@transaction = Transaction.new(:id => "1", :name => "hero")
-										present @transaction, with: CAP::Entities::Transaction #, type: :hi
+									if(transaction = Transaction.read(params[:id]))
+										# @transaction = Transaction.new(:id => "1", :name => "hero")
+										present transaction, with: CAP::Entities::Transaction #, type: :hi
 									else
-										#api_error(InvalidTransactionId)
-										raise InvalidTransactionId
+										# if the transaction isn't a properly defined transaction id
+										#raise InvalidTransactionId
+										# else
+										raise ItemNotFound
 									end
 							end
 
@@ -192,22 +194,38 @@ module PRGMQ
 								 "attempting to enqueue the request with a unique transaction "+
 								 "id and returning said id."
 						params do
-							requires :payload, type: String, desc: "A valid transaction payload."
+							requires :email, type: String, desc: "A valid email address."
+							requires :ssn, type: String, desc: "A valid social security number."
+							requires :license_number, type: String, desc: "A valid dtop id (ie: license number)."
+							requires :first_name, type: String, desc: "A valid first name."
+							requires :last_name, type: String, desc: "A valid last name."
+							requires :residency, type: String, desc: "A valid residency."
+							requires :birth_date, type: String, desc: "A valid birth date."
+							requires :IP, type: String, desc: "A valid IP."
 						end
 						post '/' do
-							allowed_groups = ["admin", "webapp"]
-							{
-							    "transaction" =>
-									{
-							        "id" => "0-123-456",
-							        "action" => {
-							            "id" => 1,
-							            "description" => "validating identity and rapsheet with DTOP & SIJC"
-							         },
-							        "status" => "pending",
-							        "location" => "prgmq_validate_rapsheet_with_sijc_queue",
-							    }
-							}
+							# allowed_groups = ["admin", "webapp"]
+							# {
+							#     "transaction" =>
+							# 		{
+							#         "id" => "0-123-456",
+							#         "action" => {
+							#             "id" => 1,
+							#             "description" => "validating identity and rapsheet with DTOP & SIJC"
+							#          },
+							#         "status" => "pending",
+							#         "location" => "prgmq_validate_rapsheet_with_sijc_queue",
+							#     }
+							# }
+							user = allowed?(["webapp", "admin"])
+							@transaction = Transaction.create(params)
+							present @transaction, with: CAP::Entities::Transaction
+							# if(Transaction.read(params[:id]))
+							# 	@transaction = Transaction.new(:id => "1", :name => "hero")
+							# 	present @transaction, with: CAP::Entities::Transaction #, type: :hi
+							# else
+							# 	#raise ItemNotFound
+							# end
 						end
 
 						# PUT /v1/cap/transaction/
