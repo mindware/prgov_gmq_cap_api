@@ -2,3 +2,4 @@
 /config/db.json
 /config/users.json
 passwords.list
+Gemfile.lock
