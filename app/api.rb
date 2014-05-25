@@ -53,7 +53,7 @@ module PRGMQ
 					# Throw an error if this isn't an admin path.
 					if !path.start_with?("/admin/")
 						# Let the users know this system is down for maintenance:
-			  		error!(ServiceUnavailable.data, ServiceUnavailable.http_code)
+			  		raise ServiceUnavailable
 					end
 				end
 			end
@@ -144,8 +144,13 @@ module PRGMQ
 							end
 							get do
 									user = allowed?(["admin", "worker"])
-									@transaction = Transaction.new
-									present @transaction, with: PRGMQ::CAP::Entities::Transaction
+									if(Transaction.read(params[:id]))
+										@transaction = Transaction.new(:id => "1", :name => "hero")
+										present @transaction, with: CAP::Entities::Transaction #, type: :hi
+									else
+										#api_error(InvalidTransactionId)
+										raise InvalidTransactionId
+									end
 							end
 
 							# DELETE /v1/cap/transaction/:id
@@ -250,10 +255,13 @@ module PRGMQ
 
 
 						# PUT /v1/cap/transaction/certificate_ready
-						desc "."
+						desc "Requests that the server save the enclosed base64 "+
+								 "certificate with the transaction and enqueue a job for "+
+								 "processing it by emailing it to the proper email address. "
 						params do
 							# Remove the following and add actual parameters later.
-							requires :payload, type: String, desc: "A valid transaction payload."
+							requires :payload, type: String, desc: "A valid transaction "+
+																										 "payload."
 						end
 						post '/' do
 							user = allowed?(["admin", "worker"])
@@ -271,7 +279,9 @@ module PRGMQ
 													"created_at"  => "5/10/2014 2=>30=>00AM",
 													"updated_at" => "5/10/2014 2=>36=>53AM",
 													"updates" => {
-														"5/10/2014 2=>31=>00AM" => "Updating email per user request=> (params=> ‘email’ => ‘levipr@gmail.com’) ",
+														"5/10/2014 2=>31=>00AM" => "Updating email per "+
+													  "user request=> (params=> ‘email’ => "+
+														"'levipr@gmail.com') ",
 													},
 													"failed" => {
 																"5/10/2014 2=>36=>52AM" => {
@@ -299,7 +309,7 @@ module PRGMQ
 							user = allowed?(["admin"])
 							{ :test_data =>  redis.get("mkey")}
 						else
-							error!(ResourceNotFound.data,  ResourceNotFound.http_code)
+							raise ResourceNotFound
 						end
 					end # end of get '/test'
 
@@ -342,7 +352,7 @@ module PRGMQ
 			# This must always be the bottom route, nothing must be below it,
 			# this is a catch all to return proper 404 errors.
 			route :any, '*path' do
-			  error!(ResourceNotFound.data, ResourceNotFound.http_code) # or something else
+			  raise ResourceNotFound
 			end
 
 		end # end of API class
