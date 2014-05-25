@@ -1,12 +1,14 @@
 module PRGMQ
   module CAP
 
-    # trap all thrown Exception and fail gracefuly with a
+    # We have an error middlware - our eye of sauron. It sees all errors:
+    # Trap all thrown Exception and fail gracefuly with a
     # 500 and a proper message. This is done when something breaks in the
     # code, and when basically it grabs any unexpected errors. All expected
-    # errors are not caught by this middleware, but instead, use the proper
-    # "error!"" methods of Grape (most of those are found in the Helper
-    # Library (./helpers/library.rb)
+    # errors are now also caught by this middleware, instead of using
+    # grape's "error!" method, we now use raise which is more verbose and
+    # can return the current line and more information such as backtrace if
+    # our API Config helper has backtrace_errors set to true.
     class ApiErrorHandler < Grape::Middleware::Base
       def call!(env)
         @env = env
@@ -18,11 +20,14 @@ module PRGMQ
           # if this is one of our AppErrors, grab the custom error message.
           # Store the class name as klass, so that we may call the proper
           # http_code later on.
-          #throw :error, :message => (e.class.data), :status => 500
-          #exit
+          # Dev note: If is_a? ever fails, we always can use .ancestors.include?
           if e.is_a? AppError
             message = e.class.data
             klass = e.class
+          elsif e.is_a? Grape::Exceptions::ValidationErrors
+            klass = PRGMQ::CAP::InvalidParameters
+            message = PRGMQ::CAP::InvalidParameters.data
+            message["error"]["app_error"] = "Invalid Parameters: #{e.message}"
           else
             # For all other exceptions, use our generic error
             message = AppError.data
@@ -40,8 +45,9 @@ module PRGMQ
             end
 
             # Add the name of the exception to all errors.
-            message["error"]["app_exception"] = "#{self.to_s}"
+            message["error"]["app_exception"] = "#{e.to_s}"
 
+            # If our Config helper is set to print backtrace errors, show them:
             if(PRGMQ::CAP::Config.backtrace_errors)
               # Provide a full backtrace:
               message["error"]["app_exception_backtrace"] = e.backtrace
@@ -49,11 +55,12 @@ module PRGMQ
               # Provide a full backtrace:
               message["error"]["app_exception_line"] = e.backtrace[0]
             end
-          end
+          end # end of developer enviornment check
+          puts message
           throw :error, :message => message, :status => klass.http_code
-        end
-      end
-    end
+        end # end of begin/rescue
+      end # end of call(env)
+    end # end of error middlware
 
     # Base Error, our Internal Server Error.
     class AppError < RuntimeError
@@ -79,7 +86,16 @@ module PRGMQ
       end
     end
 
-    class InvalidURL < RuntimeError; end
+    class InvalidParameters < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid Parameters",
+                       "app_code" => 2999
+                    }
+        }
+      end
+    end
 
     class MissingTransactionId < PRGMQ::CAP::AppError
       def self.data
@@ -213,7 +229,7 @@ module PRGMQ
       end
     end
 
-    class InvalidId < PRGMQ::CAP::AppError
+    class InvalidTransactionId < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
@@ -467,6 +483,19 @@ module PRGMQ
                        "app_error"  => "The system configured passkey for "+
                                     "the user is of an invalid length.",
                        "app_code" => 6005
+                    }
+        }
+      end
+    end
+
+    class InvalidErrorProvided < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_message" => "500 Internal Server Error",
+                       "http_code" => 500,
+                       "app_error"  => "An invalid error was raised. Errors "+
+                       "must be properly defined for the API as children of "+
+                       "the AppError class.",
+                       "app_code" => 6106
                     }
         }
       end
