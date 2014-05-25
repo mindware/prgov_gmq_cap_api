@@ -2,16 +2,67 @@
 module PRGMQ
   module CAP
     class Transaction
+      include AASM                       # use the act as state machine gem
+      include Toy::Store                 # This wraps Moneta and Toy::Object
 
-      attr_accessor :id,
-                    :email, :ssn, :license_number, :first_name, :last_name,
-                    :residency, :birth_date, :IP, :status, :history, :location,
-                    :current_error_count, :total_error_count,
-                    :action, :action_id, :action_description
+      validates_presence_of :email
+      validates_presence_of :ssn
+      validates_presence_of :license_number
+      validates_presence_of :first_name
+      validates_presence_of :last_name
+      validates_presence_of :residency
+      validates_presence_of :birth_date
+      validates_presence_of :IP
 
-      def initialize
-        self.id = "42"
-        self.email = "its@me.mario"
+      attribute :id, String               # our transaction id
+      attribute :email, String            # user email
+      attribute :ssn, String              # social security number
+      attribute :license_number, String   # valid dtop identification
+      attribute :first_name, String       # user's first name
+      attribute :middle_name, String      # middle first name
+      attribute :last_name, String        # user's last name
+      attribute :mother_last_name, String # user's last name
+      attribute :residency, String        # place of residency, user defined
+      attribute :birth_date, String       # the date of birth
+      attribute :birth_place, String      # the place of birth
+      attribute :reason, String           # the reason for the request
+      attribute :IP, String               # the IP for the request
+      attribute :status, String           # the status pending, proceessing, etc
+      attribute :state, String            # the state of the State Machine
+      attribute :history, Hash            # A history of all actions performed
+      attribute :location, String         # the system that currenty has the Tx
+      attribute :current_error_count, Integer # error count for current action
+      attribute :total_error_count, Integer   # total error count for all action
+      # attribute :action, Hash
+      # attribute :action_id, Integer
+      # attribute :action_description, String
+
+      # def initialize()
+      #   self.id = "43"
+      #   self.email = "its@me.com"
+      # end
+
+      # We'd use this if we wanted to be lazy on the api definition
+      # and not have to include with: <entityName>. I've opted for
+      # not being ambigous, so that if someone reads the api.rb code
+      # they'll get a sense of what's happening. I leave this here
+      # just as a note to myself that this is possible and a reminder
+      # that while magic is awesome, understanding the science behind it is
+      # far more important when it comes to code. Take this comment
+      # as a carving in the code trunk that spells out 'no to ambiguity'.
+      # def entity
+      #   CAP::Entities::Transaction.new(self)
+      # end
+
+      # Backend Storage Independent Implementation of save method.
+      def save
+      end
+
+      # Backend MQ Independent Implementation of a enqueue method.
+      def enqueue
+      end
+
+      def complete
       end
 
     end

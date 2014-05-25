@@ -7,16 +7,18 @@ module PRGMQ
 			# groups to check if he is able to access a resource only available to
 			# allowed_groups.
 			def allowed?(allowed_groups)
+				# we grab the current user from the environment. This is after
+				# said user has passed the scrutiny of a basic authentication.
 				user = Authentication.find_user(env["REMOTE_USER"])
 				# User should exist because we passed basic_auth to get here,
 				# but just in case it got deleted after we got acess, throw an error:
-				error!(InvalidCredentials.data,  InvalidCredentials.http_code) if(!user)
+				raise InvalidCredentials if (!user)
 				# Check if the user is allowed into the specified groups
 				# we do this by checking the intersection of both arrays
 				if(!(user.groups & allowed_groups).empty?)
 						return user
 				else
-						error!(InvalidAccess.data,  InvalidAccess.http_code)
+						raise InvalidAccess
 				end
 			end
 
