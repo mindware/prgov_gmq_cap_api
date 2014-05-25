@@ -41,7 +41,7 @@ class Gmq < Thor
 			random_password = SecureRandom.hex(12)
 			hash = Digest::MD5.hexdigest(random_password + random_salt)
 			puts "Hand this password (securely) to the user: #{random_password}"
-			puts "The salt for the system: #{random_salt}"
+			#puts "The salt for the system: #{random_salt}"
 			# puts "The pass-key for the system: #{hash}"
 			puts "This is the pass-key for the system: #{random_salt + hash}"
 			return "#{random_salt + hash}"
