@@ -15,8 +15,13 @@ module PRGMQ
 
           @all = nil
           # Set debug to true if we're in development mode.
-          @debug = (Goliath.env.to_s == "development")
+          if(Object.const_defined?('Goliath'))
+            @debug = (Goliath.env.to_s == "development")
+          else
+            @debug = false
+          end
           # @debug = false
+          # Sets backtrace for unexpected exceptions
           @backtrace_errors = false
           # variable that determines if we're down for maintenance.
           @downtime = false
@@ -38,8 +43,8 @@ module PRGMQ
               if @all.nil?
                 @all = self.load_config
                  puts "Loading configuration." if @debug
-              else
-                 puts "Reading configuration from memory." if @debug
+              # else
+                #  puts "Reading configuration from memory." if @debug
               end
               return true
           end
