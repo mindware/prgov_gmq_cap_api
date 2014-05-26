@@ -11,8 +11,8 @@ require 'redis'
 require 'json'
 
 # Load our Settings and Helper Methods:
-require './app/helpers/library'
 require './app/helpers/storage'
+require './app/helpers/library'
 require './app/helpers/config'
 require './app/helpers/authentication'
 require './app/helpers/errors'
@@ -27,6 +27,7 @@ module PRGMQ
 		class API < Grape::API
 
 			version 'v1'
+	    content_type :json, "application/json;charset=UTF-8"
 			format :json
 
 			# Our middleware to trap exception and return json gracefully.
@@ -35,7 +36,6 @@ module PRGMQ
 			# Our helpers
 			helpers do
 				include PRGMQ::CAP::LibraryHelper	# General Helper Methods
-				include PRGMQ::CAP::StorageHelper  # Storage Helper Methods
 			end
 
 			http_basic do |username, password|
@@ -218,14 +218,24 @@ module PRGMQ
 							#     }
 							# }
 							user = allowed?(["webapp", "admin"])
+							# We store the IP of the system that made the direct request.
+							# even if they will forward the originating IP, we grab theirs
+							# in case we need to find out what server has been submitting
+							# specific requests.
+							params[:system_address] = env['REMOTE_ADDR']
+							# Try to create it
 							@transaction = Transaction.create(params)
-							present @transaction, with: CAP::Entities::Transaction
-							# if(Transaction.read(params[:id]))
-							# 	@transaction = Transaction.new(:id => "1", :name => "hero")
-							# 	present @transaction, with: CAP::Entities::Transaction #, type: :hi
-							# else
-							# 	#raise ItemNotFound
-							# end
+							# once saved, try to find it
+							# id = @transaction.id
+							# @transaction = Transaction.read(id)
+
+							puts @transaction.to_s
+							puts @transaction.persisted?
+
+							# if the item is not found, raise an error that it could not be saved
+							raise ItemNotFound if @transaction.nil?
+							present @transaction, with:Entities::Transaction
+
 						end
 
 						# PUT /v1/cap/transaction/
