@@ -223,7 +223,7 @@ module PRGMQ
 							# in case we need to find out what server has been submitting
 							# specific requests.
 							params[:system_address] = env['REMOTE_ADDR']
-							# Try to create it
+							# Try to create it - if this fails, our error middleware catches it
 							@transaction = Transaction.create(params)
 							# once saved, try to find it
 							# id = @transaction.id
