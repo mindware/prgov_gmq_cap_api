@@ -14,13 +14,14 @@ module PRGMQ
           # end
 
           @all = nil
-          # Set debug to true if we're in development mode.
+          # if Goliath is defined
           if(Object.const_defined?('Goliath'))
+            # Set debug to true if we're in development mode.
             @debug = (Goliath.env.to_s == "development")
           else
             @debug = false
           end
-          # @debug = false
+
           # Sets backtrace for unexpected exceptions
           @backtrace_errors = false
           # variable that determines if we're down for maintenance.
