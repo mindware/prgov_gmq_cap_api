@@ -225,17 +225,13 @@ module PRGMQ
 							params[:system_address] = env['REMOTE_ADDR']
 							# Try to create it - if this fails, our error middleware catches it
 							@transaction = Transaction.create(params)
-							# once saved, try to find it
-							# id = @transaction.id
-							# @transaction = Transaction.read(id)
-
-							puts @transaction.to_s
-							puts @transaction.persisted?
-
-							# if the item is not found, raise an error that it could not be saved
-							raise ItemNotFound if @transaction.nil?
-							present @transaction, with:Entities::Transaction
-
+							# check if we were able to save it
+							if @transaction.persisted?
+								present @transaction, with:Entities::Transaction
+							else
+								# if the item is not found, raise an error that it could not be saved
+								raise ItemNotFound
+							end
 						end
 
 						# PUT /v1/cap/transaction/
