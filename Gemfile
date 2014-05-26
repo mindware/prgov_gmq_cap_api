@@ -15,8 +15,8 @@ gem "hiredis", "~> 0.4.5" # redis-rb synchrony driver requires hiredis. JRuby in
 gem "em-synchrony" # for redis-rb synchrony driver. Allows compatibility with EventMachine async I/O.
 
 # Object Relational Mapping
-gem "moneta", "~> 0.7.20" 	# Unified interface for key/value stores. Allows for atomic actions. 
-gem "toystore", "~> 0.13.2" 	# The ORM on top of moneta
+gem "toystore", "~> 0.13.2" 	# Unified Generic Object Relational Mapping for key/value stores.
+gem "adapter-redis", "~> 0.5.1"	# The adapter for Redis to use with ToyStore
 
 # State Machine support for Transactions
 gem 'aasm', "~> 3.2.0"
