@@ -23,32 +23,43 @@ module PRGMQ
           # Dev note: If is_a? ever fails, we always can use .ancestors.include?
           if e.is_a? AppError
             message = e.class.data
-            klass = e.class
+            klass   = e.class
           elsif e.is_a? Grape::Exceptions::ValidationErrors
-            klass = PRGMQ::CAP::InvalidParameters
-            message = PRGMQ::CAP::InvalidParameters.data
+            klass   = InvalidParameters
+            message = InvalidParameters.data
             message["error"]["app_error"] = "Invalid Parameters: #{e.message}"
+
+          # This next line doesn't contribute to making us completely storage
+          # agnostic. We need a specific check for the errors thrown by
+          # the drivers used by moneta. We're unable to catch these errors
+          # in the storage.rb's self.db method. If you figure it out, this
+          # line will not be needed. Until then, let's catch the errors
+          # here.
+          elsif e.is_a? Redis::BaseError
+            klass   = StorageUnavailable
+            message = StorageUnavailable.data
           else
             # For all other exceptions, use our generic error
+            puts "An #{e.class.to_s} error was raised." if Config.debug
             message = AppError.data
             klass = AppError
+            message["error"]["app_exception_class"] = "#{e.class.to_s}"
           end
           # Sprinkle some additonal data if we're in development mode.
           if Goliath.env.to_s == "development"
-            # Add additional exception message, which will contain more
-            # information if this is a system exception transformed into
-            # AppError. We'll skip this if it's just a child of AppError,
-            # since it wont contain new information like it does for
-            # other exceptions.
-            if klass == AppError
-              message["error"]["app_exception_error"]       = e.message
-            end
+            # # Add additional exception message, which will contain more
+            # # information if this is a system exception transformed into
+            # # AppError. We'll skip this if it's just a child of AppError,
+            # # since it wont contain new information like it does for
+            # # other exceptions.
+            # if klass == AppError
+            #   message["error"]["app_exception_error"]       = e.message
+            # end
 
-            # Add the name of the exception to all errors.
-            message["error"]["app_exception"] = "#{e.to_s}"
-
+            # Add the message of the exception to all errors.
+            message["error"]["app_exception_message"] = "#{e.message}"
             # If our Config helper is set to print backtrace errors, show them:
-            if(PRGMQ::CAP::Config.backtrace_errors)
+            if(Config.backtrace_errors)
               # Provide a full backtrace:
               message["error"]["app_exception_backtrace"] = e.backtrace
             else
@@ -56,7 +67,10 @@ module PRGMQ
               message["error"]["app_exception_line"] = e.backtrace[0]
             end
           end # end of developer enviornment check
-          puts message
+
+          # Print to STDOUT the full errors if in debug mode.
+          puts message if Config.debug
+
           throw :error, :message => message, :status => klass.http_code
         end # end of begin/rescue
       end # end of call(env)
