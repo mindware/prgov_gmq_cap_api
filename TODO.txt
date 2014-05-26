@@ -18,6 +18,7 @@
 		10. ☐ On deploying Goliath behind HAProxy https://github.com/postrank-labs/goliath/wiki/HAProxy
 		11. ☐ https://github.com/twitter/twemproxy - Redis Proxy
 		12. ☐ haproxy sample - https://github.com/postrank-labs/goliath/wiki/HAProxy
+		13. ☐ Validate that the UUID is a TX and not anything else stored in Redis.
 
 ---
 Auto-generated using: github.com/mindware/todo
