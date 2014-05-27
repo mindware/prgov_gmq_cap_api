@@ -29,15 +29,15 @@ module PRGMQ
             message = InvalidParameters.data
             message["error"]["app_error"] = "Invalid Parameters: #{e.message}"
 
-          # This next line doesn't contribute to making us completely storage
+          # This next line doesn't contribute to making us completely Store
           # agnostic. We need a specific check for the errors thrown by
           # the drivers used by moneta. We're unable to catch these errors
-          # in the storage.rb's self.db method. If you figure it out, this
+          # in the Store.rb's self.db method. If you figure it out, this
           # line will not be needed. Until then, let's catch the errors
           # here.
           elsif e.is_a? Redis::BaseError
-            klass   = StorageUnavailable
-            message = StorageUnavailable.data
+            klass   = StoreUnavailable
+            message = StoreUnavailable.data
           else
             # For all other exceptions, use our generic error
             puts "An #{e.class.to_s} error was raised." if Config.debug
@@ -572,11 +572,11 @@ module PRGMQ
       end
     end
 
-    class StorageUnavailable < PRGMQ::CAP::AppError
+    class StoreUnavailable < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_message" => "502 Internal Server Error",
                        "http_code" => 502,
-                       "app_error"  => "The Transaction Storage could not be "+
+                       "app_error"  => "The Transaction Store could not be "+
                                        "accessed.",
                        "app_code" => 7001
                     }
