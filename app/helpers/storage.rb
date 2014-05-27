@@ -18,7 +18,7 @@ module PRGMQ
       # Our backend is Redis, and Redis is single-threaded so
       # pooling actually makes using this more efficient.
       def self.db
-        ## do checks to see if connection failed, grab those.
+        # do checks to see if connection failed, grab those.
         begin
           # We're pretty much Storage agnostic thanks to the next
           # line, however, this begin/rescue doesn't catch
@@ -27,13 +27,17 @@ module PRGMQ
           # errors.rb system to reflect the change, by
           # adding a check for the Exceptions of the driver
           # of the new backend you install.
-          @db ||= Moneta.new(:Redis, threadsafe: true)
+          if(@db.nil?)
+             @db = Moneta.new(:Redis, threadsafe: true, expires: false)
+          else
+             @db
+          end
         rescue Exception => e
            # nothing really gets caught here, this
            # rescue never really catches the errors from the
            # inability to connect by moneta to redis. The redis
-           # client throws the error, and it is only caught at
-           # this time by our errors.rb ApiErrorHandler Middleware.
+           # client throws the error, and it is only caught
+           # by our ApiErrorHandler Middleware defined in errors.rb
           raise StorageUnavailable
         end
       end

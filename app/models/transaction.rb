@@ -1,12 +1,15 @@
 require 'moneta'
 require 'toystore'
 require 'adapter/memory'
+require './app/models/transaction_id_factory'
+
 # Entity Organization as recommended by https://github.com/intridea/grape-entity
 module PRGMQ
   module CAP
     class Transaction
       include AASM                       # use the act as state machine gem
       include Toy::Store                 # This wraps Moneta and Toy::Object
+      key TransactionIdFactory.new       # Our Id Factory for Unique Ids
 
       adapter :memory, PRGMQ::CAP::Storage.db() # we pool our connections
 
@@ -20,7 +23,6 @@ module PRGMQ
       validates_presence_of :IP
 
       attribute :id, String               # our transaction id
-
       # The following are User Request Attributes
       attribute :email, String            # user email
       attribute :ssn, String              # social security number
@@ -38,7 +40,7 @@ module PRGMQ
       # The following are System Attributes
       attribute :system_address, String   # the IP of the proxy system that talks to the API
       attribute :status, String           # the status pending, proceessing, etc
-      attribute :state, String, :default => "processing"           # the state of the State Machine
+      attribute :state, String, :default => "received"         # the state of the State Machine
       attribute :history, Hash            # A history of all actions performed
       attribute :location, String         # the system that currenty has the Tx
       attribute :current_error_count, Integer, :default => 0 # error count for current action
@@ -54,8 +56,7 @@ module PRGMQ
       # just as a note to myself that this is possible and a reminder
       # that while magic is awesome, understanding the science behind it is
       # far more important when it comes to code. Take this comment
-      # as a carving in the code trunk that spells out a 'no to ambiguity'
-      # (right next to the all too common 'Andres was here').
+      # as a carving in the code trunk that spells out a 'no to ambiguity'.
       # def entity
       #   CAP::Entities::Transaction.new(self)
       # end
