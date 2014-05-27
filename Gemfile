@@ -21,3 +21,6 @@ gem 'adapter'			# Generic object for storage
 
 # State Machine support for Transactions
 gem 'aasm', "~> 3.2.0"
+
+# email validation 
+gem 'validates_email_format_of', :git => 'git://github.com/alexdunae/validates_email_format_of.git'
