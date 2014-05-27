@@ -11,11 +11,12 @@ require 'redis'
 require 'json'
 
 # Load our Settings and Helper Methods:
-require './app/helpers/storage'
+require './app/helpers/store'
 require './app/helpers/library'
 require './app/helpers/config'
 require './app/helpers/authentication'
 require './app/helpers/errors'
+require './app/helpers/validations'
 # Load our Models. Models contain information stored in an Object:
 require './app/models/transaction'
 require './app/models/user'
@@ -75,7 +76,7 @@ module PRGMQ
 					# if it does, get the User Object, else: we'll safely error out.
 					user = allowed?(["all"])
 					# logger.info "#{user} requested #{route.route_params[params]}"
-					{ :api	=> "CAP", :versions => "#{API::versions}" }
+					{ :api	=> "CAP", :versions => "#{API::versions}"}
 				end # end of get '/'
 
 				## Resource cap/transaction:
@@ -222,11 +223,13 @@ module PRGMQ
 							# even if they will forward the originating IP, we grab theirs
 							# in case we need to find out what server has been submitting
 							# specific requests.
+							# return params.class
+
 							params[:system_address] = env['REMOTE_ADDR']
 							# Try to create it - if this fails, our error middleware catches it
 							@transaction = Transaction.create(params)
-							# check if we were able to save it
-							if @transaction.persisted?
+							# check if we are able to save it
+							if @transaction.save
 								present @transaction, with:Entities::Transaction
 							else
 								# if the item is not found, raise an error that it could not be saved
