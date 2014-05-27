@@ -48,12 +48,12 @@ module PRGMQ
           raise MissingReason          if params["reason"].length == 0
 
           # Validate the Email
-          raise InvalidEmail if (validate_email(params("email"))
+          raise InvalidEmail           if validate_email(params["email"])
 
           # Validate the SSN
           # we eliminate any potential dashes in ssn
           params["ssn"] = params["ssn"].gsub("-", "").strip
-          raise InvalidSSN             if(!validate_ssn(param["ssn"])
+          raise InvalidSSN             if !validate_ssn(param["ssn"])
 
           # Validate the DTOP id:
           raise InvalidLicenseNumber   if !validate_id(params["license_number"])
