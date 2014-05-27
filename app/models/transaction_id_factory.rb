@@ -10,7 +10,6 @@ module PRGMQ
 
       # the transaction list will always have the same name
       def next_key(object)
-        "transactions"
       end
     end
   end
