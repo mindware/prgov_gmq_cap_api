@@ -5,7 +5,7 @@ require 'grape'
 Dir["../../app/helpers/*.rb"].each {|file| require file }
 
 include PRGMQ::CAP::LibraryHelper	# General Helper Methods
-include PRGMQ::CAP::StorageHelper  # Storage Helper Methods
+include PRGMQ::CAP::StoreHelper  # Store Helper Methods
 
 user = "***REMOVED***"
 pass = "***REMOVED***"
