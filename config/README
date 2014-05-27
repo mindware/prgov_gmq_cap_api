@@ -29,10 +29,10 @@ What follows is an example of a properly formatted 'users.json' file:
 		    "groups" : ["admin"] }
 }
 
-The second is 'db.json' which will contain the configuration for storage systems like so:
+The second is 'db.json' which will contain the configuration for Store systems like so:
 {
-  "storage01"     : { "user" : "password", "ip" : "xxx.xxx.xxx.xxx"},
-  "storage02"     : { "user" : "password", "ip" : "xxx.xxx.xxx.xxx"}
+  "Store01"     : { "user" : "password", "ip" : "xxx.xxx.xxx.xxx"},
+  "Store02"     : { "user" : "password", "ip" : "xxx.xxx.xxx.xxx"}
 }
 
 -----
