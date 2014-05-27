@@ -6,7 +6,7 @@ module PRGMQ
 
       # the transaction list will always have the same name
       def generate_key
-        SecureRandom.uuid
+        SecureRandom.uuid.gsub("-", "")
       end
     end
   end
