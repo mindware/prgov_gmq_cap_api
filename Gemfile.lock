@@ -99,6 +99,7 @@ PLATFORMS
 
 DEPENDENCIES
   aasm (~> 3.2.0)
+  adapter
   dotenv
   em-synchrony
   erubis
