@@ -210,11 +210,11 @@ module PRGMQ
       end
     end
 
-    class MissingIP < PRGMQ::CAP::AppError
+    class MissingClientIP < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
-                       "app_error" => "Parameter: last_name is required.",
+                       "app_error" => "Parameter: Clinet's IP is required.",
                        "app_code" => 1009
                     }
         }
@@ -345,11 +345,11 @@ module PRGMQ
       end
     end
 
-    class InvalidIP < PRGMQ::CAP::AppError
+    class InvalidClientIP < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
-                       "app_error" => "Invalid IP provided.",
+                       "app_error" => "Invalid Clinet IP provided.",
                        "app_code" => 2008
                     }
         }
@@ -378,17 +378,62 @@ module PRGMQ
       end
     end
 
-    class InvalidActiveParameters < PRGMQ::CAP::AppError
+    # class InvalidActiveParameters < PRGMQ::CAP::AppError
+    #   def self.data
+    #     { "error" => { "http_error" => "400 Bad Request",
+    #                    "http_code" => 400,
+    #                    "app_error" => "Invalid activate value provided "+
+    #                                   "(only true or false allowed).",
+    #                    "app_code" => 2011
+    #                 }
+    #     }
+    #   end
+    # end
+
+    class InvalidMiddleName < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
-                       "app_error" => "Invalid activate value provided "+
-                                      "(only true or false allowed).",
-                       "app_code" => 2010
+                       "app_error" => "Invalid middle name provided.",
+                       "app_code" => 2011
                     }
         }
       end
     end
+
+    class InvalidLastName < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid last name provided.",
+                       "app_code" => 2012
+                    }
+        }
+      end
+    end
+
+    class InvalidMotherLastName < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid mother last name provided.",
+                       "app_code" => 2013
+                    }
+        }
+      end
+    end
+
+    class NotOldEnough < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Cannot issue a certificate for minors.",
+                       "app_code" => 2013
+                    }
+        }
+      end
+    end
+
 
     class InvalidCredentials < PRGMQ::CAP::AppError
       def self.data
