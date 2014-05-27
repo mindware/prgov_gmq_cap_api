@@ -1,20 +1,10 @@
-GIT
-  remote: git://github.com/alexdunae/validates_email_format_of.git
-  revision: f2b20985865069905ba58580bfcfb41c198107b6
-  specs:
-    validates_email_format_of (1.5.3)
-
 GEM
   remote: https://rubygems.org/
   specs:
     aasm (3.2.0)
-    activemodel (3.2.18)
-      activesupport (= 3.2.18)
-      builder (~> 3.0.0)
     activesupport (3.2.18)
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
-    adapter (0.7.0)
     addressable (2.3.6)
     async-rack (0.5.1)
       rack (~> 1.1)
@@ -71,7 +61,6 @@ GEM
     i18n (0.6.9)
     ice_nine (0.11.0)
     log4r (1.1.10)
-    moneta (0.7.20)
     multi_json (1.10.1)
     multi_xml (0.5.5)
     rack (1.5.2)
@@ -85,15 +74,9 @@ GEM
     rack-respond_to (0.9.8)
       rack-accept-media-types (>= 0.6)
     redis (3.0.7)
-    simple_uuid (0.4.0)
     thor (0.19.1)
     thread_safe (0.3.3)
     tilt (2.0.1)
-    toystore (0.13.2)
-      activemodel (~> 3.0)
-      activesupport (~> 3.0)
-      adapter (~> 0.7.0)
-      simple_uuid (~> 0.2)
     virtus (1.0.2)
       axiom-types (~> 0.1)
       coercible (~> 1.0)
@@ -105,7 +88,6 @@ PLATFORMS
 
 DEPENDENCIES
   aasm (~> 3.2.0)
-  adapter
   dotenv
   em-synchrony
   erubis
@@ -114,8 +96,5 @@ DEPENDENCIES
   grape
   grape-entity
   hiredis (~> 0.4.5)
-  moneta (~> 0.7.20)
   redis (~> 3.0.1)
   tilt
-  toystore (~> 0.13.2)
-  validates_email_format_of!
