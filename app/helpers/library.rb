@@ -39,6 +39,15 @@ module PRGMQ
 					visits.nil? ? 0 : visits
 			end
 
+			# Prints details if we're in debug mode
+			def debug(str)
+				  puts "DEBUG: #{str}" if Config.debug
+			end
+
+			def last_10_transactions
+					Store.db.lrange(Transaction.db_list, 0, -1)
+			end
+
 		end
 	end
 end
