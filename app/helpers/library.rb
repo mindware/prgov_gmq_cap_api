@@ -34,6 +34,11 @@ module PRGMQ
 					Config.users.keys if Config.users.keys.length > 0
 			end
 
+			def total_visits
+					visits = Stats.visits
+					visits.nil? ? 0 : visits
+			end
+
 		end
 	end
 end
