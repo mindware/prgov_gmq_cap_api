@@ -19,6 +19,7 @@ require './app/helpers/errors'							 # defines and catches errors
 require './app/helpers/validations'					# validates user input
 
 # Load our Models. Models contain information stored in an Object:
+require './app/models/base'
 require './app/models/transaction'
 require './app/models/user'
 require './app/models/statistics'
@@ -153,7 +154,7 @@ module PRGMQ
 							end
 							get do
 									user = allowed?(["admin", "worker"])
-									if(transaction = Transaction.read(params[:id]))
+									if(transaction = Transaction.find(params[:id]))
 										# @transaction = Transaction.new(:id => "1", :name => "hero")
 										present transaction, with: CAP::Entities::Transaction #, type: :hi
 									else
@@ -234,6 +235,7 @@ module PRGMQ
 							# return params.class
 
 							params[:system_address] = env['REMOTE_ADDR']
+							params[:created_by] 		= user.name
 							# Try to create it - if this fails, our error middleware catches it
 							@transaction = Transaction.create(params)
 							# check if we are able to save it
@@ -375,11 +377,17 @@ module PRGMQ
 						{ :visits => total_visits }
 					end # end of get '/test'
 
+					get '/last' do
+						user = allowed?(["admin"])
+						{ :latest => last_10_transactions }
+					end
+
 					# Prints available admin routes. Hard-coded
 					# Let's later do some meta-programming and catch these.
 					get '/' do
 						{
-							"available_routes" => ["maintenance", "test", "users", "visits"]
+							"available_routes" => ["maintenance", "test", "users", "visits",
+																		 "recent"]
 						}
 					end
 				end # end of the administrator group
