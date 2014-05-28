@@ -21,6 +21,7 @@
 		13. ☐ Validate that the UUID is a TX and not anything else stored in Redis.
 		14. ☐ Setup redis config to use AOF if you want peristance.
 		15. ☐ add atomic method for total_error_count and find
+		16. ☐ Add statistics for everything. Every action, every user. Show in admin panel.
 
 ---
 Auto-generated using: github.com/mindware/todo
