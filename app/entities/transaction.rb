@@ -35,6 +35,9 @@ module PRGMQ
         # Transaction State Machine Information:
         expose :state, documentation: { type: String, desc: "Transaction State." }
         expose :current_error_count
+        expose :created_at
+        expose :updated_at
+        expose :created_by
         # expose :total_error_count
         # expose :action do
         #     expose :action_id
