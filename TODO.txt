@@ -20,6 +20,7 @@
 		12. ☐ haproxy sample - https://github.com/postrank-labs/goliath/wiki/HAProxy
 		13. ☐ Validate that the UUID is a TX and not anything else stored in Redis.
 		14. ☐ Setup redis config to use AOF if you want peristance.
+		15. ☐ add atomic method for total_error_count and find
 
 ---
 Auto-generated using: github.com/mindware/todo
