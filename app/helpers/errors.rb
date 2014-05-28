@@ -547,12 +547,26 @@ module PRGMQ
       end
     end
 
+    class InvalidNonJsonRecord < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_message" => "500 Internal Server Error",
+                       "http_code" => 500,
+                       "app_error"  => "The record found  "+
+                       "was in an improper format and could not be "+
+                       "properly parsed.",
+                       "app_code" => 6006
+                    }
+        }
+      end
+    end
+
     class InvalidErrorProvided < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_message" => "500 Internal Server Error",
                        "http_code" => 500,
-                       "app_error"  => "An invalid error was raised. Errors "+
-                       "must be properly defined for the API as children of "+
+                       "app_error"  => "An invalid error was raised. This is "+
+                       "a programming error. Someone raised an error but did "+
+                       "not properly define it for the API, as children of "+
                        "the AppError class.",
                        "app_code" => 6106
                     }
