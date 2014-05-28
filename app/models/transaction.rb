@@ -45,8 +45,8 @@ module PRGMQ
           tx = self.new
           # Instead of trusting user input, let's extract *exactly* the
           # values from the params hash. This way, additional values
-          # that may have been sneaking inside the params hash are ignored
-          # and never reach the Store.
+          # that may have been sneaked inside the params hash are ignored
+          # safely and never reach the Store.
           tx.id                  = generate_key()
           tx.email               = params["email"]
           tx.ssn                 = params["ssn"]
@@ -61,6 +61,7 @@ module PRGMQ
           tx.reason              = params["reason"]
           tx.IP                  = params["IP"]
           tx.system_address      = params["system_address"]
+
           # Add important system defined parameters here:
           tx.status              = "received"
           tx.location            = "CAP API DB"
@@ -73,30 +74,6 @@ module PRGMQ
           # attribute :action_description, String
           puts tx
           return tx
-      end
-
-      def tx
-        "cap:tx:#{self.id}"
-      end
-
-      # error count for current action
-      def current_error_count(str=false)
-        if(!str.nil?)
-          return Store.db.get("#{tx}:errors:current_count")
-        elsif(str == "increment")
-          return Store.db.incr("#{tx}:errors:current_error_count")
-        elsif(str == "decrement")
-          return Store.db.decr("#{tx}:errors:current_error_count")
-        elsif(str == "reset")
-          return Store.db.set("#{tx}:errors:current_error_count", 0)
-        else
-          false
-        end
-      end
-
-      # error count for current action
-      def ttl()
-          Store.db.ttl("#{tx}")
       end
 
 
@@ -144,13 +121,50 @@ module PRGMQ
                 "history"          => "#{@history}",
                 "state"            => "#{@state}",
                 "status"           => "#{@status}",
-                "system_address"       => "#{@system_address}"
+                "system_address"   => "#{@system_address}"
           }
         }
       end
 
       def to_json
         to_hash.to_json
+      end
+
+      ##########################################
+      #               Database                 #
+      ##########################################
+      # For transactions stored in the database
+      # we'll 'tx', short for 'transaction'
+      def db_prefix
+        "tx"
+      end
+
+      # All transactions will be stored with a Prefix
+      # in the Store. As that they can be manually searched
+      # in the DB using the prefix cap:tx:<transaction.ID> ie:
+      # get cap:tx:026d0e7534aa4a3b97aa2b9d841f3204
+      def db_id
+        "#{Store.prefix}:#{db_prefix}:#{self.id}"
+      end
+
+      # error count for current action
+      def current_error_count(str=false)
+        if(!str.nil?)
+          return Store.db.get("#{db_id}:errors:current_count")
+        elsif(str == "increment")
+          return Store.db.incr("#{db_id}:errors:current_count")
+        elsif(str == "decrement")
+          return Store.db.decr("#{db_id}:errors:current_count")
+        elsif(str == "reset")
+          return Store.db.set("#{db_id}:errors:current_count", 0)
+        else
+          false
+        end
+      end
+
+      # ttl count for current item
+      def ttl()
+          Store.db.ttl(db_id)
       end
 
       def save
