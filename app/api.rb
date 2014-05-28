@@ -6,20 +6,23 @@
 # For: Estado Libre Asociado de Puerto Rico
 
 # Load our external libraries
-require 'redis/connection/synchrony'
-require 'redis'
-require 'json'
+require 'redis/connection/synchrony'         # use the asynchronous driver
+require 'redis'															# use redis
+require 'json'															 # gives us JSON parse and to_json
 
 # Load our Settings and Helper Methods:
-require './app/helpers/store'
-require './app/helpers/library'
-require './app/helpers/config'
-require './app/helpers/authentication'
-require './app/helpers/errors'
-require './app/helpers/validations'
+require './app/helpers/store'								# our storage subsystem.
+require './app/helpers/library'							# useful helper methods
+require './app/helpers/config'							 # configuration helper
+require './app/helpers/authentication'			 # authentication class
+require './app/helpers/errors'							 # defines and catches errors
+require './app/helpers/validations'					# validates user input
+
 # Load our Models. Models contain information stored in an Object:
 require './app/models/transaction'
 require './app/models/user'
+require './app/models/statistics'
+
 # Load our Entities. Grape-Entities are API representations of a Model:
 require './app/entities/transaction'
 
@@ -57,6 +60,11 @@ module PRGMQ
 			  		raise ServiceUnavailable
 					end
 				end
+			end
+
+			# After every request, keep count of all visits
+			after do
+				Stats.new_request # unless Config.downtime
 			end
 
 			# From here on the user is authenticated. Any checks should be for
@@ -361,11 +369,17 @@ module PRGMQ
 						{ :users => user_list }
 					end # end of get '/test'
 
+					# This resource is here for admins.
+					get '/visits' do
+						user = allowed?(["admin"])
+						{ :visits => total_visits }
+					end # end of get '/test'
+
 					# Prints available admin routes. Hard-coded
 					# Let's later do some meta-programming and catch these.
 					get '/' do
 						{
-							"available_routes" => ["maintenance", "test", "users"]
+							"available_routes" => ["maintenance", "test", "users", "visits"]
 						}
 					end
 				end # end of the administrator group
