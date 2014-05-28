@@ -62,7 +62,7 @@ module PRGMQ
 				end
 			end
 
-			# After every request, keep count of all visits
+			# After every request, keep count of all global visits
 			after do
 				Stats.new_request # unless Config.downtime
 			end
