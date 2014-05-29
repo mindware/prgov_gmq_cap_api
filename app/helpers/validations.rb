@@ -1,13 +1,14 @@
 # We use resolv to validate IPv4 & Ipv6 addresses. It is better
 # than ipaddr (ipaddr uses socket lib to validate can trigger dns lookups)
 require 'resolv'
+require 'date'
+require 'base64'                 # used to validate certificates
 
 # A module for methods used to validate data, such as valid
 # transaction parameters, social security numbers, emails and the like.
 module PRGMQ
   module CAP
     module Validations
-
         ########################################
         ##            Constants:               #
         ########################################
@@ -27,12 +28,34 @@ module PRGMQ
         ##            Validations:             #
         ########################################
 
+        # used when SIJC specifies the certificate is ready
+        def validate_certificate_ready_parameters(params)
+          raise MissingTransactionId     if params["id"].length == 0
+          raise InvalidTransactionId     if !validate_transaction_id(params["id"])
+          raise MissingCertificateBase64 if params["certificate_base64"].length == 0
+          raise InvalidCertificateBase64 if !validate_certificate_base64(params["certificate_base64"])
+          return params
+        end
+
+        # used when an PRPD analyst specifies it has completed a manual review
+        def validate_review_completed_parameters(params)
+          raise MissingTransactionId        if params["id"].to_s.length == 0
+          raise InvalidTransactionId        if !validate_transaction_id(params["id"])
+          raise MissingAnalystApprovalDate  if params["analyst_approval_datetime"].to_s.length == 0
+          raise InvalidAnalystApprovalDate  if !validate_date(params["analyst_approval_datetime"])
+          raise MissingAnalystTransactionId if params["analyst_transaction_id"].to_s.length == 0
+          raise MissingAnalystInternalStatusId if params["analyst_internal_status_id"].to_s.length == 0
+          raise MissingAnalystDecisionCode     if params["decision_code"].to_s.length == 0
+          raise InvalidAnalystDecisionCode     if !validate_decision_code(params["decision_code"])
+          return params
+        end
+
         # validates parameters in a hash, returning proper errors
-        def validate_transaction_parameters(params)
-          # strip the parameters of any extra spaces, save everything as string:
-          params.each do |key, value|
-            params[key] = value.to_s.strip
-          end
+        # removed any non-whitelisted params
+        def validate_transaction_creation_parameters(params, whitelist)
+
+          # delets all non-whitelisted params, and returns a safe list.
+          params = trim_whitelisted(params, whitelist)
 
           # Return proper errors if parameter is missing:
           raise MissingEmail           if params["email"].length == 0
@@ -50,11 +73,11 @@ module PRGMQ
 
           # Validate the SSN
           # we eliminate any potential dashes in ssn
-          params["ssn"] = params["ssn"].gsub("-", "").strip
+          params["ssn"]                 = params["ssn"].gsub("-", "").strip
           raise InvalidSSN             if !validate_ssn(params["ssn"])
 
           # Validate the DTOP id:
-          raise InvalidLicenseNumber   if !validate_id(params["license_number"])
+          raise InvalidLicenseNumber   if !validate_dtop_id(params["license_number"])
 
           raise InvalidFirstName       if !validate_name(params["first_name"])
           raise InvalidMiddleName      if !params["middle_name"].nil? and
@@ -70,7 +93,75 @@ module PRGMQ
           # This checks minimum age
           raise InvalidBirthDate       if !validate_birthdate(params["birth_date"], true)
           raise InvalidClientIPv4      if !validate_ip(params["IP"])
+
           return params
+        end
+
+        # Given a set of params and an array of whitelisted keys, we
+        # delete all keys that weren't invited to the party. No sneaky
+        # params allowed in this joint.
+        def trim_whitelisted(params, whitelist)
+            # remove any parameters that are not whitelisted
+            params.each do |key, value|
+              # if white listed
+              if whitelist.include? key
+                # strip the parameters of any extra spaces, save as string
+                params[key] = value.to_s.strip
+              else
+                # delete any unauthorized parameters
+                params.delete key
+              end
+            end
+            params
+        end
+
+        def validate_decision_code(code)
+          true if code == 100 or code == 200
+          false
+        end
+        # Validates a date as UTC
+        def validate_date(date)
+          begin
+            Date.parse(date.to_s)
+            true
+          rescue ArgumentError
+            false
+          end
+        end
+
+        # Validtes a valid 64 bit was received. Doesn't validate that its
+        # a specifif filetype in order to be flexible, and allow for
+        # different filetypes to be sent in the future, not just pdf.
+        def validate_certificate_base64(cert)
+          return false if(cert.length.to_s.length <= 0 )
+          # try to decode it by loading the entire decoded thing in memory
+          begin
+            # A tolerant verification
+            # We'll use this only if SIJC's certificates fail in the
+            # initial trials, else, we'll stick to the strict one.
+            # Next line complies just with RC 2045:
+            # decode = Base64.decode64(cert)
+
+            # A strict verification:
+            # Next line complies with RFC 4648:
+            # try to decode, ArgumentErro is raised
+            # if incorrectly padded or contains non-alphabet characters.
+            decode = Base64.strict_decode64(cert)
+
+            # Once decoded release it from memory
+            decode = nil
+            return true
+          rescue
+            return false
+          end
+        end
+        def validate_transaction_id(id)
+          id = id.to_s.strip
+          # if(puts "#{id.length} vs #{TransactionIdFactory.transaction_key_length()}")
+          if(id.length == TransactionIdFactory.transaction_key_length())
+             return true
+          end
+          return false
         end
 
         # Validate Social Security Number
@@ -78,9 +169,9 @@ module PRGMQ
           value = value.to_s
           # validates if its an integer
           if(validate_str_is_integer(value) and value.length == SSN_LENGTH)
-            true
+            return true
           else
-            false
+            return false
           end
         end
 
@@ -92,9 +183,9 @@ module PRGMQ
           # availability 24/7, and we'd like this system to work a little more
           # independently, so for now simply check against the RFC 2822,
           # RFC 3696 and the filters in the gem.
-          true if (ValidatesEmailFormatOf::validate_email_format(value).nil? and
+          return true if (ValidatesEmailFormatOf::validate_email_format(value).nil? and
                    value.length > MAX_EMAIL_LENGTH )
-          false
+          return false
         end
 
         # validates if a string is an integer
@@ -103,21 +194,21 @@ module PRGMQ
         end
 
         # Validates a DTOP id
-        def validate_id(value)
-          false if(!validate_str_is_integer(value) or
+        def validate_dtop_id(value)
+          return false if(!validate_str_is_integer(value) or
                     value.length >= DTOP_ID_MAX_LENGTH )
-          true
+          return true
         end
 
         # used to validate names/middle names/last names/mother last name
         def validate_name(value)
-          false if(value.length >= MAX_NAME_LENGTH)
-          true
+          return false if(value.length >= MAX_NAME_LENGTH)
+          return true
         end
 
         def validate_residency(value)
-          false if(value.length >= MAX_RESIDENCY_LENGTH)
-          true
+          return false if(value.length >= MAX_RESIDENCY_LENGTH)
+          return true
         end
 
         def validate_birthdate(value, check_age=false)
@@ -127,14 +218,14 @@ module PRGMQ
             # if it was required for us to validate minimum age
             if(check_age == true)
               if(age(date) >= MINIMUM_AGE)
-                true # date was valid and the person is at least of minimum age
+                return true # date was valid and the person is at least of minimum age
               end
-              false # person isn't of minimum age
+              return false # person isn't of minimum age
             end
-            true # the date is valid
+            return true # the date is valid
           rescue Exception => e
             # ArgumentError, the user entered an invalid date.
-            false
+            return false
           end
         end
 
