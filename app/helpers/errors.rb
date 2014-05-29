@@ -100,16 +100,10 @@ module PRGMQ
       end
     end
 
-    class InvalidParameters < PRGMQ::CAP::AppError
-      def self.data
-        { "error" => { "http_error" => "400 Bad Request",
-                       "http_code" => 400,
-                       "app_error" => "Invalid Parameters",
-                       "app_code" => 2999
-                    }
-        }
-      end
-    end
+
+    ################################################################
+    ########                   Missing                      ########
+    ################################################################
 
     class MissingTransactionId < PRGMQ::CAP::AppError
       def self.data
@@ -242,6 +236,59 @@ module PRGMQ
         }
       end
     end
+
+
+    class MissingAnalystApprovalDate < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: analyst_approval_datetime is"+
+                                      " required.",
+                       "app_code" => 1012
+                    }
+        }
+      end
+    end
+    class MissingAnalystTransactionId < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: analyst_transaction_id is"+
+                                      " required.",
+                       "app_code" => 1013
+                    }
+        }
+      end
+    end
+
+    class MissingAnalystInternalStatusId < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: analyst_internal_status_id "+
+                                      "is required.",
+                       "app_code" => 1014
+                    }
+        }
+      end
+    end
+
+    class MissingAnalystDecisionCode < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: decision_code "+
+                                      "is required.",
+                       "app_code" => 1015
+                    }
+        }
+      end
+    end
+
+
+    ################################################################
+    ########                   Invalid                      ########
+    ################################################################
 
     class InvalidTransactionId < PRGMQ::CAP::AppError
       def self.data
@@ -428,12 +475,35 @@ module PRGMQ
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
                        "app_error" => "Cannot issue a certificate for minors.",
-                       "app_code" => 2013
+                       "app_code" => 2014
                     }
         }
       end
     end
 
+    class InvalidAnalystApprovalDate < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid analyst_approval_date. You must"+
+                                      " supply a valid utc timestamp (example:"+
+                                      " 2014-05-29 13:23:39 UTC).",
+                       "app_code" => 2015
+                    }
+        }
+      end
+    end
+
+    class InvalidAnalystDecisionCode < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid decision_code provided.",
+                       "app_code" => 2016
+                    }
+        }
+      end
+    end
 
     class InvalidCredentials < PRGMQ::CAP::AppError
       def self.data
@@ -458,6 +528,21 @@ module PRGMQ
         }
       end
     end
+
+    class InvalidParameters < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid Parameters",
+                       "app_code" => 2999
+                    }
+        }
+      end
+    end
+
+    ################################################################
+    ########                 Not Found                      ########
+    ################################################################
 
     class ResourceNotFound < PRGMQ::CAP::AppError
       def self.data
@@ -484,6 +569,11 @@ module PRGMQ
         }
       end
     end
+
+
+    ################################################################
+    ########               Internal Errors                  ########
+    ################################################################
 
     class InvalidAccessGroup < PRGMQ::CAP::AppError
       def self.data
@@ -574,6 +664,12 @@ module PRGMQ
       end
     end
 
+
+    ################################################################
+    ########          External Systems  Unavailable         ########
+    ################################################################
+
+
     class GMQUnavailable < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_message" => "502 Internal Server Error",
@@ -597,6 +693,10 @@ module PRGMQ
         }
       end
     end
+
+    ################################################################
+    ########            Down for Maintenance                ########
+    ################################################################
 
     class ServiceUnavailable < PRGMQ::CAP::AppError
       def self.data
