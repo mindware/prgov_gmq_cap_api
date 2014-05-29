@@ -154,15 +154,8 @@ module PRGMQ
 							end
 							get do
 									user = allowed?(["admin", "worker"])
-									if(transaction = Transaction.find(params[:id]))
-										# @transaction = Transaction.new(:id => "1", :name => "hero")
+										transaction = Transaction.find(params[:id])
 										present transaction, with: CAP::Entities::Transaction #, type: :hi
-									else
-										# if the transaction isn't a properly defined transaction id
-										#raise InvalidTransactionId
-										# else
-										raise ItemNotFound
-									end
 							end
 
 							# DELETE /v1/cap/transaction/:id
@@ -297,11 +290,21 @@ module PRGMQ
 								 "processing it by emailing it to the proper email address. "
 						params do
 							# Remove the following and add actual parameters later.
-							requires :payload, type: String, desc: "A valid transaction "+
-																										 "payload."
+							requires :id, type: String, desc: "A valid transaction id."
+							requires :certificate_base64, type: String,
+							 														 desc: "A valid transaction payload."
 						end
 						post '/' do
-							user = allowed?(["admin", "worker"])
+							user = allowed?(["admin", "sijc"])
+							tx.certificate_ready(params)
+							# Only allowed to be set when PRPD requests so through their
+							# action.
+							if(action == "review_completed")
+								tx.analyst_approval_datetime	= params["analyst_approval_datetime"]
+								tx.analyst_transaction_id     = params["analyst_transaction_id"]
+								tx.analyst_internal_status_id = params["analyst_internal_status_id"]
+								tx.decision_code              = params["decision_code"]
+							end
 							{
 										"transaction"=> {
 												"id" => "0-123-456",
@@ -369,6 +372,12 @@ module PRGMQ
 					get '/users' do
 						user = allowed?(["admin"])
 						{ :users => user_list }
+					end # end of get '/test'
+
+					# This resource is here for admins.
+					get '/groups' do
+						user = allowed?(["admin"])
+						{ :groups => security_group_list }
 					end # end of get '/test'
 
 					# This resource is here for admins.
