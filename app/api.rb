@@ -17,6 +17,7 @@ require './app/helpers/config'							 # configuration helper
 require './app/helpers/authentication'			 # authentication class
 require './app/helpers/errors'							 # defines and catches errors
 require './app/helpers/validations'					# validates user input
+require './app/helpers/transaction_id_factory' # to generate ids
 
 # Load our Models. Models contain information stored in an Object:
 require './app/models/base'
@@ -240,50 +241,6 @@ module PRGMQ
 							end
 						end
 
-						# PUT /v1/cap/transaction/
-						desc "Requests that the server update information for a given id. "+
-								 "This is used to update the current state of a transaction, "+
-								 "such as its current location in the message queue or an "+
-								 "external system. It may also be used to fix the email for "+
-								 "a certain transaction. The transaction id can not be changed."
-						params do
-							# Remove the following and add actual parameters later.
-							requires :payload, type: String, desc: "A valid transaction payload."
-						end
-						post '/' do
-							user = allowed?(["admin", "worker"])
-							{
-								    "transaction"=> {
-								        "id" => "0-123-456",
-								        "current_error_count" => 0,
-								        "total_error_count" => 1,
-								        "action" => {
-								            "id" => 10,
-								            "description" => "sending certificate via email"
-								         },
-								        "email" => "levipr@gmail.com",
-								        "history" => {
-								           "created_at"  => "5/10/2014 2=>30=>00AM",
-								           "updated_at" => "5/10/2014 2=>36=>53AM",
-								           "updates" => {
-								             "5/10/2014 2=>31=>00AM" => "Updating email per user request=> (params=> ‘email’ => ‘levipr@gmail.com’) ",
-								           },
-								           "failed" => {
-								                 "5/10/2014 2=>36=>52AM" => {
-								                        "sijc_rci_validate_dtop" => {
-								                                     "http_code" =>  502,
-								                                     "app_code" =>  8001,
-								                         },
-								                  },
-								            },
-												 },
-								         "status" => "processing",
-								         "location" => "prgmq_email_certificate_queue",
-								    }
-								}
-						end
-
-
 						# PUT /v1/cap/transaction/certificate_ready
 						desc "Requests that the server save the enclosed base64 "+
 								 "certificate with the transaction and enqueue a job for "+
@@ -294,17 +251,57 @@ module PRGMQ
 							requires :certificate_base64, type: String,
 							 														 desc: "A valid transaction payload."
 						end
-						post '/' do
+						put '/certificate_ready' do
 							user = allowed?(["admin", "sijc"])
+							tx = Transaction.find(params["id"])
 							tx.certificate_ready(params)
 							# Only allowed to be set when PRPD requests so through their
 							# action.
-							if(action == "review_completed")
-								tx.analyst_approval_datetime	= params["analyst_approval_datetime"]
-								tx.analyst_transaction_id     = params["analyst_transaction_id"]
-								tx.analyst_internal_status_id = params["analyst_internal_status_id"]
-								tx.decision_code              = params["decision_code"]
-							end
+							# {
+							# 			"transaction"=> {
+							# 					"id" => "0-123-456",
+							# 					"current_error_count" => 0,
+							# 					"total_error_count" => 1,
+							# 					"action" => {
+							# 							"id" => 10,
+							# 							"description" => "sending certificate via email"
+							# 					},
+							# 					"email" => "levipr@gmail.com",
+							# 					"history" => {
+							# 						"created_at"  => "5/10/2014 2=>30=>00AM",
+							# 						"updated_at" => "5/10/2014 2=>36=>53AM",
+							# 						"updates" => {
+							# 							"5/10/2014 2=>31=>00AM" => "Updating email per "+
+							# 						  "user request=> (params=> ‘email’ => "+
+							# 							"'levipr@gmail.com') ",
+							# 						},
+							# 						"failed" => {
+							# 									"5/10/2014 2=>36=>52AM" => {
+							# 													"sijc_rci_validate_dtop" => {
+							# 																			"http_code" =>  502,
+							# 																			"app_code" =>  8001,
+							# 													},
+							# 										},
+							# 							},
+							# 					},
+							# 					"status" => "processing",
+							# 					"location" => "prgmq_email_certificate_queue",
+							# 			}
+							# 	}
+						end
+
+						# PUT /v1/cap/transaction/
+						desc "Requests that the server update information for a given id. "+
+								"This is used to update the current state of a transaction, "+
+								"such as its current location in the message queue or an "+
+								"external system. It may also be used to fix the email for "+
+								"a certain transaction. The transaction id can not be changed."
+						params do
+							# Remove the following and add actual parameters later.
+							requires :payload, type: String, desc: "A valid transaction payload."
+						end
+						put '/' do
+							user = allowed?(["admin", "worker"])
 							{
 										"transaction"=> {
 												"id" => "0-123-456",
@@ -319,9 +316,7 @@ module PRGMQ
 													"created_at"  => "5/10/2014 2=>30=>00AM",
 													"updated_at" => "5/10/2014 2=>36=>53AM",
 													"updates" => {
-														"5/10/2014 2=>31=>00AM" => "Updating email per "+
-													  "user request=> (params=> ‘email’ => "+
-														"'levipr@gmail.com') ",
+														"5/10/2014 2=>31=>00AM" => "Updating email per user request=> (params=> ‘email’ => ‘levipr@gmail.com’) ",
 													},
 													"failed" => {
 																"5/10/2014 2=>36=>52AM" => {
@@ -337,6 +332,8 @@ module PRGMQ
 										}
 								}
 						end
+
+
 				end # end of group: Resource cap/transaction:
 
 				group :admin do
@@ -409,9 +406,9 @@ module PRGMQ
 			# Trap all errors, return proper 404:
 			# This must always be the bottom route, nothing must be below it,
 			# this is a catch all to return proper 404 errors.
-			route :any, '*path' do
-			  raise ResourceNotFound
-			end
+			# route :any, '*path' do
+			#   raise ResourceNotFound
+			# end
 
 		end # end of API class
 	end # end of CAP module
