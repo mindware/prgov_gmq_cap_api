@@ -31,8 +31,13 @@ module PRGMQ
 			end
 
 			def user_list
-					Config.users.keys if Config.users.keys.length > 0
+					Config.users.keys
 			end
+
+			def security_group_list
+					Config.groups
+			end
+
 
 			def total_visits
 					visits = Stats.visits
