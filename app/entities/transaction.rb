@@ -27,7 +27,6 @@ module PRGMQ
         expose :mother_last_name, documentation: { type: String, desc: "Maternal last name"}
         expose :residency, documentation: { type: String, desc: "Current place of residency" }
         expose :birth_date, documentation: { type: Date, desc: "Date of birth"}
-        expose :birth_place, documentation: { type: Date, desc: "Place of birth"}
         expose :reason, documentation: { type: Date, desc: "Reason for Certificate Request"}
         expose :IP, documentation: { type: String, desc: "Client's IP address"}
         # # Status Information
@@ -38,6 +37,7 @@ module PRGMQ
         expose :created_at
         expose :updated_at
         expose :created_by
+        expose :location 
         # expose :total_error_count
         # expose :action do
         #     expose :action_id
