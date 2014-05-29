@@ -40,6 +40,45 @@ module PRGMQ
             return @all["users"]
           end
 
+          def self.groups
+            # Make sure the server's config is loaded. Loads it if it isn't.
+            self.check
+            if @all.has_key? "users"
+               # we'll temporary save all the groups found in the config here
+               groups = []
+               # if the config has a users hash
+               if (@all["users"].length > 0)
+                   # iterate through the users hash
+                   @all["users"].each do |name, key|
+                       # if the user has groups key
+                       if(key.has_key? "groups")
+                         if(key["groups"].is_a? Array)
+                           # grab the groups array from the hash
+                           groups << key["groups"]
+                         else
+                           # user doesn't have a security group as an array
+                           # ['sijc', 'webapp'] etc, but something else.
+                           raise InvalidConfigFile
+                         end # end of check if groups is an Array
+                       else
+                         # user doesn't have a security group
+                         raise InvalidConfigFile
+                       end # end of check if user has security group
+                   end # end of iteration through users
+
+                   # create a unique list of security groups and sort them
+                   groups = groups.flatten.uniq.sort
+               end
+               # don't go past this point, since we had something in the config
+               return groups
+            end
+            # if for some reason it doesn't exist, and no users exist,
+            # so lets create the empty list in memory.
+            @all["users"] = {}
+            # Now return an empty list of security groups
+            return []
+          end
+
           def self.check
               if @all.nil?
                 @all = self.load_config
