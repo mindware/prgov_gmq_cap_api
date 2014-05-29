@@ -22,6 +22,7 @@
 		14. ☐ Setup redis config to use AOF if you want peristance.
 		15. ☐ add atomic method for total_error_count and find
 		16. ☐ Add statistics for everything. Every action, every user. Show in admin panel.
+		17. ☐ Add grape-swagger documentation for the API later
 
 ---
 Auto-generated using: github.com/mindware/todo
