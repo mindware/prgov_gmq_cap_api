@@ -550,7 +550,9 @@ module PRGMQ
                         "http_code" => 404,
                         "app_error" => "The resource"+
                         " provided in the URL doesn't exist. Check the API "+
-                        "documentation and version for valid URL resources.",
+                        "documentation and version for valid URL resources "+
+                        "and their corresponding HTTP verbs (ie: GET, PUT, "+
+                        "POST, DELETE).",
                         "app_code" => 5000
                     }
         }
