@@ -1,8 +1,9 @@
 require 'json'
 require 'rest_client'
 require 'grape'
-# include all helpers
-Dir["../../app/helpers/*.rb"].each {|file| require file }
+# include all helpers - since the scripts are ran under us, we take their path
+# into consideration, and so an additiona ../
+Dir["../../../app/helpers/*.rb"].each {|file| require file } 
 
 include PRGMQ::CAP::LibraryHelper	# General Helper Methods
 

@@ -1,4 +1,4 @@
-require './rest'
+require '../rest'
 user = "***REMOVED***"
 pass = "***REMOVED***"
 # credentials via basic auth

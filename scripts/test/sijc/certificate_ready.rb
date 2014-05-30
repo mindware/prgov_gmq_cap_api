@@ -1,4 +1,4 @@
-require './rest'
+require '../rest'
 
 require 'base64'
 
@@ -12,7 +12,7 @@ url = "http://localhost:9000/v1/cap/transaction/certificate_ready"
 #             "residency" : "San Juan", "IP" : "192.168.1.2",
 #             "reason" : "Solicitud de Empleo", "birth_place" : "San Juan",
 #             "email" : "acolon@ogp.pr.gov", "license_number" : "1234567"}')
-file = File.open("sagan.jpg", "rb")
+file = File.open("./sample/sagan.jpg", "rb")
 contents = file.read
 cert64 = Base64.strict_encode64(contents)
 id = '1e29234ee0c84921adec08fbe5980162'
