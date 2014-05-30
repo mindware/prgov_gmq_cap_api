@@ -208,7 +208,7 @@ module PRGMQ
       def self.data
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
-                       "app_error" => "Parameter: Clinet's IP is required.",
+                       "app_error" => "Parameter: Client's IP is required.",
                        "app_code" => 1009
                     }
         }
@@ -358,7 +358,7 @@ module PRGMQ
       end
     end
 
-    class InvalidName < PRGMQ::CAP::AppError
+    class InvalidFirstName < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
@@ -396,7 +396,7 @@ module PRGMQ
       def self.data
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
-                       "app_error" => "Invalid Clinet IP provided.",
+                       "app_error" => "Invalid Client IP provided.",
                        "app_code" => 2008
                     }
         }

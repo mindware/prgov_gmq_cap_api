@@ -30,9 +30,9 @@ module PRGMQ
 
         # used when SIJC specifies the certificate is ready
         def validate_certificate_ready_parameters(params)
-          raise MissingTransactionId     if params["id"].length == 0
+          raise MissingTransactionId     if params["id"].to_s.length == 0
           raise InvalidTransactionId     if !validate_transaction_id(params["id"])
-          raise MissingCertificateBase64 if params["certificate_base64"].length == 0
+          raise MissingCertificateBase64 if params["certificate_base64"].to_s.length == 0
           raise InvalidCertificateBase64 if !validate_certificate_base64(params["certificate_base64"])
           return params
         end
@@ -58,15 +58,15 @@ module PRGMQ
           params = trim_whitelisted(params, whitelist)
 
           # Return proper errors if parameter is missing:
-          raise MissingEmail           if params["email"].length == 0
-          raise MissingSSN             if params["ssn"].length == 0
-          raise MissingLicenseNumber   if params["license_number"].length == 0
-          raise MissingFirstName       if params["first_name"].length == 0
-          raise MissingLastName        if params["last_name"].length == 0
-          raise MissingResidency       if params["residency"].length == 0
-          raise MissingBirthDate       if params["birth_date"].length == 0
-          raise MissingClientIP        if params["IP"].length == 0
-          raise MissingReason          if params["reason"].length == 0
+          raise MissingEmail           if params["email"].to_s.length == 0
+          raise MissingSSN             if params["ssn"].to_s.length == 0
+          raise MissingLicenseNumber   if params["license_number"].to_s.length == 0
+          raise MissingFirstName       if params["first_name"].to_s.length == 0
+          raise MissingLastName        if params["last_name"].to_s.length == 0
+          raise MissingResidency       if params["residency"].to_s.length == 0
+          raise MissingBirthDate       if params["birth_date"].to_s.length == 0
+          raise MissingClientIP        if params["IP"].to_s.length == 0
+          raise MissingReason          if params["reason"].to_s.length == 0
 
           # Validate the Email
           raise InvalidEmail           if validate_email(params["email"])
@@ -92,7 +92,8 @@ module PRGMQ
           raise InvalidBirthDate       if !validate_birthdate(params["birth_date"])
           # This checks minimum age
           raise InvalidBirthDate       if !validate_birthdate(params["birth_date"], true)
-          raise InvalidClientIPv4      if !validate_ip(params["IP"])
+          raise InvalidClientIP        if !validate_ip(params["IP"])
+          raise InvalidReason          if params["reason"].to_s.strip.length > 255
 
           return params
         end
@@ -116,8 +117,12 @@ module PRGMQ
         end
 
         def validate_decision_code(code)
-          true if code == 100 or code == 200
-          false
+          # return true
+          if (code.to_s == "100" or code.to_s == "200")
+            true
+          else
+            false
+          end
         end
         # Validates a date as UTC
         def validate_date(date)
@@ -133,7 +138,7 @@ module PRGMQ
         # a specifif filetype in order to be flexible, and allow for
         # different filetypes to be sent in the future, not just pdf.
         def validate_certificate_base64(cert)
-          return false if(cert.length.to_s.length <= 0 )
+          return false if(cert.to_s.length <= 0 )
           # try to decode it by loading the entire decoded thing in memory
           begin
             # A tolerant verification
@@ -152,14 +157,12 @@ module PRGMQ
             decode = nil
             return true
           rescue Exception => e
-            raise e
             return false
           end
         end
         def validate_transaction_id(id)
-          id = id.to_s.strip
           # if(puts "#{id.length} vs #{TransactionIdFactory.transaction_key_length()}")
-          if(id.length == TransactionIdFactory.transaction_key_length())
+          if(id.to_s.strip.length == TransactionIdFactory.transaction_key_length())
              return true
           end
           return false
@@ -185,7 +188,7 @@ module PRGMQ
           # independently, so for now simply check against the RFC 2822,
           # RFC 3696 and the filters in the gem.
           return true if (ValidatesEmailFormatOf::validate_email_format(value).nil? and
-                   value.length > MAX_EMAIL_LENGTH )
+                   value.to_s.length > MAX_EMAIL_LENGTH )
           return false
         end
 
@@ -197,18 +200,18 @@ module PRGMQ
         # Validates a DTOP id
         def validate_dtop_id(value)
           return false if(!validate_str_is_integer(value) or
-                    value.length >= DTOP_ID_MAX_LENGTH )
+                    value.to_s.length >= DTOP_ID_MAX_LENGTH )
           return true
         end
 
         # used to validate names/middle names/last names/mother last name
         def validate_name(value)
-          return false if(value.length >= MAX_NAME_LENGTH)
+          return false if(value.to_s.length >= MAX_NAME_LENGTH)
           return true
         end
 
         def validate_residency(value)
-          return false if(value.length >= MAX_RESIDENCY_LENGTH)
+          return false if(value.to_s.length >= MAX_RESIDENCY_LENGTH)
           return true
         end
 

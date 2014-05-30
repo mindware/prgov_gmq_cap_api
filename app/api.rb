@@ -198,14 +198,14 @@ module PRGMQ
 								 "attempting to enqueue the request with a unique transaction "+
 								 "id and returning said id."
 						params do
-							requires :email, type: String, desc: "A valid email address."
-							requires :ssn, type: String, desc: "A valid social security number."
-							requires :license_number, type: String, desc: "A valid dtop id (ie: license number)."
-							requires :first_name, type: String, desc: "A valid first name."
-							requires :last_name, type: String, desc: "A valid last name."
-							requires :residency, type: String, desc: "A valid residency."
-							requires :birth_date, type: String, desc: "A valid birth date."
-							requires :IP, type: String, desc: "A valid IP."
+							# requires :email, type: String, desc: "A valid email address."
+							# requires :ssn, type: String, desc: "A valid social security number."
+							# requires :license_number, type: String, desc: "A valid dtop id (ie: license number)."
+							# requires :first_name, type: String, desc: "A valid first name."
+							# requires :last_name, type: String, desc: "A valid last name."
+							# requires :residency, type: String, desc: "A valid residency."
+							# requires :birth_date, type: String, desc: "A valid birth date."
+							# requires :IP, type: String, desc: "A valid IP."
 						end
 						post '/' do
 							# allowed_groups = ["admin", "webapp"]
@@ -241,16 +241,30 @@ module PRGMQ
 							end
 						end
 
+						# PUT /v1/cap/transaction/review_complete
+						desc "Confirms that an analyst has completed manual revision of "+
+						"this transaction, and requests that their decision_code be stored"+
+						" and processed accordingly."
+						params do
+							# Remove the following and add actual parameters later.
+							requires :id, type: String, desc: "A valid transaction id."
+						end
+						put 'review_complete' do
+							user = allowed?(["sijc", "admin"])
+							# try to find. If not found, an error is raised and sent.
+							transaction = Transaction.find(params["id"])
+							# once found, we grab the base64 parameters and update the object
+							transaction.review_complete(params)
+							# we try to save the transaction
+							transaction.save
+							present transaction, with:Entities::Transaction
+						end # end of review_complete
+
+
 						# PUT /v1/cap/transaction/certificate_ready
 						desc "Requests that the server save the enclosed base64 "+
 								 "certificate with the transaction and enqueue a job for "+
 								 "processing it by emailing it to the proper email address. "
-						params do
-							# Remove the following and add actual parameters later.
-							requires :id, type: String, desc: "A valid transaction id."
-							requires :certificate_base64, type: String,
-							 														 desc: "A valid transaction payload."
-						end
 						put 'certificate_ready' do
 							user = allowed?(["sijc", "admin"])
 							# try to find. If not found, an error is raised and sent.
