@@ -548,7 +548,7 @@ module PRGMQ
       def self.data
         { "error" => {  "http_error" => "404 Not Found",
                         "http_code" => 404,
-                        "app_error" => "Invalid resource request. The resource"+
+                        "app_error" => "The resource"+
                         " provided in the URL doesn't exist. Check the API "+
                         "documentation and version for valid URL resources.",
                         "app_code" => 5000
