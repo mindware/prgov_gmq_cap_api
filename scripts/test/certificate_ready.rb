@@ -14,7 +14,7 @@ url = "http://localhost:9000/v1/cap/transaction/certificate_ready"
 #             "email" : "acolon@ogp.pr.gov", "license_number" : "1234567"}')
 file = File.open("sagan.jpg", "rb")
 contents = file.read
-cert64 = Base64.encode64(contents)
+cert64 = Base64.strict_encode64(contents)
 id = '1e29234ee0c84921adec08fbe5980162'
 payload = { "id" => id,
             "certificate_base64" => cert64 }
