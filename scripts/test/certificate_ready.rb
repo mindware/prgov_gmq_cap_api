@@ -18,7 +18,6 @@ cert64 = Base64.strict_encode64(contents)
 id = '1e29234ee0c84921adec08fbe5980162'
 payload = { "id" => id,
             "certificate_base64" => cert64 }
-payload = { "id" => id, "certificate_base64" => 'aW4gd2hpY2ggd2UgZmxvYXQsIGxpa2UgYSBtb2F0IG9mIGR1c3QgaW4gdGhl\nIG1vcm5pbmcgc2t5\n'}
 method = "put"
 type = "json"
 

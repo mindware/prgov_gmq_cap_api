@@ -151,7 +151,8 @@ module PRGMQ
             # Once decoded release it from memory
             decode = nil
             return true
-          rescue
+          rescue Exception => e
+            raise e
             return false
           end
         end
