@@ -30,7 +30,7 @@ class Rest
          puts "URL:\n#{site}\n\n"
          puts "CURL:\n#{self.to_curl}\n\n"
          puts "Requested:\n#{payload.to_json}\n\n"
-         response = RestClient.post site, payload.to_json,
+         response = RestClient.send method, site, payload.to_json,
                                           :content_type => :json,
                                           :accept => :json
          puts "HTTP Code:\n#{response.code}\n\n"
