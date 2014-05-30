@@ -231,10 +231,10 @@ module PRGMQ
 							params[:system_address] = env['REMOTE_ADDR']
 							params[:created_by] 		= user.name
 							# Try to create it - if this fails, our error middleware catches it
-							@transaction = Transaction.create(params)
+							transaction = Transaction.create(params)
 							# check if we are able to save it
-							if @transaction.save
-								present @transaction, with:Entities::Transaction
+							if transaction.save
+								present transaction, with:Entities::Transaction
 							else
 								# if the item is not found, raise an error that it could not be saved
 								raise ItemNotFound
@@ -251,10 +251,15 @@ module PRGMQ
 							requires :certificate_base64, type: String,
 							 														 desc: "A valid transaction payload."
 						end
-						put '/certificate_ready' do
+						put 'certificate_ready' do
 							user = allowed?(["admin", "sijc"])
-							tx = Transaction.find(params["id"])
-							tx.certificate_ready(params)
+							# try to find. If not found, an error is raised and sent.
+							transaction = Transaction.find(params["id"])
+							# once found, we grab the base64 parameters and update the object
+							transaction.certificate_ready(params)
+							# we try to save the transaction
+							transaction.save
+							present transaction, with:Entities::Transaction
 							# Only allowed to be set when PRPD requests so through their
 							# action.
 							# {
@@ -289,50 +294,50 @@ module PRGMQ
 							# 			}
 							# 	}
 						end
-
-						# PUT /v1/cap/transaction/
-						desc "Requests that the server update information for a given id. "+
-								"This is used to update the current state of a transaction, "+
-								"such as its current location in the message queue or an "+
-								"external system. It may also be used to fix the email for "+
-								"a certain transaction. The transaction id can not be changed."
-						params do
-							# Remove the following and add actual parameters later.
-							requires :payload, type: String, desc: "A valid transaction payload."
-						end
-						put '/' do
-							user = allowed?(["admin", "worker"])
-							{
-										"transaction"=> {
-												"id" => "0-123-456",
-												"current_error_count" => 0,
-												"total_error_count" => 1,
-												"action" => {
-														"id" => 10,
-														"description" => "sending certificate via email"
-												},
-												"email" => "levipr@gmail.com",
-												"history" => {
-													"created_at"  => "5/10/2014 2=>30=>00AM",
-													"updated_at" => "5/10/2014 2=>36=>53AM",
-													"updates" => {
-														"5/10/2014 2=>31=>00AM" => "Updating email per user request=> (params=> ‘email’ => ‘levipr@gmail.com’) ",
-													},
-													"failed" => {
-																"5/10/2014 2=>36=>52AM" => {
-																				"sijc_rci_validate_dtop" => {
-																										"http_code" =>  502,
-																										"app_code" =>  8001,
-																				},
-																	},
-														},
-												},
-												"status" => "processing",
-												"location" => "prgmq_email_certificate_queue",
-										}
-								}
-						end
-
+						#
+						# # PUT /v1/cap/transaction/
+						# desc "Requests that the server update information for a given id. "+
+						# 		"This is used to update the current state of a transaction, "+
+						# 		"such as its current location in the message queue or an "+
+						# 		"external system. It may also be used to fix the email for "+
+						# 		"a certain transaction. The transaction id can not be changed."
+						# params do
+						# 	# Remove the following and add actual parameters later.
+						# 	requires :payload, type: String, desc: "A valid transaction payload."
+						# end
+						# put '/' do
+						# 	user = allowed?(["admin", "worker"])
+						# 	{
+						# 				"transaction"=> {
+						# 						"id" => "0-123-456",
+						# 						"current_error_count" => 0,
+						# 						"total_error_count" => 1,
+						# 						"action" => {
+						# 								"id" => 10,
+						# 								"description" => "sending certificate via email"
+						# 						},
+						# 						"email" => "levipr@gmail.com",
+						# 						"history" => {
+						# 							"created_at"  => "5/10/2014 2=>30=>00AM",
+						# 							"updated_at" => "5/10/2014 2=>36=>53AM",
+						# 							"updates" => {
+						# 								"5/10/2014 2=>31=>00AM" => "Updating email per user request=> (params=> ‘email’ => ‘levipr@gmail.com’) ",
+						# 							},
+						# 							"failed" => {
+						# 										"5/10/2014 2=>36=>52AM" => {
+						# 														"sijc_rci_validate_dtop" => {
+						# 																				"http_code" =>  502,
+						# 																				"app_code" =>  8001,
+						# 														},
+						# 											},
+						# 								},
+						# 						},
+						# 						"status" => "processing",
+						# 						"location" => "prgmq_email_certificate_queue",
+						# 				}
+						# 		}
+						# end
+						#
 
 				end # end of group: Resource cap/transaction:
 
