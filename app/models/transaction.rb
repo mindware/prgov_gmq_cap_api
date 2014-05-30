@@ -1,10 +1,33 @@
-
+# The transaction class is the Object that represents a transaction as it is
+# stored in the database. It uses the Base class, which holds the basic
+# methods for representing the way keys are stored in the data Store (db).
+#
+# It allows for finding and creating transactions. It uses helper methods
+# from the Validations module for both instance and class methods, to validate
+# user input. It has whitelists, per API action, that determine which user
+# parameters are taken into consdieration, while the rest are ignored. As such
+# parameters that are sneaked into an action, where they are not expected, are
+# immediately dropped (such as creating a new transaction and appending the
+# certificate, or modifying the state).
+#
+# The transactoin uses Act As State Machine to create a set of states
+# to track where a transaction is and where it is going next based on a
+# predetermined workflow.
+#
+# Version v1:
+# Andrés Colón Pérez
+# Chief Technology Officer, Chief Security Officer
+# Office of the CIO (Giancarlo Gonzalez)
+# Government of Puerto Rico
+# May - 2014
+#
 module PRGMQ
   module CAP
     class Transaction < PRGMQ::CAP::Base
       extend Validations
       include Validations
       include TransactionIdFactory
+      extend TransactionIdFactory
       include AASM           # use the act as state machine gem
       include LibraryHelper
 
@@ -335,6 +358,7 @@ module PRGMQ
           self.analyst_transaction_id     = params["analyst_transaction_id"]
           self.analyst_internal_status_id = params["analyst_internal_status_id"]
           self.decision_code              = params["decision_code"]
+          self
       end
 
       ####################################
