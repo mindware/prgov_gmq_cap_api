@@ -29,6 +29,7 @@ module PRGMQ
         expose :birth_date, documentation: { type: Date, desc: "Date of birth"}
         expose :reason, documentation: { type: Date, desc: "Reason for Certificate Request"}
         expose :IP, documentation: { type: String, desc: "Client's IP address"}
+        expose :certificate_base64, documentation: { type: String, desc: "Base64 Certificate"}
         # # Status Information
         expose :status, documentation: { type: String, desc: "Status identification"}
         # Transaction State Machine Information:
@@ -37,7 +38,7 @@ module PRGMQ
         expose :created_at
         expose :updated_at
         expose :created_by
-        expose :location 
+        expose :location
         # expose :total_error_count
         # expose :action do
         #     expose :action_id
