@@ -30,6 +30,19 @@ module PRGMQ
         expose :reason, documentation: { type: Date, desc: "Reason for Certificate Request"}
         expose :IP, documentation: { type: String, desc: "Client's IP address"}
         expose :certificate_base64, documentation: { type: String, desc: "Base64 Certificate"}
+        expose :analyst_approval_datetime, documentation: { type: String,
+               desc: "The date in UTC format when an analyst approved this "+
+                     "action in PRPD"}
+        expose :analyst_transaction_id, documentation: { type: String,
+               desc: "The internal ANPE Id for this transaction."}
+        expose :analyst_internal_status_id, documentation: { type: String,
+               desc: "The internal ANPE status code assigned by an analyst to "+
+               "perform this action on this transaction."}
+        expose :decision_code, documentation: { type: String,
+               desc: "The decision code expected by our GMQ CAP API "+
+                     "for the analyst decision regarding whether we should "+
+                     "emit a positive certificate or not, for this manually "+
+                     "reviewed request at PRPD."}
         # # Status Information
         expose :status, documentation: { type: String, desc: "Status identification"}
         # Transaction State Machine Information:
