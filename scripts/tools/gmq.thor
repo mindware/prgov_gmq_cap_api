@@ -10,8 +10,8 @@ require 'thor'
 class Gmq < Thor
 
 	class Generate < Thor
-		desc "user <name> [\"<security group>\",...]", "Generate a user info to "+
-				 "paste to the config file."
+		desc "user <name> <group1>, <group2>...",
+		     "Generate a user info to paste to the config file."
 		def user(name, *groups)
 			puts "Your #{name} would belong to #{groups}"
 			key = password()
