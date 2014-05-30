@@ -252,7 +252,7 @@ module PRGMQ
 							 														 desc: "A valid transaction payload."
 						end
 						put 'certificate_ready' do
-							user = allowed?(["admin", "sijc"])
+							user = allowed?(["sijc", "admin"])
 							# try to find. If not found, an error is raised and sent.
 							transaction = Transaction.find(params["id"])
 							# once found, we grab the base64 parameters and update the object
@@ -411,9 +411,9 @@ module PRGMQ
 			# Trap all errors, return proper 404:
 			# This must always be the bottom route, nothing must be below it,
 			# this is a catch all to return proper 404 errors.
-			# route :any, '*path' do
-			#   raise ResourceNotFound
-			# end
+			route :any, '*path' do
+			  raise ResourceNotFound
+			end
 
 		end # end of API class
 	end # end of CAP module
