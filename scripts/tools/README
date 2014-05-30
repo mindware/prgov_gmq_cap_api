@@ -12,6 +12,18 @@ install thor. For information on how to do this, see:
 After installing thor, simply type 'thor list'.
 For help, see 'thor help'.
 
+====================
+Generate a Password:
+====================
+
+Usage: thor gmq:generate:user
+
+Description:
+------------
+This command generates a random, cryptographic salted
+password.
+
+================
 Generate a User:
 ================
 
