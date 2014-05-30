@@ -1,6 +1,63 @@
+The following readme explains the different commands
+and gives some insight into what to do with their output.
+
+Thor:
+-----
+
+First thing's first. In order to use the commands, you must
+install thor. For information on how to do this, see: 
+- http://whatisthor.com/
+- https://github.com/erikhuda/thor
+
 After installing thor, simply type 'thor list'.
 For help, see 'thor help'.
---
-https://github.com/erikhuda/thor
-http://whatisthor.com/
--- 
+
+Generate a User:
+================
+
+Usage: thor gmq:generate:user <username> <group1>, <group2>... 
+
+Description:
+-----------
+For the PR.gov GMQ, the CAP API security groups are as follow:
+"admin","all","sijc","webapp","worker" 
+
+"admin" is a security group that has access to /cap/admin/* resources,
+such as: http://localhost:9000/v1/cap/admin/groups
+
+"all" is a system generated default. You don't need to specify a 
+user as a member of this group. The system automatically adds it to
+all users.
+
+"sijc" is a security group that allows access to the certificate_ready
+resource. 
+
+"webapp" is a security group for the PR.gov web application. It allows 
+access to the creation of transactions. Such as a POST request to:
+http://localhost:9000/v1/cap/transaction 
+
+"worker" is a security group that allows access to the GMQ workers
+to grab transaction jobs from the queue and process them. 
+
+----
+When creating a user, you need to assign them a security group.
+Such as:
+
+thor gmq:generate:user prgov_user webapp 
+
+That would output the JSON line that you'd need to append inside the 
+/api/config/users.json 
+ 
+---
+Example /api/config/users.json:
+{
+  "rci"         : { "passkey" : "9b9b2a8ddf62329a6031d8d2724275c5e1daa72c01dbd2026a83615f",
+                    "groups"  :  ["sijc"]  },
+  "cap_webapp"	: { "passkey" : "299a18a088f2e1e08074863cc03f6b699307eb895fdcd5c2c404e294",
+                    "groups"  : ["webapp"] },
+  "cap_worker"	: { "passkey" : "8db7ec2e5b82a85bb70d5f245a6f20e9544e2d169c47d3b6935f818a",
+                    "groups"  : ["worker"] },
+  "***REMOVED***"   : { "passkey" : "759528379170710b70d0e17e62cd142931db535d07bcb8cb4bffe6d9",
+		                "groups"  : ["admin"]  }
+}
+
