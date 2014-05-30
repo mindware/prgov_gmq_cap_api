@@ -320,7 +320,7 @@ module PRGMQ
       def certificate_ready(params)
           # validate these parameters. If this passes, we can safely import
           params = validate_certificate_ready_parameters(params)
-          certificate_base64          = params["certificate_base64"]
+          self.certificate_base64          = params["certificate_base64"]
           self
       end
 
