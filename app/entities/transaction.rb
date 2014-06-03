@@ -29,7 +29,11 @@ module PRGMQ
         expose :birth_date, documentation: { type: Date, desc: "Date of birth"}
         expose :reason, documentation: { type: Date, desc: "Reason for Certificate Request"}
         expose :IP, documentation: { type: String, desc: "Client's IP address"}
-        expose :certificate_base64, documentation: { type: String, desc: "Base64 Certificate"}
+        # expose :certificate_base64, documentation: { type: String, desc: "Base64 Certificate"}
+        expose :analyst_fullname, documentation: { type: String,
+               desc: "The full name of the PRPD analyst in the DB."}
+        expose :analyst_id, documentation: { type: String,
+               desc: "The id of the user of the PRPD analyst in the ANPE db."}
         expose :analyst_approval_datetime, documentation: { type: String,
                desc: "The date in UTC format when an analyst approved this "+
                      "action in PRPD"}
