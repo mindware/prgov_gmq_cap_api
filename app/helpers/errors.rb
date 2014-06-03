@@ -285,6 +285,30 @@ module PRGMQ
       end
     end
 
+    class MissingAnalystId < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: analyst_id "+
+                                      "is required.",
+                       "app_code" => 1016
+                    }
+        }
+      end
+    end
+
+    class MissingAnalystFullname < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: analyst_fullname "+
+                                      "is required.",
+                       "app_code" => 1017
+                    }
+        }
+      end
+    end
+
 
     ################################################################
     ########                   Invalid                      ########
@@ -505,6 +529,33 @@ module PRGMQ
       end
     end
 
+    class InvalidAnalystId < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid analyst_id provided.",
+                       "app_code" => 2017
+                    }
+        }
+      end
+    end
+
+    class InvalidAnalystFullname < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid analyst_fullname provided.",
+                       "app_code" => 2018
+                    }
+        }
+      end
+    end
+
+    ################################################################
+    ########          Additional Validation Errors          ########
+    ################################################################
+
+
     class InvalidCredentials < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_error" => "401 Unauthorized",
@@ -539,6 +590,7 @@ module PRGMQ
         }
       end
     end
+
 
     ################################################################
     ########                 Not Found                      ########
