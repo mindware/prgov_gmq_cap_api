@@ -354,6 +354,8 @@ module PRGMQ
       def review_complete(params)
           # validate these parameters. If this passes, we can safely import.
           params = validate_review_completed_parameters(params)
+          self.analyst_id                 = params["analyst_id"]
+          self.analyst_fullname           = params["analyst_fullname"]
           self.analyst_approval_datetime  = params["analyst_approval_datetime"]
           self.analyst_transaction_id     = params["analyst_transaction_id"]
           self.analyst_internal_status_id = params["analyst_internal_status_id"]
@@ -365,10 +367,80 @@ module PRGMQ
       #          State Machine           #
       ####################################
 
+      # At every retrying step we have to check if we've
+      # moved beyond the current state. If so, this
+      # step doesn't have to be retried. IE: if we're
+      # trying to send a sijc email receipt, but it failed
+      # because our smtp was down, we keep retrying
+      # but if we get a callback from SIJC with the
+      # certificate ready, we skip this retrying and
+      # simply send to certificate to the user and
+      # the retrying job will see this, and end its
+      # retries.
     	aasm do
-  			state :sleeping, :initial => true
-  			state :running
-  			state :cleaning
+        ##################################################
+        #                   Initial State                #
+        ##################################################
+  			state :recieved_from_prgov, :initial => true
+
+        ##################################################
+        #           Email the initial receipt            #
+        ##################################################
+        state :ready_to_send_prgov_receipt_to_user
+        state :sending_prgov_receipt_to_user
+        state :retrying_sending_prgov_receipt_to_user
+        # If success:
+        state :done_sending_prgov_receipt_to_user
+        # If exponential retry failure:
+        state :failed_sending_prgov_receipt_to_user
+
+        ##################################################
+        #     Validate Identity and Rapsheet with SIJC   #
+        ##################################################
+  			state :ready_to_validate_rapsheet_with_sijc
+        state :validating_rapsheet_with_sijc
+        state :retrying_validating_rapsheet_with_sijc
+        # If success:
+        state :done_validating_rapsheet_with_sijc
+        # If exponential retry failure:
+        state :failed_validating_rapsheet_with_sijc
+
+        ##################################################
+        #         Email the secondary receipt            #
+        ##################################################
+        # If DTOP ID was valid and rapsheet negative
+        # we notify that SIJC is generating the certificate,
+        # and PR.gov awaits the http callback from SIJC.
+            state :ready_to_send_sijc_receipt_dtop_ok_raspheet_ok_to_user
+            state :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+            state :retrying_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+            # If success:
+            state :done_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+            # If exponential retry failure:
+            state :failed_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        # If DTOP ID was invalid and rapsheet negative
+        # we notify that we were unable to validate the identity, but
+        # that the user appears to have a positive rapsheet.
+        # We give them instructions in dealing with the Positive rapsheet.
+        # We give them instructions in dealing with DTOP id.
+            state :ready_to_send_sijc_receipt_dtop_fail_raspheet_ok_to_user
+            state :sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+            state :retrying_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+            # If success:
+            state :done_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+            # If exponential retry failure:
+            state :failed_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        # If DTOP ID was valid and rapsheet positive
+        # we notify that we able to validate the identity, but
+        # that the user appears to have a positive rapsheet.
+        # We give them instructions in dealing with the Positive rapsheet.
+            state :ready_to_send_sijc_receipt_dtop_ok_raspheet_ok_to_user
+            state :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+            state :retrying_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+            # If success:
+            state :done_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+            # If exponential retry failure:
+            state :failed_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
 
   			event :run do
   			  transitions :from => :sleeping, :to => :running
@@ -383,11 +455,11 @@ module PRGMQ
   			end
   	  end
 
-    	def load(state)
+    	def load_state(state)
     			self.aasm.current_state = state
     	end
 
-    	def read
+    	def current_state
     		self.aasm.current_state
     	end
 
