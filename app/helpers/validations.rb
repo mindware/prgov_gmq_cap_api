@@ -13,16 +13,19 @@ module PRGMQ
         ##            Constants:               #
         ########################################
 
-        SSN_LENGTH          = 9    # In 2014 SSN length was 9 digits.
-        # source: http://www.rfc-editor.org/errata_search.php?rfc=3696&eid=1690
-        MAX_EMAIL_LENGTH    = 254  # IETF maximum length RFC3696/Errata ID: 1690
-        DTOP_ID_MAX_LENGTH  = 20   # Arbitrarily selected length. Review this!
-        MAX_NAME_LENGTH     = 255  # Max length for individual components of
-                                   # a full name (name, middle, last names)
-        MAX_RESIDENCY_LENGTH= 255  # max residency length
-        MINIMUM_AGE         = 18   # Edad minima para solicitar un certificado
+        SSN_LENGTH              = 9       # In 2014 SSN length was 9 digits.
+        MAX_EMAIL_LENGTH        = 254     # IETF maximum length RFC3696/Errata ID: 1690
+        DTOP_ID_MAX_LENGTH      = 20      # Arbitrarily selected length. Review this!
+        ANPE_USER_ID_MAX_LENGTH = 255     # Arbitrarily selected length. Review this!
+        MAX_NAME_LENGTH         = 255     # Max length for individual components of
+                                          # a full name (name, middle, last names)
+        MAX_FULLNAME_LENGTH     = 255     # Max length for full name. 255 is long
+                                          # enough. 255 * 255 * 255 * 255 is way too
+                                          # too much anyway. Used for analyst names.
+        MAX_RESIDENCY_LENGTH    = 255     # max residency length
+        MINIMUM_AGE             = 18      # Edad minima para solicitar un certificado
 
-        DATE_FORMAT         = '%d/%m/%Y'  # day/month/year
+        DATE_FORMAT             = '%d/%m/%Y'  # day/month/year
 
         ########################################
         ##            Validations:             #
@@ -41,6 +44,12 @@ module PRGMQ
         def validate_review_completed_parameters(params)
           raise MissingTransactionId        if params["id"].to_s.length == 0
           raise InvalidTransactionId        if !validate_transaction_id(params["id"])
+
+          raise MissingAnalystId            if params["analyst_id"].to_s.length == 0
+          raise InvalidAnalystId            if !validate_analyst_id(params["analyst_id"])
+          raise MissingAnalystFullname      if params["analyst_fullname"].to_s.length == 0
+          raise InvalidAnalystFullname      if !validate_analyst_fullname(params["analyst_fullname"])
+
           raise MissingAnalystApprovalDate  if params["analyst_approval_datetime"].to_s.length == 0
           raise InvalidAnalystApprovalDate  if !validate_date(params["analyst_approval_datetime"])
           raise MissingAnalystTransactionId if params["analyst_transaction_id"].to_s.length == 0
@@ -181,6 +190,9 @@ module PRGMQ
 
         # Check the email address
         def validate_email(value)
+          # For email length, the source was:
+          # http://www.rfc-editor.org/errata_search.php?rfc=3696&eid=1690
+          #
           # Optionally we could force DNS lookups using ValidatesEmailFormatOf
           # by sending validate_email_format special options after the value
           # such as mx=true (see gem's github), however, this requires dns
@@ -201,6 +213,16 @@ module PRGMQ
         def validate_dtop_id(value)
           return false if(!validate_str_is_integer(value) or
                     value.to_s.length >= DTOP_ID_MAX_LENGTH )
+          return true
+        end
+
+        def validate_analyst_id(value)
+          return false if(value.to_s.length >= ANPE_USER_ID_MAX_LENGTH)
+          return true
+        end
+
+        def validate_analyst_fullname(value)
+          return false if(value.to_s.length >= MAX_FULLNAME_LENGTH)
           return true
         end
 
