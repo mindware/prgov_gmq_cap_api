@@ -197,30 +197,7 @@ module PRGMQ
 						desc "Request to generate a new transaction, which involves "+
 								 "attempting to enqueue the request with a unique transaction "+
 								 "id and returning said id."
-						params do
-							# requires :email, type: String, desc: "A valid email address."
-							# requires :ssn, type: String, desc: "A valid social security number."
-							# requires :license_number, type: String, desc: "A valid dtop id (ie: license number)."
-							# requires :first_name, type: String, desc: "A valid first name."
-							# requires :last_name, type: String, desc: "A valid last name."
-							# requires :residency, type: String, desc: "A valid residency."
-							# requires :birth_date, type: String, desc: "A valid birth date."
-							# requires :IP, type: String, desc: "A valid IP."
-						end
 						post '/' do
-							# allowed_groups = ["admin", "webapp"]
-							# {
-							#     "transaction" =>
-							# 		{
-							#         "id" => "0-123-456",
-							#         "action" => {
-							#             "id" => 1,
-							#             "description" => "validating identity and rapsheet with DTOP & SIJC"
-							#          },
-							#         "status" => "pending",
-							#         "location" => "prgmq_validate_rapsheet_with_sijc_queue",
-							#     }
-							# }
 							user = allowed?(["webapp", "admin"])
 							# We store the IP of the system that made the direct request.
 							# even if they will forward the originating IP, we grab theirs
@@ -262,9 +239,10 @@ module PRGMQ
 
 
 						# PUT /v1/cap/transaction/certificate_ready
-						desc "Requests that the server save the enclosed base64 "+
-								 "certificate with the transaction and enqueue a job for "+
-								 "processing it by emailing it to the proper email address. "
+						desc "Confirms that the enclosed base64 "+
+								 "certificate has been generated at SIJC's RCI for this "+
+								 "transaction, and it is ready to be sent to a proper "+
+								 "email address."
 						put 'certificate_ready' do
 							user = allowed?(["sijc", "admin"])
 							# try to find. If not found, an error is raised and sent.
@@ -276,37 +254,6 @@ module PRGMQ
 							present transaction, with:Entities::Transaction
 							# Only allowed to be set when PRPD requests so through their
 							# action.
-							# {
-							# 			"transaction"=> {
-							# 					"id" => "0-123-456",
-							# 					"current_error_count" => 0,
-							# 					"total_error_count" => 1,
-							# 					"action" => {
-							# 							"id" => 10,
-							# 							"description" => "sending certificate via email"
-							# 					},
-							# 					"email" => "levipr@gmail.com",
-							# 					"history" => {
-							# 						"created_at"  => "5/10/2014 2=>30=>00AM",
-							# 						"updated_at" => "5/10/2014 2=>36=>53AM",
-							# 						"updates" => {
-							# 							"5/10/2014 2=>31=>00AM" => "Updating email per "+
-							# 						  "user request=> (params=> ‘email’ => "+
-							# 							"'levipr@gmail.com') ",
-							# 						},
-							# 						"failed" => {
-							# 									"5/10/2014 2=>36=>52AM" => {
-							# 													"sijc_rci_validate_dtop" => {
-							# 																			"http_code" =>  502,
-							# 																			"app_code" =>  8001,
-							# 													},
-							# 										},
-							# 							},
-							# 					},
-							# 					"status" => "processing",
-							# 					"location" => "prgmq_email_certificate_queue",
-							# 			}
-							# 	}
 						end
 						#
 						# # PUT /v1/cap/transaction/
