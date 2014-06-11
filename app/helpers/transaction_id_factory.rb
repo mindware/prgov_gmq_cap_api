@@ -22,7 +22,9 @@ module PRGMQ
       end
 
       def self.generate_key
-        SecureRandom.uuid.gsub("-", "")
+        # change this later for snow flake.
+        # Always use 0 at the start.
+        "0" + SecureRandom.uuid.gsub("-", "").to_s[0..16]
       end
 
     end
