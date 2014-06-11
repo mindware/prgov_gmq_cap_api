@@ -309,6 +309,18 @@ module PRGMQ
       end
     end
 
+    class MissingLanguage < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: language "+
+                                      "is required.",
+                       "app_code" => 1018
+                    }
+        }
+      end
+    end
+
 
     ################################################################
     ########                   Invalid                      ########
@@ -449,18 +461,6 @@ module PRGMQ
       end
     end
 
-    # class InvalidActiveParameters < PRGMQ::CAP::AppError
-    #   def self.data
-    #     { "error" => { "http_error" => "400 Bad Request",
-    #                    "http_code" => 400,
-    #                    "app_error" => "Invalid activate value provided "+
-    #                                   "(only true or false allowed).",
-    #                    "app_code" => 2011
-    #                 }
-    #     }
-    #   end
-    # end
-
     class InvalidMiddleName < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_error" => "400 Bad Request",
@@ -546,6 +546,17 @@ module PRGMQ
                        "http_code" => 400,
                        "app_error" => "Invalid analyst_fullname provided.",
                        "app_code" => 2018
+                    }
+        }
+      end
+    end
+
+    class InvalidLanguage < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Invalid language provided.",
+                       "app_code" => 2019
                     }
         }
       end
