@@ -52,6 +52,7 @@ module PRGMQ
                                            # claimed/forwarded by client system
                     :system_address,       # the IP of the client system that
                                            # talks to the API
+                    :language,             # User specified language
                     :status,               # the status pending proceessing etc
                     :state,                # the state of the State Machine
                     :history,              # A history of all actions performed
@@ -100,7 +101,7 @@ module PRGMQ
           whitelist = ["email", "ssn", "license_number",
           "first_name", "middle_name", "last_name", "mother_last_name",
           "residency", "birth_date", "IP", "reason", "system_address",
-          "created_by" ]
+          "created_by", "language" ]
 
           # The expiration is going to be 8 months, in seconds
           # Time To Live - Math:
@@ -153,6 +154,7 @@ module PRGMQ
               self.reason                     = params["reason"]
               self.IP                         = params["IP"]
               self.system_address             = params["system_address"]
+              self.language                   = params["language"]
               self.status                     = params["status"]
               self.location                   = params["location"]
               self.state                      = params["state"]
@@ -190,6 +192,7 @@ module PRGMQ
           @birth_date = nil
           @residency = nil
           @reason = nil
+          @language = nil
           @ttl = nil
           @location = nil
           @history = nil
