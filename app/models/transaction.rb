@@ -28,7 +28,6 @@ module PRGMQ
       include Validations
       include TransactionIdFactory
       extend TransactionIdFactory
-      include AASM           # use the act as state machine gem
       include LibraryHelper
 
       MONTHS_TO_EXPIRATION_OF_TRANSACTION = 3
@@ -200,7 +199,7 @@ module PRGMQ
           @created_at = nil
           @updated_at = nil
           @created_by = nil
-          @certificate_base64 = nil
+          @certificate_base64 = false
           @analyst_fullname = nil
           @analyst_id = nil
           @analyst_approval_datetime = nil
@@ -266,7 +265,11 @@ module PRGMQ
         "tx"
       end
 
-      # ttl count for current item
+      # Not used at this time. Checks ttl for an id.
+      # we're not yet setting TTLs in the actual db,
+      # so this is unused.
+      # description:
+      # gets ttl count for current item
       def ttl()
           Store.db.ttl(db_id)
       end
@@ -343,7 +346,11 @@ module PRGMQ
       def certificate_ready(params)
           # validate these parameters. If this passes, we can safely import
           params = validate_certificate_ready_parameters(params)
-          self.certificate_base64          = params["certificate_base64"]
+          # self.certificate_base64          = params["certificate_base64"]
+          # to reduce memory usage, we no longer store the base64 cert, we
+          # merely mark it as received, and look it up in SIJC's RCI when
+          # we're ready to send it via email.
+          self.certificate_base64            = true
           self
       end
 
@@ -362,106 +369,6 @@ module PRGMQ
           self.decision_code              = params["decision_code"]
           self
       end
-
-      ####################################
-      #          State Machine           #
-      ####################################
-
-      # At every retrying step we have to check if we've
-      # moved beyond the current state. If so, this
-      # step doesn't have to be retried. IE: if we're
-      # trying to send a sijc email receipt, but it failed
-      # because our smtp was down, we keep retrying
-      # but if we get a callback from SIJC with the
-      # certificate ready, we skip this retrying and
-      # simply send to certificate to the user and
-      # the retrying job will see this, and end its
-      # retries.
-    	aasm do
-        ##################################################
-        #                   Initial State                #
-        ##################################################
-  			state :recieved_from_prgov, :initial => true
-
-        ##################################################
-        #           Email the initial receipt            #
-        ##################################################
-        state :ready_to_send_prgov_receipt_to_user
-        state :sending_prgov_receipt_to_user
-        state :retrying_sending_prgov_receipt_to_user
-        # If success:
-        state :done_sending_prgov_receipt_to_user
-        # If exponential retry failure:
-        state :failed_sending_prgov_receipt_to_user
-
-        ##################################################
-        #     Validate Identity and Rapsheet with SIJC   #
-        ##################################################
-  			state :ready_to_validate_rapsheet_with_sijc
-        state :validating_rapsheet_with_sijc
-        state :retrying_validating_rapsheet_with_sijc
-        # If success:
-        state :done_validating_rapsheet_with_sijc
-        # If exponential retry failure:
-        state :failed_validating_rapsheet_with_sijc
-
-        ##################################################
-        #         Email the secondary receipt            #
-        ##################################################
-        # If DTOP ID was valid and rapsheet negative
-        # we notify that SIJC is generating the certificate,
-        # and PR.gov awaits the http callback from SIJC.
-            state :ready_to_send_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            state :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            state :retrying_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            # If success:
-            state :done_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            # If exponential retry failure:
-            state :failed_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-        # If DTOP ID was invalid and rapsheet negative
-        # we notify that we were unable to validate the identity, but
-        # that the user appears to have a positive rapsheet.
-        # We give them instructions in dealing with the Positive rapsheet.
-        # We give them instructions in dealing with DTOP id.
-            state :ready_to_send_sijc_receipt_dtop_fail_raspheet_ok_to_user
-            state :sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
-            state :retrying_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
-            # If success:
-            state :done_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
-            # If exponential retry failure:
-            state :failed_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
-        # If DTOP ID was valid and rapsheet positive
-        # we notify that we able to validate the identity, but
-        # that the user appears to have a positive rapsheet.
-        # We give them instructions in dealing with the Positive rapsheet.
-            state :ready_to_send_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            state :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            state :retrying_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            # If success:
-            state :done_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            # If exponential retry failure:
-            state :failed_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-
-  			event :run do
-  			  transitions :from => :sleeping, :to => :running
-  			end
-
-  			event :clean do
-  			  transitions :from => :running, :to => :cleaning
-  			end
-
-  			event :sleep do
-  			  transitions :from => [:running, :cleaning], :to => :sleeping
-  			end
-  	  end
-
-    	def load_state(state)
-    			self.aasm.current_state = state
-    	end
-
-    	def current_state
-    		self.aasm.current_state
-    	end
 
     end
   end
