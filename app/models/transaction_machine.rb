@@ -170,7 +170,7 @@ module PRGMQ
           transitions :from => [:ready_to_validate_rapsheet_with_sijc,
                                 :retry_validating_rapsheet_with_sijc,
                                 :failed_validating_rapsheet_with_sijc],
-                      :to   => :validating_rapsheet_with_sijc
+                      :to   =>  :validating_rapsheet_with_sijc
         end
 
         # This event grabs a failed transaction, and attempts a
@@ -198,19 +198,30 @@ module PRGMQ
         ##################################################
 
         event :ready_to_send_fuzzy_receipt do
-          :failed_validating_rapsheet_with_sijc
+          transitions :from => :failed_validating_rapsheet_with_sijc,
+                      :to   => :ready_to_send_sijc_receipt_rci_fuzzy_to_user
         end
 
         event :send_fuzzy_receipt do
           transitions :from => [:done_validating_rapsheet_with_sijc,
                                 :retry_sending_sijc_receipt_rci_fuzzy_to_user],
-                      :to   => :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+                      :to   =>  :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
         end
 
-        event :sending_fuzzy_receipt do
-          transitions :from => :
+        event :failed_fuzzy_receipt do
+          transitions :from => [:sending_sijc_receipt_dtop_ok_raspheet_ok_to_user,
+                                :retry_sending_sijc_receipt_rci_fuzzy_to_user],
+                      :to   =>  :failed_sending_sijc_receipt_rci_fuzzy_to_user
         end
 
+        event :retry_fuzzy_receipt do
+          transitions :form => :failed_sending_sijc_receipt_rci_fuzzy_to_user,
+                      :to   => :retry_sending_sijc_receipt_rci_fuzzy_to_user
+        end
+
+        event :done_fuzzy_receipt do
+          transitions :form => :done_sending_sijc_receipt_rci_fuzzy_to_user
+        end
 
 
 state :ready_to_send_sijc_receipt_rci_fuzzy_to_user
