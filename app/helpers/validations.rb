@@ -76,6 +76,7 @@ module PRGMQ
           raise MissingBirthDate       if params["birth_date"].to_s.length == 0
           raise MissingClientIP        if params["IP"].to_s.length == 0
           raise MissingReason          if params["reason"].to_s.length == 0
+          raise MissingLanguage        if params["language"].to_s.length == 0
 
           # Validate the Email
           raise InvalidEmail           if validate_email(params["email"])
@@ -103,8 +104,18 @@ module PRGMQ
           raise InvalidBirthDate       if !validate_birthdate(params["birth_date"], true)
           raise InvalidClientIP        if !validate_ip(params["IP"])
           raise InvalidReason          if params["reason"].to_s.strip.length > 255
+          raise InvalidLanguage        if !validate_language(params["language"])
 
           return params
+        end
+
+        # Validates that a user specified language has been added. 
+        def validate_language(params)
+          if(params.to_s == "english" or params.to_s == "spanish")
+            true
+          else
+            false
+          end
         end
 
         # Given a set of params and an array of whitelisted keys, we
