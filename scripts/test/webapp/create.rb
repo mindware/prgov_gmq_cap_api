@@ -14,6 +14,9 @@ IP = '192.168.1.2'
 reason = 'Background check to join S.H.I.E.L.D.'
 birth_place = "San Juan"
 email = "acolon@ogp.pr.gov"
+# Test it in english and spanish. Comment last one to try the other.
+language = 'english'
+language = 'spanish'
 
 payload = { 
 		:first_name => first_name,
@@ -26,7 +29,8 @@ payload = {
 		:IP	    => IP,
 		:reason	    => reason,
 		:birth_place=> birth_place,
-		:email	    => email
+		:email	    => email,
+		:language   => language
 	 }
 method = "post"
 type = "json"
