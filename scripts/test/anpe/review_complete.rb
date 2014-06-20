@@ -4,7 +4,8 @@ require 'base64'
 
 user = "***REMOVED***"
 pass = "***REMOVED***"
-id = '1e29234ee0c84921adec08fbe5980162'
+#id = '1e29234ee0c84921adec08fbe5980162'
+id = '0338ca35444694f18a'
 url = "http://localhost:9000/v1/cap/transaction/review_complete"
 
 analyst_internal_status_id      = "030" # the action's id in the system
