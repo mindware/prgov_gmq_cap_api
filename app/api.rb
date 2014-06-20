@@ -51,6 +51,11 @@ module PRGMQ
 
 
 			before do
+				# If we're in verbose mode, print everything to STDOUT
+				# Print a set of dashes to make viewing output easier:
+				puts "#{ "-" * 80 }\n" if Config.debug
+				debug request_info
+
 				# If the system is set up for downtime/maintenance:
 				if(Config.downtime)
 					# get the path:
@@ -67,6 +72,7 @@ module PRGMQ
 			# After every request, keep count of all global visits
 			after do
 				Stats.new_request # unless Config.downtime
+				puts "#{ "-" * 80 }\n" # print out a dash signifying end of output
 			end
 
 			# From here on the user is authenticated. Any checks should be for
@@ -219,7 +225,7 @@ module PRGMQ
 						end
 
 						# PUT /v1/cap/transaction/review_complete
-						desc "Confirms that an analyst has completed manual revision of "+
+						desc "Confirms that an analyst at PRPD has completed manual revision of "+
 						"this transaction, and requests that their decision_code be stored"+
 						" and processed accordingly."
 						params do
