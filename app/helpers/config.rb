@@ -5,7 +5,8 @@ module PRGMQ
       class Config
 
           class << self
-              attr_reader :all, :backtrace_errors, :debug, :users, :downtime
+              attr_reader :all, :backtrace_errors, :debug, :users, :downtime,
+                          :logging
               attr_writer :downtime
           end
 
@@ -21,6 +22,8 @@ module PRGMQ
           else
             @debug = false
           end
+
+          @logging = false
 
           # Sets backtrace for unexpected exceptions
           @backtrace_errors = false
