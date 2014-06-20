@@ -55,36 +55,36 @@ module PRGMQ
         # If DTOP ID was valid and rapsheet negative
         # we notify that SIJC is generating the certificate,
         # and PR.gov awaits the http callback from SIJC.
-            state :ready_to_send_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            state :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            state :retry_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            # If success:
-            state :done_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
-            # If exponential retry failure:
-            state :failed_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        state :ready_to_send_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        state :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        state :retry_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        # If success:
+        state :done_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        # If exponential retry failure:
+        state :failed_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
         # If DTOP ID was invalid and rapsheet negative
         # we notify that we were unable to validate the identity, but
         # that the user appears to have a positive rapsheet.
-        # We give them instructions in dealing with the Positive rapsheet.
         # We give them instructions in dealing with DTOP id.
-            state :ready_to_send_sijc_receipt_dtop_fail_raspheet_ok_to_user
-            state :sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
-            state :retry_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
-            # If success:
-            state :done_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
-            # If exponential retry failure:
-            state :failed_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        # If SIJC ever incorporates other authentication schemes 
+        state :ready_to_send_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        state :sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        state :retry_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        # If success:
+        state :done_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        # If exponential retry failure:
+        state :failed_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
         # If DTOP ID was valid and rapsheet positive
         # we notify that we able to validate the identity, but
         # that the user appears to have a positive rapsheet.
         # We give them instructions in dealing with the Positive rapsheet.
-            state :ready_to_send_sijc_receipt_dtop_ok_raspheet_fail_to_user
-            state :sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
-            state :retry_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
-            # If success:
-            state :done_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
-            # If exponential retry failure:
-            state :failed_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        state :ready_to_send_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        state :sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        state :retry_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        # If success:
+        state :done_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        # If exponential retry failure:
+        state :failed_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
 
         # If RCI determines this is a result and we need
         # manual PRPD evaluation:
@@ -112,28 +112,21 @@ module PRGMQ
         ##################################################
 
         # If PRPD said we can proceed to send negative
-        # certificate:
-            state :ready_to_send_prpd_certificate_raspheet_ok_to_user
-            state :sending_prpd_certificate_raspheet_ok_to_user
-            state :retry_prpd_certificate_raspheet_ok_to_user
-            # If success:
-            state :done_sending_prpd_certificate_raspheet_ok_to_user
-            # If exponential retry failure:
-            state :failed_sending_prpd_certificate_raspheet_ok_to_user
-
-        # If PRPD said we can't proceed to send negative
-        # certificate:
-            state :ready_to_send_prpd_receipt_raspheet_fail_to_user
-            state :sending_prpd_receipt_raspheet_fail_to_user
-            state :retry_prpd_receipt_raspheet_fail_to_user
-            # If success:
-            state :done_sending_prpd_receipt_raspheet_fail_to_user
-            # If exponential retry failure:
-            state :failed_sending_prpd_receipt_raspheet_fail_to_user
+        # certificate or said they canot, we will know based on
+        # the transaction.decision_code:
+        state :ready_to_send_prpd_receipt
+        state :sending_prpd_receipt
+        state :retry_prpd_receipt
+        # If success:
+        state :done_sending_prpd_receipt
+        # If exponential retry failure:
+        state :failed_sending_prpd_receipt
 
 
         ##################################################
-        #             Events that fire States            #
+        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+        #             Events that fire States:           #
+        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
         ##################################################
 
         ##################################################
@@ -149,11 +142,39 @@ module PRGMQ
                         :to => :recieved_initial_request_from_prgov
         end
 
+        ##################################################
+        #     Notify User PR.Gov recieved User Request   #
+        ##################################################
+
         # We order the Transaction to send the receipt, by enqueing it
         # immediately after this event.
+        event :ready_to_send_prgov_receipt do
+          transitions :from => [:recieved_initial_request_from_prgov,
+                                :retry_sending_prgov_receipt_to_user],
+                        :to =>  :ready_to_send_prgov_receipt_to_user
+        end
+
+
         event :send_prgov_receipt do
-          transitions :from => :recieved_initial_request_from_prgov,
-                        :to => :ready_to_send_prgov_receipt_to_user
+          transitions :from => [:ready_to_send_prgov_receipt_to_user,
+                                :retry_sending_prgov_receipt_to_user],
+                      :to   =>  :sending_prgov_receipt_to_user
+        end
+
+        event :failed_prgov_receipt do
+          transitions :from =>  :sending_prgov_receipt_to_user,
+                      :to   =>  :failed_sending_prgov_receipt_to_user
+        end
+
+
+        event :retry_prgov_receipt do
+          transitions :form => :failed_sending_prgov_receipt_to_user,
+                      :to   => :retry_sending_prgov_receipt_to_user
+        end
+
+        event :done_prgov_receipt do
+          transitions :form => :sending_prgov_receipt_to_user,
+                      :to   => :done_sending_prgov_receipt_to_user
         end
 
 
@@ -161,15 +182,13 @@ module PRGMQ
         #               SIJC RAPSHEET REQUEST            #
         ##################################################
 
-
         # This event initiates a rapsheet request validation
         event :request_rapsheet
           # We can transition into this validation state from ready state
           # We can also enter this after a failed attempt,
           # such as a client that is awaiting a retry or failed.
           transitions :from => [:ready_to_validate_rapsheet_with_sijc,
-                                :retry_validating_rapsheet_with_sijc,
-                                :failed_validating_rapsheet_with_sijc],
+                                :retry_validating_rapsheet_with_sijc],
                       :to   =>  :validating_rapsheet_with_sijc
         end
 
@@ -194,23 +213,123 @@ module PRGMQ
         end
 
         ##################################################
+        #       Send User SIJC Generated Cert            #
+        ##################################################
+
+        # We're waiting for the SIJC Callback
+        event :wait_for_sijc_callback do
+          transitions :from => :done_validating_rapsheet_with_sijc,
+                      :to   => :waiting_for_sijc_to_generate_cert
+        end
+
+        # We recieved the callback from SIJC
+        event :ready_to_send_sijc_negative_cert do
+          transitions :from => :waiting_for_sijc_to_generate_cert,
+                      :to   => :ready_to_send_sijc_to_generate_cert
+        end
+
+        event :send_sijc_negative_cert do
+          transitions :from => [:ready_to_send_sijc_to_generate_cert,
+                                :retry_sending_sijc_to_generate_cert],
+                      :to   =>  :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        end
+
+        event :failed_sending_sijc_negative_cert do
+          transitions :from =>  :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user,
+                      :to   =>  :failed_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        end
+
+        event :retry_sending_sijc_negative_cert do
+          transitions :form => :failed_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user,
+                      :to   => :retry_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        end
+
+        event :done_sending_sijc_negative_cert do
+          transitions :form => :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user,
+                      :to   => :done_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
+        end
+
+        ##################################################
+        #         SIJC Errors Receipt - DTOP Fail        #
+        ##################################################
+
+        # We recieved the callback from SIJC
+        event :ready_to_send_dtop_fail_receipt do
+          transitions :from => :done_validating_rapsheet_with_sijc,
+                      :to   => :ready_to_send_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        end
+
+        event :send_dtop_fail_receipt do
+          transitions :from => [:ready_to_send_sijc_receipt_dtop_fail_raspheet_ok_to_user,
+                                :retry_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user],
+                      :to   =>  :sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        end
+
+        event :failed_sending_dtop_fail_receipt do
+          transitions :from =>  :sending_sijc_receipt_dtop_fail_raspheet_ok_to_user,
+                      :to   =>  :failed_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        end
+
+        event :retry_sending_dtop_fail_receipt do
+          transitions :form => :failed_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user,
+                      :to   => :retry_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        end
+
+        event :done_sending_dtop_fail_receipt do
+          transitions :form => :sending_sijc_receipt_dtop_fail_raspheet_ok_to_user,
+                      :to   => :done_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
+        end
+
+
+        ##################################################
+        #       SIJC Errors Receipt - Rapsheet Fail      #
+        ##################################################
+
+        # We recieved the callback from SIJC
+        event :ready_to_send_rapsheet_fail_receipt do
+          transitions :from => :done_validating_rapsheet_with_sijc,
+                      :to   => :ready_to_send_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        end
+
+        event :send_rapsheet_fail_receipt do
+          transitions :from => [:ready_to_send_sijc_receipt_dtop_ok_raspheet_fail_to_user,
+                                :retry_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user],
+                      :to   =>  :sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        end
+
+        event :failed_sending_rapsheet_fail_receipt do
+          transitions :from =>  :sending_sijc_receipt_dtop_ok_raspheet_fail_to_user,
+                      :to   =>  :failed_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        end
+
+        event :retry_sending_rapsheet_fail_receipt do
+          transitions :form => :failed_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user,
+                      :to   => :retry_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        end
+
+        event :done_sending_rapsheet_fail_receipt do
+          transitions :form => :sending_sijc_receipt_dtop_ok_raspheet_fail_to_user,
+                      :to   => :done_sending_sijc_receipt_dtop_ok_raspheet_fail_to_user
+        end
+
+
+        ##################################################
         #   Notify User SIJC requires PRPD validation    #
         ##################################################
 
         event :ready_to_send_fuzzy_receipt do
-          transitions :from => :failed_validating_rapsheet_with_sijc,
+          transitions :from => :done_validating_rapsheet_with_sijc,
                       :to   => :ready_to_send_sijc_receipt_rci_fuzzy_to_user
         end
 
         event :send_fuzzy_receipt do
-          transitions :from => [:done_validating_rapsheet_with_sijc,
+          transitions :from => [:ready_to_send_sijc_receipt_rci_fuzzy_to_user,
                                 :retry_sending_sijc_receipt_rci_fuzzy_to_user],
                       :to   =>  :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
         end
 
         event :failed_fuzzy_receipt do
-          transitions :from => [:sending_sijc_receipt_dtop_ok_raspheet_ok_to_user,
-                                :retry_sending_sijc_receipt_rci_fuzzy_to_user],
+          transitions :from =>  :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user,
                       :to   =>  :failed_sending_sijc_receipt_rci_fuzzy_to_user
         end
 
@@ -220,60 +339,68 @@ module PRGMQ
         end
 
         event :done_fuzzy_receipt do
-          transitions :form => :done_sending_sijc_receipt_rci_fuzzy_to_user
-        end
-
-
-state :ready_to_send_sijc_receipt_rci_fuzzy_to_user
-state :sending_sijc_receipt_rci_fuzzy_to_user
-state :retry_sending_sijc_receipt_rci_fuzzy_to_user
-# If success:
-state :done_sending_sijc_receipt_rci_fuzzy_to_user
-# If exponential retry failure:
-state :failed_sending_sijc_receipt_rci_fuzzy_to_user
-
-        event :ready_to_send_sijc_receipt_rci_fuzzy_to_user
-          transitions :from => :done_validating_rapsheet_with_sijc
-                      :to   => :ready_to_send_sijc_receipt_rci_fuzzy_to_user
+          transitions :form => :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user,
+                      :to   => :done_sending_sijc_receipt_rci_fuzzy_to_user
         end
 
         ##################################################
         #                 PRPD ANPE STATES               #
         ##################################################
 
-        event :request_prpd_review
-          transitions :from => [:done_validating_rapsheet_with_sijc,
-                                :retry_submission_to_prpd_for_manual_review],
+        event :ready_to_request_prpd_review
+          transitions :from => :done_sending_sijc_receipt_rci_fuzzy_to_user,
                       :to   => :ready_to_submit_to_prpd_for_manual_review
         end
 
-        event :request_prpd_retry
+        event :request_prpd_review
+          transitions :from => [:done_sending_sijc_receipt_rci_fuzzy_to_user,
+                                :retry_submission_to_prpd_for_manual_review],
+                      :to   => :submitting_to_prpd_for_manual_review
+        end
+
+        event :failed_prpd_review do
+          transitions :from =>  :submitting_to_prpd_for_manual_review,
+                      :to   =>  :failed_sending_sijc_receipt_rci_fuzzy_to_user
+        end
+
+        event :retry_prpd_review
           transitions :from => :failed_submitting_to_prpd_for_manual_review,
                       :to   => :retry_submission_to_prpd_for_manual_review
         end
 
-        event :request_prpd_done
-          transitions :from => :validating
+        event :done_request_prpd_review
+          transitions :from => :submitting_to_prpd_for_manual_review,
+                      :to   => :done_submitting_to_prpd_for_manual_review
         end
 
-state :ready_to_submit_to_prpd_for_manual_review
-state :submitting_to_prpd_for_manual_review
-state :retry_submission_to_prpd_for_manual_review
-# If success:
-state :done_submitting_to_prpd_for_manual_review
-# If exponential retry failure:
-state :failed_submitting_to_prpd_for_manual_review
+        ##################################################
+        #       Notify User PRPD of Valid PRPD Result    #
+        ##################################################
 
-        state :ready_to_submit_to_prpd_for_manual_review
-        state :submitting_to_prpd_for_manual_review
-        state :retry_submission_to_prpd_for_manual_review
-        # If success:
-        state :done_submitting_to_prpd_for_manual_review
-        # If exponential retry failure:
-        state :failed_submitting_to_prpd_for_manual_review
+        event :ready_to_send_prpd_receipt do
+          transitions :from => :done_submitting_to_prpd_for_manual_review
+                      :to   => :ready_to_send_prpd_receipt
+        end
 
+        event :send_prpd_receipt do
+          transitions :from => [:ready_to_send_prpd_receipt,
+                                :retry_prpd_receipt],
+                      :to   =>  :sending_prpd_receipt
+        end
 
+        event :failed_prpd_receipt do
+          transitions :from =>  :sending_prpd_receipt,
+                      :to   =>  :failed_sending_prpd_receipt
+        end
 
+        event :retry_prpd_receipt do
+          transitions :form => :failed_sending_prpd_receipt,
+                      :to   => :retry_prpd_receipt
+        end
+
+        event :done_prpd_receipt do
+          transitions :form => :sending_prpd_receipt,
+                      :to   => :done_sending_prpd_receipt
         end
 
       end # end of aasm
