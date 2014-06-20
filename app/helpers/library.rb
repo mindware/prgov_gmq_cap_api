@@ -48,9 +48,22 @@ module PRGMQ
 			def debug(str)
 				  puts "DEBUG: #{str}" if Config.debug
 			end
+			#
+			# def log(str)
+			# 		puts "#{str}" if Config.logging
+			# end
 
 			def last_10_transactions
 					Store.db.lrange(Transaction.db_list, 0, -1)
+			end
+
+			def request_info
+				"Incoming Request Data:\n"+
+				"User: #{env["REMOTE_USER"]} (#{env["REMOTE_ADDR"]})\n"+
+				"URI: #{env["REQUEST_URI"]}\n"+
+				"Time: #{Time.now.strftime("%m/%d/%Y - %r")}\n"+
+				"JSON Payload:\n#{env["api.request.input"]}\n"+
+				"Description:\n#{route.route_description}\n"
 			end
 
 		end
