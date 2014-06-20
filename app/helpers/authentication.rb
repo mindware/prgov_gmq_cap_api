@@ -11,7 +11,10 @@ module PRGMQ
         # This validates if a username and password combination are correct.
         # Retruns true if correct, false if not.
         def self.valid?(username=nil, password=nil)
-            return false if(username.to_s.length == "" or password.to_s.length == "")
+            # puts "Authentication: '#{username}', '#{password}'" if Config.debug
+            if(username.to_s.length == "" or password.to_s.length == "")
+              return false
+            end
 
             if(Config.users.has_key? username)
               # We currently require all password salts to be of length 24, based on
