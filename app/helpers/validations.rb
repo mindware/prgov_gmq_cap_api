@@ -33,6 +33,7 @@ module PRGMQ
 
         # used when SIJC specifies the certificate is ready
         def validate_certificate_ready_parameters(params)
+          params["id"] = params["tx_id"] if !params["tx_id"].nil?
           raise MissingTransactionId     if params["id"].to_s.length == 0
           raise InvalidTransactionId     if !validate_transaction_id(params["id"])
           raise MissingCertificateBase64 if params["certificate_base64"].to_s.length == 0
@@ -109,7 +110,7 @@ module PRGMQ
           return params
         end
 
-        # Validates that a user specified language has been added. 
+        # Validates that a user specified language has been added.
         def validate_language(params)
           if(params.to_s == "english" or params.to_s == "spanish")
             true
