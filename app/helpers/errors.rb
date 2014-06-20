@@ -69,7 +69,10 @@ module PRGMQ
           end # end of developer enviornment check
 
           # Print to STDOUT the full errors if in debug mode.
-          puts message if Config.debug
+          puts "Error:\n#{message}" if Config.debug
+          # Print out dashes to make it easy to destinguish where our
+          # request output ends.
+          puts "#{ "-" * 80 }\n" if Config.debug
 
           throw :error, :message => message, :status => klass.http_code
         end # end of begin/rescue
