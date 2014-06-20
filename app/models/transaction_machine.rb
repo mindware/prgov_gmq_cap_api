@@ -55,6 +55,10 @@ module PRGMQ
         # If DTOP ID was valid and rapsheet negative
         # we notify that SIJC is generating the certificate,
         # and PR.gov awaits the http callback from SIJC.
+
+        # before sijc callback:
+        state :waiting_for_sijc_to_generate_cert
+        # after sijc callback:
         state :ready_to_send_sijc_receipt_dtop_ok_raspheet_ok_to_user
         state :sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
         state :retry_sending_sijc_receipt_dtop_ok_raspheet_ok_to_user
@@ -66,7 +70,7 @@ module PRGMQ
         # we notify that we were unable to validate the identity, but
         # that the user appears to have a positive rapsheet.
         # We give them instructions in dealing with DTOP id.
-        # If SIJC ever incorporates other authentication schemes 
+        # If SIJC ever incorporates other authentication schemes
         state :ready_to_send_sijc_receipt_dtop_fail_raspheet_ok_to_user
         state :sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
         state :retry_sending_sijc_receipt_dtop_fail_raspheet_ok_to_user
@@ -88,13 +92,13 @@ module PRGMQ
 
         # If RCI determines this is a result and we need
         # manual PRPD evaluation:
-            # state :ready_to_send_sijc_receipt_rci_fuzzy_to_user
-            state :sending_sijc_receipt_rci_fuzzy_to_user
-            state :retry_sending_sijc_receipt_rci_fuzzy_to_user
-            # If success:
-            state :done_sending_sijc_receipt_rci_fuzzy_to_user
-            # If exponential retry failure:
-            state :failed_sending_sijc_receipt_rci_fuzzy_to_user
+        state :ready_to_send_sijc_receipt_rci_fuzzy_to_user
+        state :sending_sijc_receipt_rci_fuzzy_to_user
+        state :retry_sending_sijc_receipt_rci_fuzzy_to_user
+        # If success:
+        state :done_sending_sijc_receipt_rci_fuzzy_to_user
+        # If exponential retry failure:
+        state :failed_sending_sijc_receipt_rci_fuzzy_to_user
 
         ##################################################
         #   Manual Validation by Analysts at PRPD (ANPE) #
@@ -112,7 +116,7 @@ module PRGMQ
         ##################################################
 
         # If PRPD said we can proceed to send negative
-        # certificate or said they canot, we will know based on
+        # certificate or said they cannot, we will know based on
         # the transaction.decision_code:
         state :ready_to_send_prpd_receipt
         state :sending_prpd_receipt
