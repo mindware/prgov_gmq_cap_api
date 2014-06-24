@@ -11,22 +11,22 @@ require 'redis'															# use redis
 require 'json'															 # gives us JSON parse and to_json
 
 # Load our Settings and Helper Methods:
-require './app/helpers/store'								# our storage subsystem.
-require './app/helpers/library'							# useful helper methods
-require './app/helpers/config'							 # configuration helper
-require './app/helpers/authentication'			 # authentication class
-require './app/helpers/errors'							 # defines and catches errors
-require './app/helpers/validations'					# validates user input
-require './app/helpers/transaction_id_factory' # to generate ids
+require 'app/helpers/store'								# our storage subsystem.
+require 'app/helpers/library'							# useful helper methods
+require 'app/helpers/config'							 # configuration helper
+require 'app/helpers/authentication'			 # authentication class
+require 'app/helpers/errors'							 # defines and catches errors
+require 'app/helpers/validations'					# validates user input
+require 'app/helpers/transaction_id_factory' # to generate ids
 
 # Load our Models. Models contain information stored in an Object:
-require './app/models/base'
-require './app/models/transaction'
-require './app/models/user'
-require './app/models/statistics'
+require 'app/models/base'
+require 'app/models/transaction'
+require 'app/models/user'
+require 'app/models/statistics'
 
 # Load our Entities. Grape-Entities are API representations of a Model:
-require './app/entities/transaction'
+require 'app/entities/transaction'
 
 module PRGMQ
 	module CAP
