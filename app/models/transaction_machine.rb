@@ -20,10 +20,10 @@ module PRGMQ
       # the retrying job will see this, and end its
       # retries.
       aasm do
+
         ##################################################
         #                   Initial State                #
         ##################################################
-
         state :awaiting_initial_request_from_prgov, :initial => true
 
         ##################################################
