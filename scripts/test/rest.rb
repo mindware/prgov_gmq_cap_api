@@ -1,3 +1,7 @@
+# First, fix the paths so that every scripts used by this test is properly found and
+# is in the ruby path. This way we don't have to include relative filepaths
+#$: << File.expand_path(File.dirname(__FILE__) "../../")
+
 require 'json'
 require 'rest_client'
 require 'grape'
