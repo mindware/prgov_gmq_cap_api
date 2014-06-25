@@ -321,8 +321,8 @@ module PRGMQ
         # do a multi command. Doing multiple commands in an
         # atomic fashion:
         Store.db.multi do
-          debug "Saving transaction under key '#{db_id}'"
-          debug "View it using: GET #{db_id}"
+          debug "Saving transaction in Redis under key \"#{db_id}\""
+          debug "View it in Redis using: GET #{db_id}"
           # don't worry about an error here, if the db isn't available
           # it'll raise an exception that will be caught by the system
           Store.db.set(db_id, json)
