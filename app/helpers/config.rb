@@ -6,29 +6,72 @@ module PRGMQ
 
           class << self
               attr_reader :all, :backtrace_errors, :debug, :users, :downtime,
-                          :logging
+                          :logging, :logger, :system
               attr_writer :downtime
           end
 
-          # def error(str)
-          #   logger.warning str
-          # end
 
+          # General Class Defaults:
           @all = nil
           # if Goliath is defined
           if(Object.const_defined?('Goliath'))
             # Set debug to true if we're in development mode.
             @debug = (Goliath.env.to_s == "development")
           else
+            puts "WARNING: Config could not determine current environment "+
+                 "from Webserver. Are we not using Goliath? This will affect "+
+                 "API's Config.environment method for checking environment and "+
+                 "displaying debugging information. For now, we'll default "+
+                 "into 'production' for safety, but this needs "+
+                 "fixing if you ever want to see debugging information! "+
+                 "Please look into it."
             @debug = false
           end
 
-          @logging = false
-
-          # Sets backtrace for unexpected exceptions
+          @logging = true
+          # Sets backtrace for unexpected exceptions/works only if debug is true
           @backtrace_errors = false
           # variable that determines if we're down for maintenance.
           @downtime = false
+
+
+          # Gets the current environment (production, development, testing)
+          # from the Webserver. At this time, we use Goliath for its awesome
+          # asynchronous EM capabilities.
+          def self.environment
+            if(Object.const_defined?('Goliath'))
+               Goliath.env.to_s
+            else
+              # By default if we can't determine our environment,
+              # we'll go into production mode. This could happen if someone
+              # changed our webserver from Goliath to some other wordly
+              # webserver. We'll need a way to get the current environment
+              # from that webserver.
+               "production"
+            end
+          end
+
+          # This determines the log file
+          # For alternative configuration see:
+          # http://www.ruby-doc.org/stdlib-2.1.2/libdoc/logger/rdoc/Logger.html
+          def self.logger
+            # @logger ||= Logger.new('logs/foo.log', 'daily')
+            # Taking into considerations daily backups at unknown hours, we
+            # could use the weekly option for now and reduce it only if it
+            # turns out log files in a week become too huge, with the following:
+            # @logger ||= Logger.new('logs/foo.log', 'weekly')
+
+            # Alternatively, to make sure we don't store more than a
+            if @logging
+              #  @logger ||= Logger.new("logs/#{self.environment}.log", 10, 10024000)
+              @logger ||= Logger.new("logs/#{self.environment}.log",
+                                     @all["system"]["logs_max_retention"],
+                                     @all["system"]["logs_max_bytes"])
+            else
+              # If we're not logging, we default to STDOUT
+              API.logger
+            end
+          end
 
           # Returns the entire config for users. Used for authentication
           # so this hash will contain passkeys. Tread lightly.
@@ -83,10 +126,15 @@ module PRGMQ
           end
 
           def self.check
+              # here we check if the config is already loaded in memory
               if @all.nil?
-                @all = self.load_config
-                 puts "Loading configuration." if @debug
-              # else
+                @all       = self.load_config
+                @debug     = @all["system"]["debug"]  unless @all["system"]["debug"].nil?
+                @backtrace = @all["system"]["backtrace_errors"] unless @all["system"]["backtrace_errors"].nil? and @debug
+                @logging   = @all["system"]["logging"] unless @all["system"]["logging"].nil?
+                puts "Loading configuration." if @debug
+                puts "logging: #{@logging} - debug: #{@debug} - backtrace: #{@backtrace}"
+              #else
                 #  puts "Reading configuration from memory." if @debug
               end
               return true
@@ -101,11 +149,14 @@ module PRGMQ
              # password and a tool to generate passwords for these users.
              user_config = get_json_from_file("config/users.json")
              db_config   = get_json_from_file("config/db.json")
+             system_config = get_json_from_file("config/system.json")
              @all = {
-                         "users" => user_config,
-                         "db"    => db_config,
+                         "users"   => user_config,
+                         "db"      => db_config,
+                         "system"  => system_config
              }
-             user_config, db_config = nil,nil
+             # clean up memory
+             user_config, db_config, system_config = nil,nil, nil
              return @all
           end
 
