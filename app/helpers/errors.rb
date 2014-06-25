@@ -59,7 +59,7 @@ module PRGMQ
             # Add the message of the exception to all errors.
             message["error"]["app_exception_message"] = "#{e.message}"
             # If our Config helper is set to print backtrace errors, show them:
-            if(Config.backtrace_errors)
+            if(Config.backtrace_errors and Config.debug)
               # Provide a full backtrace:
               message["error"]["app_exception_backtrace"] = e.backtrace
             else
@@ -69,10 +69,10 @@ module PRGMQ
           end # end of developer enviornment check
 
           # Print to STDOUT the full errors if in debug mode.
-          puts "Error:\n#{message}" if Config.debug
+          debug "Error:\n#{message}", false if Config.debug
           # Print out dashes to make it easy to destinguish where our
           # request output ends.
-          puts "#{ "-" * 80 }\n" if Config.debug
+          debug "#{ "-" * 80 }\n", false
 
           throw :error, :message => message, :status => klass.http_code
         end # end of begin/rescue
