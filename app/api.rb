@@ -53,8 +53,10 @@ module PRGMQ
 			before do
 				# If we're in verbose mode, print everything to STDOUT
 				# Print a set of dashes to make viewing output easier:
-				puts "#{ "-" * 80 }\n" if Config.debug
+				debug "#{ "-" * 80 }\n", false
 				debug request_info
+
+				logger.info "Hello world"
 
 				# If the system is set up for downtime/maintenance:
 				if(Config.downtime)
@@ -72,7 +74,7 @@ module PRGMQ
 			# After every request, keep count of all global visits
 			after do
 				Stats.new_request # unless Config.downtime
-				puts "#{ "-" * 80 }\n" # print out a dash signifying end of output
+				debug "#{ "-" * 80 }\n", false # print dashes signifying end of output
 			end
 
 			# From here on the user is authenticated. Any checks should be for
