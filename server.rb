@@ -1,9 +1,19 @@
 #!/usr/bin/env ruby
-require 'bundler/setup'
-Bundler.require	# Load our Gemfile
-Dotenv.load     # Load environment variables
-require './app/api'
 
+# First, fix the paths so that everything under this directory
+# is in the ruby path. This way we don't have to include relative filepaths
+$: << File.expand_path(File.dirname(__FILE__))
+
+# We're using bundler to include our gems
+require 'bundler/setup'
+# Load our Gemfile
+Bundler.require
+# Load environment variables
+Dotenv.load
+# Load the GMQ API
+require 'app/api'
+
+# Here we start defining the Web Server that will handle http requests properly:
 class Server < Goliath::API
 
 	# we include rack templates so we can use erb
