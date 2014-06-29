@@ -10,6 +10,9 @@ module PRGMQ
     # can return the current line and more information such as backtrace if
     # our API Config helper has backtrace_errors set to true.
     class ApiErrorHandler < Grape::Middleware::Base
+      # Needed for debug method.
+      include PRGMQ::CAP::LibraryHelper
+
       def call!(env)
         @env = env
         begin
