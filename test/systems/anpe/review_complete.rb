@@ -4,8 +4,13 @@ require 'base64'
 
 user = "***REMOVED***"
 pass = "***REMOVED***"
-#id = '1e29234ee0c84921adec08fbe5980162'
-id = '0338ca35444694f18a'
+# Get the id from the console as argument, otherwise us a default
+# id that may or may not exist.
+if ARGV[0].to_s != "" 
+	id = ARGV[0]
+else
+	id = '0338ca35444694f18a'
+end
 url = "http://localhost:9000/v1/cap/transaction/review_complete"
 
 analyst_internal_status_id      = "030" # the action's id in the system

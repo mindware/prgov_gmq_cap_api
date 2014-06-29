@@ -15,9 +15,12 @@ url = "http://localhost:9000/v1/cap/transaction/certificate_ready"
 file = File.open("./sample/sagan.jpg", "rb")
 contents = file.read
 cert64 = Base64.strict_encode64(contents)
-#id = '1e29234ee0c84921adec08fbe5980162'
-id = '0aa61d9b7783b41f49'
-id = '0c4aa733f1aa54f849'
+# Grab the id from the params, otherwise us an id that may or may not exist.
+if ARGV[0].to_s != ""
+	id = ARGV[0]
+else
+	id = '0338ca35444694f18a'
+end
 payload = { "id" => id,
             "certificate_base64" => cert64 }
 method = "put"
