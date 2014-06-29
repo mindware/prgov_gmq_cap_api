@@ -41,10 +41,21 @@ module PRGMQ
           # I've tested this by killing the storage server and
           # later reconnecting. The system automatically reconnects after
           # failure.
+
+          # Todo:
+          # We later could add selection of the host based on failure. We
+          # could alternate between known hosts (keys) based on the availability
           if(@db.nil?)
-            @db = Redis.new(:driver => :synchrony)
+              # First we choose the driver. By default we use the synchrony one.
+              # If we weren't running on Eventmachine, we'd use a different one
+              # such as hiredis
+              puts "Store: Connecting to Redis (#{Config.db_driver} driver) "+
+                   " #{Config.db_host} #{Config.db_port} "
+              @db = Redis.new(:host =>   Config.db_host,
+                              :port =>   Config.db_port,
+                              :driver => Config.db_driver)
           else
-             @db
+              @db
           end
         rescue Exception => e
            raise e
