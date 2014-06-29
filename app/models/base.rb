@@ -17,6 +17,10 @@ module PRGMQ
         "list"
       end
 
+      def self.db_cache_info
+        "cache info"
+      end
+
       # Grabs the prefix from the storage,
       # adds this classes's db_prefix. This won't
       # need to be redefined by classes that
@@ -53,6 +57,10 @@ module PRGMQ
 
       def db_list
         self.class.db_list
+      end
+
+      def db_cache_info
+        self.class.db_cache_info
       end
 
     end
