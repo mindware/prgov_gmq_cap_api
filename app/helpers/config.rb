@@ -22,9 +22,10 @@ module PRGMQ
                  "from Webserver. Are we not using Goliath? This will affect "+
                  "API's Config.environment method for checking environment and "+
                  "displaying debugging information. For now, we'll default "+
-                 "into 'production' for safety, but this needs "+
-                 "fixing if you ever want to see debugging information! "+
-                 "Please look into it."
+                 "into 'production' for safety. If you're not running the "+
+                 "actual webserver, you can ignore this message, otherwise "+
+                 "if you are, this needs fixing if you ever want to see "+
+                 "debugging information! Please look into it."
             @debug = false
           end
 
