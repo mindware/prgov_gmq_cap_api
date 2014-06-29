@@ -1,0 +1,34 @@
+Failures:
+---------
+Could not Store.
+Stored but could not Enqueue.
+Enqueued but could not Process.
+Process but could not save.
+Saved but could not go to next step.
+
+Recovery:
+---------
+All transaction being processed will be saved into a processing list, ranked according to last_modified (last proccessed), and will include its errors on the last run. 
+
+A janitor program will look at any transactions older than MAX_WAIT_TIME (say, 15 minutes) and look at its errors. If it is below MAX_RETRY, it'll call upon the transaction to try again its last state method.  
+
+If it is above MAX_RETRY the transaction will be moved into a fatal state, where only an administrator can rescue it. 
+
+1) Could not Store: transaction that cannot be saved will be immediately reported as a failed request by the API. This type of error is not recoverable. The user must resubmit the request.
+
+2) Stored but could not Enqueue: a transaction that cannot be enqueued will be immediately reported as failed. 
+ 
+
+Stored but could not Enqueue.
+Enqueued but could not Process.
+Process but could not save.
+Saved but could not go to next step.
+
+state :recieved_initial_request_from_prgov
+state :ready_to_send_prgov_receipt_to_user
+state :sending_prgov_receipt_to_user
+state :retry_sending_prgov_receipt_to_user
+# If success:
+state :done_sending_prgov_receipt_to_user
+# If exponential retry failure:
+state :failed_sending_prgov_receipt_to_user
