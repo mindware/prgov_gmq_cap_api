@@ -190,6 +190,36 @@ module PRGMQ
               end
         		return data
         	end
+
+          # Selects which db host to connect to
+          # later we could iterate through the hosts found in db.
+          def self.db_host
+              # later change this so that we iterate through
+              # all the servers should one fail, we try the next one
+              index = @all["db"]["servers"].keys[0]
+              @all["db"]["servers"][index]["host"]
+          end
+
+          # Selects the port baed on the host we're connecting to.
+          def self.db_port
+              # later change this so that we use the port
+              # of the current db_host, when we add iteration
+              # in case of failure
+              index = @all["db"]["servers"].keys[0]
+              @all["db"]["servers"][index]["port"]
+          end
+
+          def self.db_driver
+              # First we choose the driver. By default we use the synchrony one.
+              # If we weren't running on Eventmachine, we'd use a different one
+              # such as hiredis. Let's check if the db settings has a driver
+              # specified.
+              if(@all["db"].has_key? "driver")
+                 @all["db"]["driver"].to_sym
+              else
+                 :synchrony
+              end
+          end
       end
   end
 end
