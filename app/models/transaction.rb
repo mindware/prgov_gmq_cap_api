@@ -24,13 +24,30 @@
 module PRGMQ
   module CAP
     class Transaction < PRGMQ::CAP::Base
+      # We use both class and instance methods
       extend Validations
       include Validations
       include TransactionIdFactory
       extend TransactionIdFactory
       include LibraryHelper
 
+      # If you set MONTHS_TO_EXPIRATION_OF_TRANSACTION to 0, transactions
+      # will never expire. (Hint: that could fill up the database store, be
+      # careful). Only do it if you know what you're doing.
+      # By default, we use 1 or three months to keep the transaction in the
+      # system for inspection. Once expired, it's really gone!
+      # Max is 25 years (25 * 12). Don't try it.
       MONTHS_TO_EXPIRATION_OF_TRANSACTION = 3
+      # The expiration is going to be 8 months, in seconds
+      # Time To Live - Math:
+      # 604800 seconds in a week X 4 weeks = 1 month in seconds
+      # Multiply this amount for the amount of months that a transaction
+      # can last before expiring.
+      EXPIRATION = (604800 * 4) * MONTHS_TO_EXPIRATION_OF_TRANSACTION
+
+
+      LAST_TRANSACTIONS_TO_KEEP_IN_CACHE = 50
+
 
       ######################################################
       # A transaction generally consists of the following: #
@@ -103,12 +120,6 @@ module PRGMQ
           "residency", "birth_date", "IP", "reason", "system_address",
           "created_by", "language" ]
 
-          # The expiration is going to be 8 months, in seconds
-          # Time To Live - Math:
-          # 604800 seconds in a week X 4 weeks = 1 month in seconds
-          # Multiply this amount for the amount of months that a transaction
-          # can last before expiring.
-          ttl =  (604800 * 4) * MONTHS_TO_EXPIRATION_OF_TRANSACTION
 
           # Instead of trusting user input, let's extract *exactly* the
           # values from the params hash. This way, additional values
@@ -193,7 +204,6 @@ module PRGMQ
           @residency = nil
           @reason = nil
           @language = nil
-          @ttl = nil
           @location = nil
           @history = nil
           @state = nil
@@ -243,6 +253,11 @@ module PRGMQ
         to_hash.to_json
       end
 
+      # just an alias
+      def ip
+        self.IP
+      end
+
       # error count for current state
       def self.current_error_count(id, str=false)
         if(!str)
@@ -268,13 +283,20 @@ module PRGMQ
         "tx"
       end
 
-      # Not used at this time. Checks ttl for an id.
-      # we're not yet setting TTLs in the actual db,
-      # so this is unused.
+      def db_cache_info
+        self.id
+      end
+
+      # Checks ttl for an id, after a transaction is saved
+      # it stores an expiration time.
       # description:
       # gets ttl count for current item
       def ttl()
           Store.db.ttl(db_id)
+      end
+
+      def expires
+          time_from_now(ttl)
       end
 
 
@@ -327,6 +349,11 @@ module PRGMQ
           # it'll raise an exception that will be caught by the system
           Store.db.set(db_id, json)
 
+          # If TTL is not nil
+          if(EXPIRATION > 0)
+            Store.db.expire(db_id, EXPIRATION)
+          end
+
           # We used to add them by score (time) to a sorted list
           # but we can achieve that with a simple list.
           # debug "Adding to ordered transaction list: #{db_list}"
@@ -334,9 +361,9 @@ module PRGMQ
           # Store.db.zadd(db_list, updated_at.to_i, db_id)
 
           # Add it to a list of the last 10 items
-          Store.db.lpush(db_list, db_id)
+          Store.db.lpush(db_list, db_cache_info)
           # trim the items to the last 10
-          Store.db.ltrim(db_list, 0, 9)
+          Store.db.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
           # after this line, db.multi runs 'exec', in an atomic fashion
         end
         true
