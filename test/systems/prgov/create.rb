@@ -1,43 +1,22 @@
-require '../rest'
+require '../lib/rest'
 user = "***REMOVED***"
 pass = "***REMOVED***"
 # credentials via basic auth
 url = "http://localhost:9000/v1/cap/transaction/"
 first_name = 'Andrés' 
-#ifirst_name = 'Andrés' * 100 
-#first_name = '' 
 last_name  = 'Colón'
-#last_name  = 'Colón' * 100
-#last_name  = ''
-#mother_last_name = 'Pérez' 
-#mother_last_name = 'Pérez' * 100 
-mother_last_name = '' 
+mother_last_name = 'Pérez' 
 ssn =	'111-22-3333'
-#ssn =	''
-#ssn =	'111-22-3333-4444-5555-6666'
 license = '123456789'
-#license = '123456789' * 100
-#license = ''
 birth_date = '01/01/1982' 
-#birth_date = '01/01/1982' * 100 
-#birth_date = '' 
 residency  = 'San Juan'
-#residency  = 'San Juan' * 100
-#residency  = ''
-language    = 'spanish'
-language    = 'french'
-#language    = ''
 IP = '192.168.1.2'
-#IP = '192.168.1.2' * 100
-#IP = '::1' # ipv6 
-#IP = '::1' * 100 # ipv6 
-#IP = ''
 reason = 'Background check to join S.H.I.E.L.D.'
-#reason = 'Background check to join S.H.I.E.L.D.' * 100
-#reason = ''
-#birth_place = "San Juan"
-birth_place = "San Juan" * 100
+birth_place = "San Juan"
 email = "acolon@ogp.pr.gov"
+# Test it in english and spanish. Comment last one to try the other.
+language = 'english'
+language = 'spanish'
 
 payload = { 
 		:first_name => first_name,

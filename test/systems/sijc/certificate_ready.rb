@@ -1,4 +1,4 @@
-require '../rest'
+require '../lib/rest'
 
 require 'base64'
 
