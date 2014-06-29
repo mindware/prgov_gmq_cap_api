@@ -5,4 +5,3 @@ api-dev: ruby server.rb -sv -e dev -p 9000
 # Unused:
 #web: bundle exec thin start
 redis: redis-server /usr/local/etc/redis.conf
-rabbitmq: rabbitmq-server
