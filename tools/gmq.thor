@@ -18,8 +18,8 @@ class Gmq < Thor
 			result = { name => { "passkey" => "#{key}",
 			                     "groups" => groups}}.to_json.to_s
 			puts "\nAppend this to the '../config/users.json', taking care to add "+
-			     "the proper commas in the JSON file:"
-			puts result[1..-2]
+			     "the proper commas in the file:"
+			puts "\t#{result[1..-2]}"
 		end
 
 		desc "password", "generates a proper CAP API password for the user and "+
@@ -30,6 +30,7 @@ class Gmq < Thor
 			# Here we specify n as 12 in order to guarantee a length of 24,
 			# since the length is always twice of n with SecureRandom.hex.
 			# The salt will be appended to the hash to create the passkey.
+
 			# The passkey will be used, the salt extracted and ran against
 			# the system. This is just to make rainbow tables impractical
 			# Each user password is auto-generated salted and jumbled up.
