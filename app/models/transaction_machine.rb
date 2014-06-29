@@ -29,7 +29,7 @@ module PRGMQ
         ##################################################
         #           Email the initial receipt            #
         ##################################################
-        state :recieved_initial_request_from_prgov
+        state :received_initial_request_from_prgov
         state :ready_to_send_prgov_receipt_to_user
         state :sending_prgov_receipt_to_user
         state :retry_sending_prgov_receipt_to_user
@@ -112,7 +112,7 @@ module PRGMQ
         state :failed_submitting_to_prpd_for_manual_review
 
         ##################################################
-        #        Response Recieved from PRPD             #
+        #        Response received from PRPD             #
         ##################################################
 
         # If PRPD said we can proceed to send negative
@@ -143,17 +143,17 @@ module PRGMQ
         # to the queue, due to an unexpected system shutdown, for example.
         event :received_prgov_request do
           transitions :from => :awaiting_initial_request_from_prgov,
-                        :to => :recieved_initial_request_from_prgov
+                        :to => :received_initial_request_from_prgov
         end
 
         ##################################################
-        #     Notify User PR.Gov recieved User Request   #
+        #     Notify User PR.Gov received User Request   #
         ##################################################
 
         # We order the Transaction to send the receipt, by enqueing it
         # immediately after this event.
         event :ready_to_send_prgov_receipt do
-          transitions :from => [:recieved_initial_request_from_prgov,
+          transitions :from => [:received_initial_request_from_prgov,
                                 :retry_sending_prgov_receipt_to_user],
                         :to =>  :ready_to_send_prgov_receipt_to_user
         end
@@ -226,7 +226,7 @@ module PRGMQ
                       :to   => :waiting_for_sijc_to_generate_cert
         end
 
-        # We recieved the callback from SIJC
+        # We received the callback from SIJC
         event :ready_to_send_sijc_negative_cert do
           transitions :from => :waiting_for_sijc_to_generate_cert,
                       :to   => :ready_to_send_sijc_to_generate_cert
@@ -257,7 +257,7 @@ module PRGMQ
         #         SIJC Errors Receipt - DTOP Fail        #
         ##################################################
 
-        # We recieved the callback from SIJC
+        # We received the callback from SIJC
         event :ready_to_send_dtop_fail_receipt do
           transitions :from => :done_validating_rapsheet_with_sijc,
                       :to   => :ready_to_send_sijc_receipt_dtop_fail_raspheet_ok_to_user
@@ -289,7 +289,7 @@ module PRGMQ
         #       SIJC Errors Receipt - Rapsheet Fail      #
         ##################################################
 
-        # We recieved the callback from SIJC
+        # We received the callback from SIJC
         event :ready_to_send_rapsheet_fail_receipt do
           transitions :from => :done_validating_rapsheet_with_sijc,
                       :to   => :ready_to_send_sijc_receipt_dtop_ok_raspheet_fail_to_user
@@ -448,7 +448,7 @@ module PRGMQ
       # This is the attempt to validate the citizen's good standing
       # here we enqueue the worker of the Government Message Queue
       def request_rapsheet
-          Resque.enqueue(RequestRapsheet, self.id, self.to_json)
+          # Resque.enqueue(RequestRapsheet, self.id, self.to_json)
       end
 
       # def request_rapsheet
