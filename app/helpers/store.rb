@@ -37,6 +37,10 @@ module PRGMQ
           # adding a check for the Exceptions of the driver
           # of the new backend you install. At this time, it catches
           # Redis Errors.
+
+          # I've tested this by killing the storage server and
+          # later reconnecting. The system automatically reconnects after
+          # failure.
           if(@db.nil?)
             @db = Redis.new(:driver => :synchrony)
           else
