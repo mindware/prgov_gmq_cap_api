@@ -357,9 +357,16 @@ module PRGMQ
 						{ :visits => total_visits }
 					end # end of get '/test'
 
+					desc "Lists the last incoming transactions"
 					get '/last' do
 						user = allowed?(["admin"])
-						{ :latest => last_10_transactions }
+						txs = last_transactions
+						res = []
+						txs.each do |x|
+							x = Transaction.find x
+							res << [ x.id, x.ip, x.created_at, x.reason]
+						end
+						res
 					end
 
 					# Prints available admin routes. Hard-coded
