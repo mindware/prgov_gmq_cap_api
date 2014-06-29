@@ -58,6 +58,8 @@ module PRGMQ
         expose :updated_at
         expose :created_by
         expose :location
+        expose :ttl, documentation: { type: Date, desc: "Time in seconds for record to expire."}
+        expose :expires, documentation: { type: Date, desc: "Human readable expiration time."}
         # expose :total_error_count
         # expose :action do
         #     expose :action_id
