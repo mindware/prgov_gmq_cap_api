@@ -54,7 +54,7 @@ module PRGMQ
 				# If we're in verbose mode, print everything to STDOUT
 				# Print a set of dashes to make viewing output easier:
 				debug "#{ "-" * 80 }\n", false
-				debug request_info
+				debug "Info: #{request_info}"
 
 				logger.info "Hello world"
 
@@ -73,7 +73,8 @@ module PRGMQ
 
 			# After every request, keep count of all global visits
 			after do
-				Stats.new_request # unless Config.downtime
+				add_visit
+				debug "Visit ID: #{total_visits}"
 				debug "#{ "-" * 80 }\n", false # print dashes signifying end of output
 			end
 
@@ -163,8 +164,8 @@ module PRGMQ
 							end
 							get do
 									user = allowed?(["admin", "worker"])
-										transaction = Transaction.find(params[:id])
-										present transaction, with: CAP::Entities::Transaction #, type: :hi
+									transaction = Transaction.find(params[:id])
+									result present transaction, with: CAP::Entities::Transaction #, type: :hi
 							end
 
 							# DELETE /v1/cap/transaction/:id
@@ -311,6 +312,28 @@ module PRGMQ
 				end # end of group: Resource cap/transaction:
 
 				group :admin do
+
+					group :stats do
+						# This resource is here for admins.
+						get '/visits' do
+							user = allowed?(["admin"])
+							{ :visits => total_visits }
+						end # end of get '/test'
+
+						get '/completed' do
+							user = allowed?(["admin"])
+							{ :completed => total_completed }
+						end
+
+						get '/' do
+							user = allowed?(["admin"])
+							{
+							  :completed => total_completed,
+							  :visits => total_visits
+							}
+						end
+					end
+
 					# This resource is here for testing things. It's our own special lab.
 					# Get cap/test
 					get '/test' do
@@ -349,12 +372,6 @@ module PRGMQ
 					get '/groups' do
 						user = allowed?(["admin"])
 						{ :groups => security_group_list }
-					end # end of get '/test'
-
-					# This resource is here for admins.
-					get '/visits' do
-						user = allowed?(["admin"])
-						{ :visits => total_visits }
 					end # end of get '/test'
 
 					desc "Lists the last incoming transactions"
