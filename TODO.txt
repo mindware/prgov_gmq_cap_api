@@ -25,6 +25,7 @@
 	18. ☐ Add TTL for transactions as soon as they are saved
 	19. ☐ Done testing for Redis server disconnecting and coming back up. GMQ reconnects automatically
 	20. ☐ add sha2 hash
+	21. ☐ Add Google docs - infrastructure - api documentation - diagrams
 
 ---
 Auto-generated using: github.com/mindware/todo
