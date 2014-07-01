@@ -6,12 +6,13 @@ module PRGMQ
 
           class << self
               attr_reader :all, :backtrace_errors, :debug, :users, :downtime,
-                          :logging, :logger, :system
+                          :logging, :logger, :system, :display_results
               attr_writer :downtime
           end
 
 
-          # General Class Defaults:
+          # General Class Defaults
+          # This will be overwritten when the configuration loads.
           @all = nil
           # if Goliath is defined
           if(Object.const_defined?('Goliath'))
@@ -29,11 +30,13 @@ module PRGMQ
             @debug = false
           end
 
-          @logging = true
-          # Sets backtrace for unexpected exceptions/works only if debug is true
+          # Sets backtrace for unexpected exceptions,
+          # works only if debug is true.
           @backtrace_errors = false
+          @logging = true
           # variable that determines if we're down for maintenance.
           @downtime = false
+          @display_results = false
 
 
           # Gets the current environment (production, development, testing)
@@ -126,39 +129,53 @@ module PRGMQ
             return []
           end
 
+          # a simple check to see if the configuration is already loaded
+          # in memory. If its not, load it. If it is, return true.
           def self.check
               # here we check if the config is already loaded in memory
               if @all.nil?
-                @all       = self.load_config
-                @debug     = @all["system"]["debug"]  unless @all["system"]["debug"].nil?
-                @backtrace = @all["system"]["backtrace_errors"] unless @all["system"]["backtrace_errors"].nil? and @debug
-                @logging   = @all["system"]["logging"] unless @all["system"]["logging"].nil?
-                puts "Loading configuration." if @debug
-                puts "logging: #{@logging} - debug: #{@debug} - backtrace: #{@backtrace}"
-              #else
-                #  puts "Reading configuration from memory." if @debug
+                if(load_config)
+                  puts "Loading configuration file into memory:\n"+
+                  "Logging: #{@logging}, Debug mode: #{@debug}, Backtrace: "+
+                  "#{@backtrace}, Results: #{@display_results}, Downtime: "+
+                  "#{@downtime}" if @debug
+                end
               end
               return true
           end
 
+          # This method loads config files into memory.
+          # this can be called at runtime by administrators, to force the
+          # server to upade configuration, without requiring a restart.
           def self.load_config
-             # This is a system for systems. Since it's not designed to have
-             # a dynamic amount of users registering, mainly applications
-             # we won't be doing round trips to check for users in a db,
-             # as that will introduce latency into the system. Instead
-             # we'll have a file in trusted directory, with salted/hashed
-             # password and a tool to generate passwords for these users.
-             user_config = get_json_from_file("config/users.json")
-             db_config   = get_json_from_file("config/db.json")
-             system_config = get_json_from_file("config/system.json")
-             @all = {
-                         "users"   => user_config,
-                         "db"      => db_config,
-                         "system"  => system_config
-             }
-             # clean up memory
-             user_config, db_config, system_config = nil,nil, nil
-             return @all
+               # This is a system for systems. Since it's not designed to have
+               # a dynamic amount of users registering, mainly applications
+               # we won't be doing round trips to check for users in a db,
+               # as that will introduce latency into the system. Instead
+               # we'll have a file in a trusted directory, with salted/hashed
+               # password and a tool to generate passwords for these users,
+               # and the configurations will be in local memory, making it
+               # very fast to check configurations and perform authentication,
+               # without network roundtrips.
+               user_config = get_json_from_file("config/users.json")
+               db_config   = get_json_from_file("config/db.json")
+               system_config = get_json_from_file("config/system.json")
+               @all = {
+                           "users"   => user_config,
+                           "db"      => db_config,
+                           "system"  => system_config
+               }
+               # clean up memory
+               user_config, db_config, system_config = nil,nil, nil
+               @debug     = @all["system"]["debug"]  unless @all["system"]["debug"].nil?
+               @backtrace = @all["system"]["backtrace_errors"] if !@all["system"]["backtrace_errors"].nil? and @debug
+               @logging   = @all["system"]["logging"] unless @all["system"]["logging"].nil?
+               @downtime  = @all["system"]["downtime"] unless @all["system"]["downtime"].nil?
+               # Determines wether we print out to STDOUT what we send to our
+               # clients. So, with this, you can see in the console the HTTP
+               # result sent to clients.
+               @display_results = @all["system"]["display_results"] unless @all["system"]["display_results"].nil?
+               return true
           end
 
         	# Returns the JSON contents of the file.
