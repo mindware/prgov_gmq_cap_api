@@ -17,8 +17,10 @@ module PRGMQ
         "list"
       end
 
+      # Redefine this per class to store whatever information
+      # is important to you
       def self.db_cache_info
-        "cache info"
+        "#{self.class}"
       end
 
       # Grabs the prefix from the storage,
