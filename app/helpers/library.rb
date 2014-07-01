@@ -1,3 +1,4 @@
+# Andrés Colón Pérez - office of the CIO 2014
 module PRGMQ
 	module CAP
 		module LibraryHelper
@@ -38,10 +39,20 @@ module PRGMQ
 					Config.groups
 			end
 
+			# tells the stats to add a visit
+			def add_visit
+				Stats.add_visit
+			end
 
 			def total_visits
 					visits = Stats.visits
 					visits.nil? ? 0 : visits
+			end
+
+			# helper method to interact with Stats and get completed transactions
+			def total_completed
+					completed = Stats.completed
+					completed.nil? ? 0 : completed
 			end
 
 			# Prints details if we're in debug mode
@@ -60,14 +71,33 @@ module PRGMQ
 			end
 
 			def request_info
-				"Incoming Request Data:\n"+
+				output = "Incoming Request Data:\n"+
 				"User: #{env["REMOTE_USER"]} (#{env["REMOTE_ADDR"]})\n"+
 				"URI: #{env["REQUEST_URI"]}\n"+
-				"Time: #{Time.now.strftime("%m/%d/%Y - %r")}\n"+
-				"JSON Payload:\n#{env["api.request.input"]}\n"+
-				"Description:\n#{route.route_description}\n"
+				"Time: #{Time.now.strftime("%m/%d/%Y - %r")}\n"
+				if(env["api.request.input"].to_s.length > 0)
+					 output << "JSON Payload:\n#{env["api.request.input"]}\n"
+				end
+				if(route.route_description.to_s.length > 0)
+					 output << "Description:\n#{route.route_description}\n"
+				end
+				output << "Result:\n"
+				return output
 			end
 
+			# Displays what we're returning to the client, to STDOUT.
+			# Useful if we're debugging.
+			def result(value)
+				if(Config.display_results and Config.debug)
+					if value.is_a? Grape::Entity
+						 debug "#{value.to_json}"
+					else
+						debug value.to_s
+					end
+					# Then we proceed to allow the value to reach the user
+					return value
+				end
+		  end
 
 			# expects seconds, returns pretty string of how long ago event happened
 		  def ago(seconds)
