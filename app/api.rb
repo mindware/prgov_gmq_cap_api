@@ -27,6 +27,7 @@ require 'app/models/statistics'
 
 # Load our Entities. Grape-Entities are API representations of a Model:
 require 'app/entities/transaction'
+require 'app/entities/transaction_new'
 
 module PRGMQ
 	module CAP
@@ -203,6 +204,7 @@ module PRGMQ
 						end
 
 						# POST /v1/cap/transaction/
+						# this creates a transaction
 						desc "Request to generate a new transaction, which involves "+
 								 "attempting to enqueue the request with a unique transaction "+
 								 "id and returning said id."
@@ -220,7 +222,7 @@ module PRGMQ
 							transaction = Transaction.create(params)
 							# check if we are able to save it
 							if transaction.save
-								present transaction, with:Entities::Transaction
+								present transaction, with:Entities::TransactionNew
 							else
 								# if the item is not found, raise an error that it could not be saved
 								raise ItemNotFound
@@ -373,6 +375,12 @@ module PRGMQ
 						user = allowed?(["admin"])
 						{ :groups => security_group_list }
 					end # end of get '/test'
+
+					get '/reload' do
+						user = allowed?(["admin"])
+						Config.load_config
+						{ :config => "Reloaded"}
+					end
 
 					desc "Lists the last incoming transactions"
 					get '/last' do
