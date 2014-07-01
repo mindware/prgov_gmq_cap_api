@@ -24,6 +24,7 @@
 	17. ☐ Add grape-swagger documentation for the API later
 	18. ☐ Add TTL for transactions as soon as they are saved
 	19. ☐ Done testing for Redis server disconnecting and coming back up. GMQ reconnects automatically
+	20. ☐ add sha2 hash
 
 ---
 Auto-generated using: github.com/mindware/todo
