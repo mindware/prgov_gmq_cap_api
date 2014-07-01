@@ -21,7 +21,17 @@ class Server < Goliath::API
 	# respond to http requests
 
 	def initialize()
-		puts "PR.Gov's GMQ API Server is starting up in #{Goliath.env.to_s.capitalize}"
+		begin
+			ascii = File.open("docs/GMQ_ASCII", 'r') { |f| f.read }
+			puts ascii
+			ascii = ''
+		rescue Exception => e
+		ensure
+			puts "PR.Gov's GMQ API Server is starting "+
+			     "up in #{Goliath.env.to_s.capitalize} Mode"
+			PRGMQ::CAP::Config.check
+			PRGMQ::CAP::Store.check
+		end
 	end
 
 	def response(env)
