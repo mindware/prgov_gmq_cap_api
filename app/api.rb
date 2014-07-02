@@ -27,7 +27,7 @@ require 'app/models/statistics'
 
 # Load our Entities. Grape-Entities are API representations of a Model:
 require 'app/entities/transaction'
-require 'app/entities/transaction_new'
+require 'app/entities/transaction_created'
 
 module PRGMQ
 	module CAP
