@@ -365,6 +365,7 @@ module PRGMQ
           # trim the items to the last 10
           Store.db.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
           # after this line, db.multi runs 'exec', in an atomic fashion
+          # Store.db.lpush()
         end
         true
       end
