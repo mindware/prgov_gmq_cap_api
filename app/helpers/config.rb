@@ -208,6 +208,12 @@ module PRGMQ
         		return data
         	end
 
+          def self.db_name
+            # later change this so that we iterate through
+            # all the servers should one fail, we try the next one
+            index = @all["db"]["servers"].keys[0]
+          end
+
           # Selects which db host to connect to
           # later we could iterate through the hosts found in db.
           def self.db_host
