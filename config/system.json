@@ -4,6 +4,6 @@
   "logs_max_retention"    : 10,
   "debug"                 : true,
   "backtrace_errors"      : false,
-  "display_results"	     : true,
+  "display_results"       : true,
   "downtime"              : false
 }
