@@ -157,9 +157,9 @@ module PRGMQ
                # and the configurations will be in local memory, making it
                # very fast to check configurations and perform authentication,
                # without network roundtrips.
-               user_config = get_json_from_file("config/users.json")
-               db_config   = get_json_from_file("config/db.json")
-               system_config = get_json_from_file("config/system.json")
+               user_config   = load_config_file("config/users.json")
+               db_config     = load_config_file("config/db.json")
+               system_config = load_config_file("config/system.json")
                @all = {
                            "users"   => user_config,
                            "db"      => db_config,
@@ -176,6 +176,21 @@ module PRGMQ
                # result sent to clients.
                @display_results = @all["system"]["display_results"] unless @all["system"]["display_results"].nil?
                return true
+          end
+
+          # Catches any errors from get_json_from_file and appends
+          # information about the specifics of the file to any errors.
+          # If we ever migrated from JSON config files into something different
+          # we could update this function and transform it to what load_config
+          # expects.
+          def self.load_config_file(file)
+            begin
+              get_json_from_file(file)
+            rescue InvalidConfigFile
+              raise $!, "Invalid configuration in #{file} file (#{$!})", $!.backtrace
+            rescue MissingConfigFile
+              raise $!, "Missing configuration in #{file} file (#{$!})", $!.backtrace
+            end
           end
 
         	# Returns the JSON contents of the file.
