@@ -29,9 +29,33 @@ class Server < Goliath::API
 		ensure
 			puts "PR.Gov's GMQ API Server is starting "+
 			     "up in #{Goliath.env.to_s.capitalize} Mode"
-			PRGMQ::CAP::Config.check
-			PRGMQ::CAP::Store.check
 		end
+		# Check the configuration files are there.
+		# If any corrupt configurations an error will be thrown
+		begin
+			if(PRGMQ::CAP::Config.check)
+				  puts "Configuration loaded correctly."
+			end
+		rescue Exception => e
+					puts "WARNING: #{e.message}"
+					exit
+		end
+
+		# # Establishes and check db connection
+		# if (PRGMQ::CAP::Store.connected?)
+		# 		puts "established connection!"
+		# else
+		# 		puts "WARNING: Connection to Storage Failed! We will try reconnecting "+
+		# 		"until it comes back online."
+		# end
+		# puts "Lets wait this out..."
+		# while !PRGMQ::CAP::Store.connected?
+		# 	sleep 1
+		# 	puts PRGMQ::CAP::Store.connected?
+		# end
+		# This takes a while to connect and it does so asynchronously,
+		# so no way to know if its already connected until a request is done.
+		# PRGMQ::CAP::Store.connected?
 	end
 
 	def response(env)
