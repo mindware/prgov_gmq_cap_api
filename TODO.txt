@@ -26,6 +26,7 @@
 	19. ☐ Done testing for Redis server disconnecting and coming back up. GMQ reconnects automatically
 	20. ☐ add sha2 hash
 	21. ☐ Add Google docs - infrastructure - api documentation - diagrams
+	22. ☐ Change server.rb so that we properly check DB connectivity after EM is up
 
 ---
 Auto-generated using: github.com/mindware/todo
