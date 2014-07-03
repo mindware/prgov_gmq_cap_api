@@ -137,8 +137,8 @@ module PRGMQ
                 if(load_config)
                   puts "Loading configuration file into memory:\n"+
                   "Logging: #{@logging}, Debug mode: #{@debug}, Backtrace: "+
-                  "#{@backtrace}, Results: #{@display_results}, Downtime: "+
-                  "#{@downtime}" if @debug
+                  "#{@backtrace_errors}, Results: #{@display_results}, "+
+                  "Downtime: #{@downtime}" if @debug
                 end
               end
               return true
@@ -168,7 +168,7 @@ module PRGMQ
                # clean up memory
                user_config, db_config, system_config = nil,nil, nil
                @debug     = @all["system"]["debug"]  unless @all["system"]["debug"].nil?
-               @backtrace = @all["system"]["backtrace_errors"] if !@all["system"]["backtrace_errors"].nil? and @debug
+               @backtrace_errors = @all["system"]["backtrace_errors"] if !@all["system"]["backtrace_errors"].nil? and @debug
                @logging   = @all["system"]["logging"] unless @all["system"]["logging"].nil?
                @downtime  = @all["system"]["downtime"] unless @all["system"]["downtime"].nil?
                # Determines wether we print out to STDOUT what we send to our
