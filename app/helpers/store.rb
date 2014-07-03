@@ -49,8 +49,8 @@ module PRGMQ
               # First we choose the driver. By default we use the synchrony one.
               # If we weren't running on Eventmachine, we'd use a different one
               # such as hiredis
-              puts "Storage: Connecting to #{Config.db_host}:#{Config.db_port} "+
-                   "(#{Config.db_driver} driver)"
+              puts "Storage: connecting to #{Config.db_name} at #{Config.db_host}:#{Config.db_port} "+
+                   "(using #{Config.db_driver} driver)..."
               @db = Redis.new(:host =>   Config.db_host,
                               :port =>   Config.db_port,
                               :driver => Config.db_driver)
@@ -66,9 +66,14 @@ module PRGMQ
       # A quick check on the db. If we're disconnected, we connect.
       # This is used when the server is loading up to force a simple
       # connection, without needing to query for anything specific.
-      def self.check
-        true if self.db
-        false
+      def self.connected?
+          # if this is called before EM is ready, we'll just
+          # set it up to connect, but we won't receive a confirmation
+          # in fact, it'll return false until we get the first request.
+          # We need to fix this.
+          return false if self.db.nil?
+          return true  if self.db.connected?
+          return false
       end
 
     end
