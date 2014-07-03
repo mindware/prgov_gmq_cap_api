@@ -333,7 +333,7 @@ module PRGMQ
 
       def save
         # We have to retrieve this here, incase we ever need values here
-        # from the Store. If we do it inside the multi
+        # from the Store. If we do it inside the multi or pipelined
         # we won't have those values availble when building the json
         # and all we'll have is a Redis::Future object. By doing
         # the following to_json call here, we would've retrieved the data
@@ -342,9 +342,14 @@ module PRGMQ
 
         # do a multi command. Doing multiple commands in an
         # atomic fashion:
-        Store.db.multi do
-          debug "Saving transaction in Redis under key \"#{db_id}\""
-          debug "View it in Redis using: GET #{db_id}"
+        # Store.db.multi do
+
+        # We are no longer using multi, as our Storage proxy
+        # does not support multi/exec. It does support pipelining
+        # however, so that's what we're using for atomic operations.
+        debug "Saving transaction in Redis under key \"#{db_id}\""
+        debug "View it in Redis using: GET #{db_id}"
+        Store.db.pipelined do
           # don't worry about an error here, if the db isn't available
           # it'll raise an exception that will be caught by the system
           Store.db.set(db_id, json)
