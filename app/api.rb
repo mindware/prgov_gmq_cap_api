@@ -33,6 +33,19 @@ module PRGMQ
 	module CAP
 		class API < Grape::API
 
+			def initialize
+				begin
+					puts "Loading CAP API."
+					# Store.connected?
+					status = Store.connected? if !Store.nil?
+					# puts "Storage is #{status ? "online" : "offline"}"
+					super
+				rescue Exception => e
+					puts "Error initializing CAP API (Grape), was: #{e.message}\nBacktrace: #{e.backtrace[0]}"
+					exit
+				end
+			end
+
 			version 'v1'
 	    content_type :json, "application/json;charset=UTF-8"
 			format :json
@@ -74,8 +87,11 @@ module PRGMQ
 
 			# After every request, keep count of all global visits
 			after do
-				add_visit
-				debug "Visit ID: #{total_visits}"
+				# Exclude specific paths from adding visits
+				if !route.route_path.include? "/:version/cap/health"
+						add_visit
+						debug "Visit ID: #{total_visits}"
+				end
 				debug "#{ "-" * 80 }\n", false # print dashes signifying end of output
 			end
 
@@ -98,6 +114,15 @@ module PRGMQ
 					# logger.info "#{user} requested #{route.route_params[params]}"
 					{ :api	=> "CAP", :versions => "#{API::versions}"}
 				end # end of get '/'
+
+				# Check the health for the system
+				get '/health' do
+					# the only reason where we don't check for authentication
+					# since if the storage server is down, we won't be able to
+					# even get to the authentication in order to answer the health
+					# check:
+					result ({ :storage_online => Store.connected?, :maintenance_mode => Config.downtime })
+				end
 
 				## Resource cap/transaction:
 				group :transaction do
@@ -222,7 +247,7 @@ module PRGMQ
 							transaction = Transaction.create(params)
 							# check if we are able to save it
 							if transaction.save
-								present transaction, with:Entities::TransactionNew
+								present transaction, with:Entities::TransactionCreated
 							else
 								# if the item is not found, raise an error that it could not be saved
 								raise ItemNotFound
@@ -262,7 +287,7 @@ module PRGMQ
 							transaction.certificate_ready(params)
 							# we try to save the transaction
 							transaction.save
-							present transaction, with:Entities::Transaction
+							result(present transaction, with:Entities::Transaction)
 							# Only allowed to be set when PRPD requests so through their
 							# action.
 						end
@@ -319,20 +344,20 @@ module PRGMQ
 						# This resource is here for admins.
 						get '/visits' do
 							user = allowed?(["admin"])
-							{ :visits => total_visits }
+							result({ :visits => total_visits })
 						end # end of get '/test'
 
 						get '/completed' do
 							user = allowed?(["admin"])
-							{ :completed => total_completed }
+							result({ :completed => total_completed })
 						end
 
 						get '/' do
 							user = allowed?(["admin"])
-							{
+							result({
 							  :completed => total_completed,
 							  :visits => total_visits
-							}
+							})
 						end
 					end
 
@@ -343,7 +368,7 @@ module PRGMQ
 						if(Goliath.env.to_s == "development" or Goliath.env.to_s.include? == "test")
 							# specify a list of user groups than can access this resource:
 							user = allowed?(["admin"])
-							{ :test_data =>  redis.get("mkey")}
+							result({ :test_data =>  redis.get("mkey")})
 						else
 							raise ResourceNotFound
 						end
@@ -361,25 +386,25 @@ module PRGMQ
 						user = allowed?(["admin"])
 						return {"maintenance_status" => Config.downtime } if params[:activate].nil?
 						Config.downtime = params[:activate]
-						{ "maintenance_status" => Config.downtime}
+						result({ "maintenance_status" => Config.downtime})
 					end # end of get '/maintenance'
 
 					# This resource is here for admins.
 					get '/users' do
 						user = allowed?(["admin"])
-						{ :users => user_list }
+						result({ :users => user_list })
 					end # end of get '/test'
 
 					# This resource is here for admins.
 					get '/groups' do
 						user = allowed?(["admin"])
-						{ :groups => security_group_list }
+						result({ :groups => security_group_list })
 					end # end of get '/test'
 
 					get '/reload' do
 						user = allowed?(["admin"])
 						Config.load_config
-						{ :config => "Reloaded"}
+						result({ :config => "Reloaded"})
 					end
 
 					desc "Lists the last incoming transactions"
@@ -391,16 +416,16 @@ module PRGMQ
 							x = Transaction.find x
 							res << [ x.id, x.ip, x.created_at, x.reason]
 						end
-						res
+						result(res)
 					end
 
 					# Prints available admin routes. Hard-coded
 					# Let's later do some meta-programming and catch these.
 					get '/' do
-						{
+						result ({
 							"available_routes" => ["maintenance", "test", "users", "visits",
 																		 "recent"]
-						}
+						})
 					end
 				end # end of the administrator group
 			end
