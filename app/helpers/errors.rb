@@ -772,7 +772,7 @@ module PRGMQ
     class ServiceUnavailable < PRGMQ::CAP::AppError
       def self.data
         { "error" => { "http_message" => "503 Service Unavailable",
-                       "http_code" => 502,
+                       "http_code" => 503,
                        "app_error"  => "This service is currently "+
                                        "unavailable. Down for maintenance.",
                        "app_code" => 8000
