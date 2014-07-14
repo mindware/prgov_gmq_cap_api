@@ -32,7 +32,7 @@ class Server < Goliath::API
 			ascii = ''
 		rescue Exception => e
 		ensure
-			puts "PR.Gov's GMQ API Server is starting "+
+			puts "GMQ CAP API Server is starting "+
 			     "up in #{((Goliath.env.to_s.capitalize) + (" Mode")).bold.brown}."
 		end
 		# Check the configuration files are there.
