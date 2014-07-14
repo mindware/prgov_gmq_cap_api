@@ -33,7 +33,7 @@ class Server < Goliath::API
 		rescue Exception => e
 		ensure
 			puts "GMQ CAP API Server is starting "+
-			     "up in #{((Goliath.env.to_s.capitalize) + (" Mode")).bold.brown}."
+			     "up in #{((Goliath.env.to_s.capitalize) + (" Mode")).bold.brown} "
 		end
 		# Check the configuration files are there.
 		# If any corrupt configurations an error will be thrown
