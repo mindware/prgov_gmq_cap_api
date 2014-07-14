@@ -80,7 +80,7 @@ module PRGMQ
                                 case env["REQUEST_METHOD"]
                                      when "PUT"
                                            output << env["REQUEST_METHOD"].bold.cyan
-					   output << " (Update)" 
+					   output << " (Update)"
                                      when "DELETE"
                                            output << env["REQUEST_METHOD"].bold.red
                                      when "GET"
@@ -100,8 +100,8 @@ module PRGMQ
 					 # For those request that contain certificates
 					 # we truncate them out of the console
 					 # in order to skip logging the base64 cert
-					 # saving disk space.  
-					 if payload.include? "certificate_base64" and !Config.display_certificates 
+					 # saving disk space.
+					 if payload.include? "certificate_base64" and !Config.display_certificates
 						# create a hash out of the payload
 					 	payload = JSON.parse(env["api.request.input"])
 						# change the value of the cert key
@@ -110,10 +110,10 @@ module PRGMQ
 						payload = payload.to_json.to_s
 					 end
 					 # color the output based on the http method
-					 case env["REQUEST_METHOD"].strip 
+					 case env["REQUEST_METHOD"].strip
 						 when "PUT"
 						 	output << payload.bold.cyan
-						 when "DELETE" 
+						 when "DELETE"
 						 	output << payload.bold.red
 						 when "GET"
 						 	output << payload.bold.green
@@ -138,7 +138,8 @@ module PRGMQ
 					if value.is_a? Grape::Entity
 						 debug "#{value.to_json}"
 					else
-						debug value.to_s
+						# show the result as it'll be sent to the user by the API
+						debug value.to_json.to_s
 					end
 				end
 				# Then we proceed to allow the value to reach the user
