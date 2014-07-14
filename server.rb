@@ -12,6 +12,8 @@ Bundler.require
 Dotenv.load
 # Load the GMQ API
 require 'app/api'
+# Spice up the String class with color capabilities.
+require 'app/helpers/colorize'
 
 # Here we start defining the Web Server that will handle http requests properly:
 class Server < Goliath::API
@@ -23,12 +25,15 @@ class Server < Goliath::API
 	def initialize()
 		begin
 			ascii = File.open("docs/GMQ_ASCII", 'r') { |f| f.read }
-			puts ascii
+			puts ascii.gsub("█", "█".bold.green).gsub("-", "-".red).
+			     gsub("=", "=".red).gsub("╗", "╗".black).gsub("╔", "╔".black).
+			     gsub("═","═".black).gsub("╝","╝".black).gsub("║", "║".black).
+			     gsub("▀▀","▀▀".bold.green).gsub("╚","╚".black).gsub("▄","▄".black)
 			ascii = ''
 		rescue Exception => e
 		ensure
 			puts "PR.Gov's GMQ API Server is starting "+
-			     "up in #{Goliath.env.to_s.capitalize} Mode"
+			     "up in #{((Goliath.env.to_s.capitalize) + (" Mode")).bold.brown}."
 		end
 		# Check the configuration files are there.
 		# If any corrupt configurations an error will be thrown
