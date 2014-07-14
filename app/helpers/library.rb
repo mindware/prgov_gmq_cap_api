@@ -58,8 +58,10 @@ module PRGMQ
 			# Prints details if we're in debug mode
 			def debug(str, use_title=false)
 				  title = "DEBUG: " if use_title
+				  # print to screen
 				  puts "#{title}#{str}" if Config.debug
-					logger.info str
+				  # strip of colors and log it
+				  logger.info str.no_colors
 			end
 			#
 			# def log(str)
