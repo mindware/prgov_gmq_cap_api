@@ -16,4 +16,3 @@ gem "em-synchrony" # for redis-rb synchrony driver. Allows compatibility with Ev
 
 # State Machine support for Transactions
 gem 'aasm', "~> 3.2.0"
-
