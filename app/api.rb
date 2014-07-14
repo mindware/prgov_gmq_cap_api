@@ -116,6 +116,7 @@ module PRGMQ
 				end # end of get '/'
 
 				# Check the health for the system
+				desc "Performs an API health check"
 				get '/health' do
 					# the only reason where we don't check for authentication
 					# since if the storage server is down, we won't be able to
