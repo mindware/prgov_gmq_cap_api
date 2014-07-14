@@ -2,8 +2,8 @@
   "logging"               : true,
   "logs_max_bytes"        : 10024000,
   "logs_max_retention"    : 10,
-  "debug"                 : false,
-  "backtrace_errors"      : true,
+  "debug"                 : true,
+  "backtrace_errors"      : false,
   "display_results"       : true,
   "display_certificates"  : false, 
   "downtime"              : false
