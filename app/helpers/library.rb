@@ -74,16 +74,60 @@ module PRGMQ
 
 			def request_info
 				output = "Incoming Request Data:\n"+
-				"User: #{env["REMOTE_USER"]} (#{env["REMOTE_ADDR"]})\n"+
-				"URI: #{env["REQUEST_URI"]}\n"+
+				"User: #{env["REMOTE_USER"].bold.yellow} (#{env["REMOTE_ADDR"].cyan})\n"+
+				"URI: #{env["REQUEST_URI"].bold.blue}\n"
+				output << "Method: "
+                                case env["REQUEST_METHOD"]
+                                     when "PUT"
+                                           output << env["REQUEST_METHOD"].bold.cyan
+					   output << " (Update)" 
+                                     when "DELETE"
+                                           output << env["REQUEST_METHOD"].bold.red
+                                     when "GET"
+                                           output << env["REQUEST_METHOD"].bold.green
+                                     when "POST"
+                                           output << env["REQUEST_METHOD"].bold.magenta
+					   output << " (Create)"
+                                     else
+                                           output << env["REQUEST_METHOD"].bold.yellow
+                                end
+				output << "\n"+
+				#"#{env.inspect}\n"+
 				"Time: #{Time.now.strftime("%m/%d/%Y - %r")}\n"
 				if(env["api.request.input"].to_s.length > 0)
-					 output << "JSON Payload:\n#{env["api.request.input"]}\n"
+					 output << "Incoming JSON Payload:\n"
+					 payload = env["api.request.input"]
+					 # For those request that contain certificates
+					 # we truncate them out of the console
+					 # in order to skip logging the base64 cert
+					 # saving disk space.  
+					 if payload.include? "certificate_base64" and !Config.display_certificates 
+						# create a hash out of the payload
+					 	payload = JSON.parse(env["api.request.input"])
+						# change the value of the cert key
+						payload["certificate_base64"] = "[Not shown per System Configuration]"
+						# change it back to a json string
+						payload = payload.to_json.to_s
+					 end
+					 # color the output based on the http method
+					 case env["REQUEST_METHOD"].strip 
+						 when "PUT"
+						 	output << payload.bold.cyan
+						 when "DELETE" 
+						 	output << payload.bold.red
+						 when "GET"
+						 	output << payload.bold.green
+						 when "POST"
+						 	output << payload.bold.magenta
+						 else
+						 	output << payload.bold.yellow
+					 end
+					output << "\n"
 				end
 				if(route.route_description.to_s.length > 0)
 					 output << "Description:\n#{route.route_description}\n"
 				end
-				output << "Result:\n"
+				output << "#{"Result".bold.cyan}:\n"
 				return output
 			end
 
@@ -96,9 +140,9 @@ module PRGMQ
 					else
 						debug value.to_s
 					end
-					# Then we proceed to allow the value to reach the user
-					return value
 				end
+				# Then we proceed to allow the value to reach the user
+				return value
 		  end
 
 			# expects seconds, returns pretty string of how long ago event happened
