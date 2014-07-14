@@ -67,7 +67,7 @@ module PRGMQ
 			before do
 				# If we're in verbose mode, print everything to STDOUT
 				# Print a set of dashes to make viewing output easier:
-				debug "#{ "-" * 80 }\n", false
+				debug "#{ ("-" * 80).bold.yellow }\n", false
 				debug "Info: #{request_info}"
 
 				logger.info "Hello world"
@@ -92,7 +92,7 @@ module PRGMQ
 						add_visit
 						debug "Visit ID: #{total_visits}"
 				end
-				debug "#{ "-" * 80 }\n", false # print dashes signifying end of output
+				debug "#{ ("-" * 80).bold.yellow }\n", false # print dashes signifying end of output
 			end
 
 			# From here on the user is authenticated. Any checks should be for
