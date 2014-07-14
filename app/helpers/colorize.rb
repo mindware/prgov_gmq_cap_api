@@ -16,6 +16,7 @@ class String
   def brown
     colorize(33)
   end
+  alias :yellow :brown
   def blue
     colorize(34)
   end
@@ -62,3 +63,4 @@ class String
   def no_colors
     self.gsub /\033\[\d+m/, ""
   end
+end
