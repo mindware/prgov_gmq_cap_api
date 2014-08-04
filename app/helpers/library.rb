@@ -58,10 +58,13 @@ module PRGMQ
 			# Prints details if we're in debug mode
 			def debug(str, use_title=false)
 				  title = "DEBUG: " if use_title
+					str = str.to_s
 				  # print to screen
 				  puts "#{title}#{str}" if Config.debug
-				  # strip of colors and log it
-				  logger.info str.no_colors
+				  # strip of colors and log each line
+					str.split("\n").each do |line|
+				  	logger.info line.no_colors
+					end
 			end
 			#
 			# def log(str)
@@ -77,20 +80,20 @@ module PRGMQ
 				"User: #{env["REMOTE_USER"].bold.yellow} (#{env["REMOTE_ADDR"].cyan})\n"+
 				"URI: #{env["REQUEST_URI"].bold.blue}\n"
 				output << "Method: "
-                                case env["REQUEST_METHOD"]
-                                     when "PUT"
-                                           output << env["REQUEST_METHOD"].bold.cyan
-					   output << " (Update)"
-                                     when "DELETE"
-                                           output << env["REQUEST_METHOD"].bold.red
-                                     when "GET"
-                                           output << env["REQUEST_METHOD"].bold.green
-                                     when "POST"
-                                           output << env["REQUEST_METHOD"].bold.magenta
-					   output << " (Create)"
-                                     else
-                                           output << env["REQUEST_METHOD"].bold.yellow
-                                end
+        case env["REQUEST_METHOD"]
+             when "PUT"
+                   output << env["REQUEST_METHOD"].bold.cyan
+							     output << " (Update)"
+             when "DELETE"
+                   output << env["REQUEST_METHOD"].bold.red
+             when "GET"
+                   output << env["REQUEST_METHOD"].bold.green
+             when "POST"
+                   output << env["REQUEST_METHOD"].bold.magenta
+							     output << " (Create)"
+             else
+                   output << env["REQUEST_METHOD"].bold.yellow
+        end
 				output << "\n"+
 				#"#{env.inspect}\n"+
 				"Time: #{Time.now.strftime("%m/%d/%Y - %r")}\n"
