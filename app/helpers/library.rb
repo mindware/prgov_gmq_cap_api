@@ -56,17 +56,52 @@ module PRGMQ
 			end
 
 			# Prints details if we're in debug mode
-			def debug(str, use_title=false)
-				  title = "DEBUG: " if use_title
-					str = str.to_s
+			def debug(str, use_title=false, use_prefix=true, log_type="info")
+				  title = "DEBUG: "   if use_title
+					prefix = str_prefix.brown	if use_prefix
 				  # print to screen
-				  puts "#{title}#{str}" if Config.debug
+				  # puts "#{title}#{str}" if Config.debug
 				  # strip of colors and log each line
 					str.split("\n").each do |line|
-				  	logger.info line.no_colors
+						puts "#{prefix}#{title}#{line}" if Config.debug
+						case log_type
+							when "warn"
+									 logger.warn "#{prefix}#{line}".no_colors
+							when "error"
+									 logger.error "#{prefix}#{line}".no_colors
+							when "fatal"
+									 logger.fatal "#{prefix}#{line}".no_colors
+							else
+									 logger.info "#{prefix}#{line}".no_colors
+						end
 					end
 			end
-			#
+
+			def warn(str)
+				debug(str, false, true, "warn")
+			end
+
+			def fatal(str)
+				debug(str, false, true, "fatal")
+			end
+
+			def error_msg(str)
+				debug(str, false, true, "error")
+			end
+
+			# Used to define prefixes for strings, useful for prepending strings
+			# when logging on an API.
+			def str_prefix
+				# if Object.const_defined?("env")
+				# puts self.class.to_s.include? "Grape"
+				if self.class.to_s.include? "API" or self.class.to_s.start_with? "Grape"
+					# If we have a visit id assigned
+					return "#{(env["VISIT_ID"].to_s.strip.length > 0 ? "#{env["VISIT_ID"]}: " : "") }"
+				else
+					return ""
+				end
+			end
+
 			# def log(str)
 			# 		puts "#{str}" if Config.logging
 			# end
@@ -183,7 +218,7 @@ module PRGMQ
 					when 172001..518400 then "in #{((a+800)/(60*60*24)).to_i.to_s} days"
 					when 518401..1036800 then "in a week"
 					when 1036801..2433600 then "in #{((a+180000)/(60*60*24*7)).to_i.to_s} weeks"
-					else "in #{((a+180000)/(60*60*24*7) / 4).to_i.to_s} months"
+					else "in #{((a+180000)/(60*60*24*7) / 4).to_i.to_s} month(s)"
 				end
 			end
 
