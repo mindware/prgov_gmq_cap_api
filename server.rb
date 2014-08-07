@@ -17,33 +17,56 @@ require 'app/helpers/colorize'
 
 # Here we start defining the Web Server that will handle http requests properly:
 class Server < Goliath::API
-
 	# we include rack templates so we can use erb
 	include Goliath::Rack::Templates
 	# respond to http requests
 
-	def initialize()
+  ########################################################
+	#   						Webserver HTTP Responses							 #
+	########################################################
+
+	# Respond to HTTP Requests properly.
+	def response(env)
+		# any specific html document request that meets a criteria, we handle
+		# through the public directory, by servering the proper html files:
+		if env['REQUEST_PATH'] == '/panel/'
+			[200, {}, erb(:index, :views => Goliath::Application.root_path('public'))]
+		else
+			# Everything else is processed by our GMQ CAP API Middlware:
+			# Here we route through the Grape RESTful API:
+			PRGMQ::CAP::API.call(env)
+		end
+	end
+
+
+	########################################################
+	#   						Webserver Startup	Method							 #
+	########################################################
+
+	def initialize
 		begin
+			# Load the startup ASCII and spice it up:
 			ascii = File.open("docs/GMQ_ASCII", 'r') { |f| f.read }
 			puts ascii.gsub("█", "█".bold.green).gsub("-", "-".red).
 			     gsub("=", "=".red).gsub("╗", "╗".black).gsub("╔", "╔".black).
 			     gsub("═","═".black).gsub("╝","╝".black).gsub("║", "║".black).
 			     gsub("▀▀","▀▀".bold.green).gsub("╚","╚".black).gsub("▄","▄".black)
+			# once we're done with the startup screen, clear the buffer.
 			ascii = ''
 		rescue Exception => e
 		ensure
-			puts "GMQ CAP API Server is starting "+
-			     "up in #{((Goliath.env.to_s.capitalize) + (" Mode")).bold.brown} "
-		end
-		# Check the configuration files are there.
-		# If any corrupt configurations an error will be thrown
-		begin
-			if(PRGMQ::CAP::Config.check)
-				  puts "Configuration loaded correctly."
+			# Check the configuration files are there.
+			# If any corrupt configurations an error will be thrown
+			begin
+				if(PRGMQ::CAP::Config.check)
+						puts "Configuration loaded correctly."
+				end
+			rescue Exception => e
+						warning "WARNING: #{e.message}"
+						exit
 			end
-		rescue Exception => e
-					puts "WARNING: #{e.message}"
-					exit
+			debug "GMQ CAP API Server is starting "+
+			     "up in #{((Goliath.env.to_s.capitalize) + (" Mode")).bold.brown} "
 		end
 
 		# # Establishes and check db connection
@@ -63,14 +86,30 @@ class Server < Goliath::API
 		# PRGMQ::CAP::Store.connected?
 	end
 
-	def response(env)
-		# any specific html document request that meets a criteria, we handle
-		# through the public directory:
-		if env['REQUEST_PATH'] == '/admin' or env['REQUEST_PATH'] == '/panel/'
-			[200, {}, erb(:index, :views => Goliath::Application.root_path('public'))]
-		else
-			# everything else, we route through the Grape RESTful API
-			PRGMQ::CAP::API.call(env)
-		end
+	########################################################
+	# 						Webserver Helper Methods								 #
+	########################################################
+
+	# An alias to our logger. We're use this in the debugger.
+	def logger
+		PRGMQ::CAP::Config.logger
+	end
+
+	# Prints details if we're in debug mode and logs them properly
+	def debug(str, use_title=false)
+			title = "DEBUG: " if use_title
+			str = str.to_s
+			# print to screen
+			puts "#{title}#{str}" if PRGMQ::CAP::Config.debug
+			# strip of colors and log each line
+			str.split("\n").each do |line|
+				logger.info line.no_colors
+			end
+	end
+
+  # Logs and outputs warnings
+	def warning(str)
+		  puts str if PRGMQ::CAP::Config.debug
+		  logger.warn str.no_colors
 	end
 end # end of class
