@@ -5,6 +5,6 @@
   "debug"                 : true,
   "backtrace_errors"      : false,
   "display_results"       : true,
-  "display_certificates"  : false, 
+  "display_certificates"  : false,
   "downtime"              : false
 }
