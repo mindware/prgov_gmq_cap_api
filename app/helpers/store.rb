@@ -13,6 +13,10 @@ module PRGMQ
       # commands for querying and manipulating those data structures
       # over a network connection.
 
+      def self.system_prefix
+        "gmq"
+      end
+
       # When storing data, we'll want a specific structure in Redis
       # so our keys will be easier to organize and retrieve.
       # The following method defines the structure for all keys to be
@@ -22,7 +26,7 @@ module PRGMQ
       # API called 'cap' will be stored in the following way:
       # 'cap:tx:id'
       def self.db_prefix
-        "gmq:cap"
+        "#{system_prefix}:cap"
       end
 
       # Let's also make this a class method, so we can
@@ -53,7 +57,8 @@ module PRGMQ
                    "(using #{Config.db_driver} driver)..."
               @db = Redis.new(:host =>   Config.db_host,
                               :port =>   Config.db_port,
-                              :driver => Config.db_driver)
+                              :driver => Config.db_driver,
+                              :thread_safe => true)
           else
               @db
           end
