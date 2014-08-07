@@ -31,17 +31,46 @@ module PRGMQ
       extend TransactionIdFactory
       include LibraryHelper
 
+      # Expiration: Transaction expiration means expiration from the DB
+      # as in, disappearing from the system entirely.
+      #
+      # This shouldn't be confused with the expiration of a certificate.
+      # A certificate could be invalidated by the PR.Gov validation system
+      # even if its transaction still hasn't expired. For example, say it has
+      # been determined that a certificate shouldn't be valid after 1 month,
+      # in such a case PR.Gov validation mechanism could check the transaction
+      # approval date and see if it has already reached its certificate
+      # expiration limit. However, the Transaction expiration might still not
+      # have come into effect, and thus, we could have the ability to peer into
+      # the transaction for administrative and audit purposes long after the
+      # certificate has already expired.
+      #
+      # Important Hint for Backup Restoration and Transaction Expiration:
+      #
+      # Administrators, "Hear ye, hear ye!". This is important.
+      # Transaction expiration is going to be performed at the Storage level.
+      # This means if you ever manually restore a backup, in order to peer at
+      # old transactions, such as for an audit, it is important that the time
+      # of the server is modified to the past in question, otherwise, the
+      # storage system will see the time difference (Redis) and determine that
+      # the transactions expiration time has come up, and immediately expire
+      # data. This is because the storage mechanism that performs expiration of
+      # keys does it using the current time. If you restore data from the past
+      # into a server whose datetime is configured to the present or future,
+      # expiration will come into effect for anythign that should be expired.
+      #
       # If you set MONTHS_TO_EXPIRATION_OF_TRANSACTION to 0, transactions
       # will never expire. (Hint: that could fill up the database store, be
-      # careful). Only do it if you know what you're doing.
+      # careful). Only do it if you know what you're doing or would like to get
+      # fired. Seriously, don't do it.
       # By default, we use 1 or three months to keep the transaction in the
       # system for inspection. Once expired, it's really gone!
       # Max is 25 years (25 * 12). Don't try it.
       MONTHS_TO_EXPIRATION_OF_TRANSACTION = 3
-      # The expiration is going to be 8 months, in seconds
+      # The expiration is going to be Z months, in seconds.
       # Time To Live - Math:
       # 604800 seconds in a week X 4 weeks = 1 month in seconds
-      # Multiply this amount for the amount of months that a transaction
+      # We multiply this amount for the Z amount of months that a transaction
       # can last before expiring.
       EXPIRATION = (604800 * 4) * MONTHS_TO_EXPIRATION_OF_TRANSACTION
 
@@ -78,27 +107,38 @@ module PRGMQ
                     :created_at,           # creation date
                     :updated_at,           # last update
                     :created_by,           # the user that created this
-                    :certificate_base64,   # The base64 certificate
+                    :certificate_base64,   # The base64 certificate -
+                                           # currently just a flag that lets us
+                                           # know it was already generated so
+                                           # we can pick it up in SIJC.
+                                           # PR.Gov is no longer storing
+                                           # certificates, when SIJC calls back
+                                           # after generation. Due to a storage
+                                           # issue related to RAM and Redis.
+                                           # Instead, workers pick up the
+                                           # certificate as they're ready to
+                                           # email a certificate.
                     :analyst_fullname,     # The fullname of the analyst at
                                            # PRPD that authorized this request.
                     :analyst_id,           # The user id of the analyst at PRPD
                                            # that authorized this request
-                                           # through their ANPE System.
+                                           # through their System.
                     :analyst_approval_datetime, # The exact date and time in
                                                 # which the user approved this
                                                 # action. This must correspond
                                                 # with the tiemstamps in the
-                                                # PRPD’s internal system, such
-                                                # iANPE so that in the event of
+                                                # PRPD’s analyst system, such
+                                                # RCI, so that in the event of
                                                 # an audit correlation is
                                                 # possible.
                     :analyst_transaction_id,    # The internal id of the
                                                 # matching request in the
-                                                # ANPE DB. This id can be used
+                                                # Analyst System. This id
+                                                # can be used
                                                 # in case of an audit.
                     :analyst_internal_status_id,# The matching internal
-                                                # decision code id of the ANPE
-                                                # system.
+                                                # decision code id of the
+                                                # system used by the analysts.
                     :decision_code,             # The decision of the analyst at
                                                 # PRPD of what must be done with
                                                 # transaction after their
@@ -107,8 +147,19 @@ module PRGMQ
                                                 # decisions are supplied by the
                                                 # PRPD system login only:
                                                 # 100 - Issue Negative Cert
-                                                # 200 - May not Issue Negative
-                                                #       Cert.
+                                                # 200 - Positive Certificate
+                    :identity_validated,        # This tells us if the citizen
+                                                # was identified in a Gov db
+                                                # nil: if nothing done yet
+                                                # true: validated
+                                                # false: failed validation
+                    :emit_certificate_type,     # The type of certificate we
+                                                # have been told we are to
+                                                # receive and send:
+                                                # "positive" - a positive cert
+                                                # "negative" - a negative cert
+                    :certificate_path           # The temporary file path to the
+                                                # certificate in disk.
       # Newly created Transactions
       def self.create(params)
 
@@ -345,10 +396,12 @@ module PRGMQ
         # Store.db.multi do
 
         # We are no longer using multi, as our Storage proxy
-        # does not support multi/exec. It does support pipelining
-        # however, so that's what we're using for atomic operations.
+        # (Twemproxy/Nutcracker) does not support multi/exec. It does support
+        # pipelining however, so that's what we're using for atomic operations.
         debug "Store Pipeline: Attempting to save transaction in Store under key \"#{db_id}\""
         debug "Store Pipeline: Attempting to save into recent transactions list \"#{db_list}\""
+        debug "Store Pipeline: Attempting to save into ready transactions queue \"#{db_ready}\""
+
         Store.db.pipelined do
           # don't worry about an error here, if the db isn't available
           # it'll raise an exception that will be caught by the system
@@ -369,7 +422,9 @@ module PRGMQ
           Store.db.lpush(db_list, db_cache_info)
           # trim the items to the last 10
           Store.db.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
-          # after this line, db.multi runs 'exec', in an atomic fashion
+
+          # When we used to do multi/execs, we'd have this line to run all
+          # actions in an atomic fashion like this:
           # Store.db.lpush()
         end
         debug "Saved transaction. View it in Redis using: GET #{db_id}"
