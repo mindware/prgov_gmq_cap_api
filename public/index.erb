@@ -2,8 +2,30 @@
 <html>
   <head>
     <title>Admin Panel</title>
+    <style type="text/css">
+    	.child {
+    		 margin-left: 25px;
+    	}
+    </style>
   </head>
   <body>
-    Hello world
-  </body>
+    <h1>GMQ CAP Server</h1>
+    <h2>Version 1:</h2>
+    <div style="padding-left: 25px">
+    <h3>Resources:</h3>
+    <ul>
+   	 <li><a href="/v1/cap/">CAP API</a></li>
+   	 <li><a href="/v1/cap/transaction">Transaction</a></li>
+	 <div class="child">
+   		 <li><a href="/v1/cap/transaction">Health</a></li>
+	 </div>
+  	 <li><a href="/v1/cap/admin">Admin</a></li>
+	 <div class="child">
+    		 <li><a href="/v1/cap/admin/maintenance">Maintenance Status</a>
+		     (can be set <a href="/v1/cap/admin/maintenance">On</a> or
+                     <a href="/v1/cap/admin/maintenance">Off</a>)</li>
+	 </div>
+    </ul>
+   <div>
+   </body>
 </html>
