@@ -72,10 +72,10 @@ module PRGMQ
           end # end of developer enviornment check
 
           # Print to STDOUT the full errors if in debug mode.
-          debug "#{"Error".red}:\n#{message}", false if Config.debug
+          error_msg "#{"Error".red}:\n#{message}" if Config.debug
           # Print out dashes to make it easy to destinguish where our
           # request output ends.
-          debug "#{ ("-" * 80).bold.yellow }\n", false
+          debug "#{ ("-" * 80).bold.yellow }\n"
 
           throw :error, :message => message, :status => klass.http_code
         end # end of begin/rescue
@@ -712,7 +712,7 @@ module PRGMQ
       def self.data
         { "error" => { "http_message" => "500 Internal Server Error",
                        "http_code" => 500,
-                       "app_error"  => "The record found  "+
+                       "app_error"  => "The record found "+
                        "was in an improper format and could not be "+
                        "properly parsed.",
                        "app_code" => 6006
