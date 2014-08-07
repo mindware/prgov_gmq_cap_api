@@ -35,19 +35,19 @@ module PRGMQ
         expose :analyst_fullname, documentation: { type: String,
                desc: "The full name of the PRPD analyst in the DB."}
         expose :analyst_id, documentation: { type: String,
-               desc: "The id of the user of the PRPD analyst in the ANPE db."}
+               desc: "The id of the user of the PRPD analyst in the PRPD System (RCI)."}
         expose :analyst_approval_datetime, documentation: { type: String,
                desc: "The date in UTC format when an analyst approved this "+
                      "action in PRPD"}
         expose :analyst_transaction_id, documentation: { type: String,
-               desc: "The internal ANPE Id for this transaction."}
+               desc: "The internal PRPD System ID for this transaction."}
         expose :analyst_internal_status_id, documentation: { type: String,
-               desc: "The internal ANPE status code assigned by an analyst to "+
-               "perform this action on this transaction."}
+               desc: "The internal PRPD System status code assigned by an analyst to "+
+               "perform this action on this transaction." }
         expose :decision_code, documentation: { type: String,
                desc: "The decision code expected by our GMQ CAP API "+
                      "for the analyst decision regarding whether we should "+
-                     "emit a positive certificate or not, for this manually "+
+                     "emit a positive certificate or negative certificate, for this manually "+
                      "reviewed request at PRPD."}
         # # Status Information
         expose :status, documentation: { type: String, desc: "Status identification"}
