@@ -68,31 +68,51 @@ module PRGMQ
 				# If we're in verbose mode, print everything to STDOUT
 				# Print a set of dashes to make viewing output easier:
 				debug "#{ ("-" * 80).bold.yellow }\n", false
-				debug "Info: #{request_info}"
-
-				logger.info "Hello world"
+				puts "Request Id: #{env["VISIT_ID"]}" unless env["VISIT_ID"].to_s.length == 0
 
 				# If the system is set up for downtime/maintenance:
 				if(Config.downtime)
 					# get the path:
-			  	path = route.route_path.gsub("/:version/cap", "")
+					path = route.route_path.gsub("/:version/cap", "")
 					# Only admin resources are allowed during maintenance mode.
 					# Throw an error if this isn't an admin path.
 					if !path.start_with?("/admin/")
 						# Let the users know this system is down for maintenance:
-			  		raise ServiceUnavailable
+						raise ServiceUnavailable
 					end
+				else
+						# We add visits when we're outside of maintenance mode, as the
+						# storage could be offline during maintenance.
+
+						# We need to track every request, so we can safely tag each debug()
+						# line, so that logs can be tracked when there are multiple
+						# concurrent requests
+
+						# Exclude specific paths from adding visits
+						# TODO: consider using start_with? here.
+						path = route.route_path.gsub("(.:format)", "")
+						begin
+							if !path.start_with? "/:version/cap/admin/maintenance" and
+							 	 !path.start_with? "/:version/cap/health" #and !Config.downtime
+										# Add a visit, and save it as string.
+										env["VISIT_ID"] = "#{add_visit}"
+							else
+										# No id for empty visits
+										env["VISIT_ID"] = "-"
+							end
+						rescue
+							  # Storage could not be accessed. Instead of erroring out here
+								# we'll let this pass so we can print request_info, and the
+								# error will be caught by the API resource in question.
+						end
 				end
+				debug "#{request_info}"
 			end
 
-			# After every request, keep count of all global visits
+			# After every request
 			after do
-				# Exclude specific paths from adding visits
-				if !route.route_path.include? "/:version/cap/health"
-						add_visit
-						debug "Visit ID: #{total_visits}"
-				end
-				debug "#{ ("-" * 80).bold.yellow }\n", false # print dashes signifying end of output
+				# print dashes signifying end of output
+				debug "#{ ("-" * 80).bold.yellow }\n", false, false
 			end
 
 			# From here on the user is authenticated. Any checks should be for
@@ -112,7 +132,7 @@ module PRGMQ
 					# if it does, get the User Object, else: we'll safely error out.
 					user = allowed?(["all"])
 					# logger.info "#{user} requested #{route.route_params[params]}"
-					{ :api	=> "CAP", :versions => "#{API::versions}"}
+					result ({ :api	=> "CAP", :versions => "#{API::versions}"})
 				end # end of get '/'
 
 				# Check the health for the system
@@ -131,6 +151,7 @@ module PRGMQ
 						## Resource cap/transaction/status:
 						group :status do
 							# GET cap/transaction/status/:status:
+							# TODO: add this support
 							desc "Returns an estimated number of existing transactions in "+
 									 "the CAP Transaction system that match a specific status."
 							params do
@@ -138,15 +159,15 @@ module PRGMQ
 							end
 							get "/" do
 								user = allowed?(["all"])
-										{
-									     :transactions =>
-											 {
-					                :status =>
-													{
-			                      	:status => "20"
-						              }
-									     }
-										}
+								result ({
+										     :transactions =>
+												 {
+						                :status =>
+														{
+				                      	:status => "20"
+							              }
+										     }
+											})
 							end
 						end
 
@@ -160,6 +181,7 @@ module PRGMQ
 							# Resource cap/transaction/:id/status:
 							group :status do
 								# GET cap/transaction/:id/status/
+								# TODO: code this action
 								desc "Returns relevant status information on a specific "+
 										 "transaction id."
 								get "/" do
@@ -167,7 +189,7 @@ module PRGMQ
 										# leave this open to all systems. If we start providing
 										# specific user information, then only admin and workers.
 										user = allowed?(["all"])
-										{
+										result ({
 										    "transaction" => {
 										        "id" => "0-123-456",
 										        "current_error_count" => 0,
@@ -179,7 +201,7 @@ module PRGMQ
 										        "status" => "processing",
 										        "location" => "prgmq_email_certificate_queue",
 										    }
-										}
+										})
 								end
 							end
 
@@ -192,10 +214,11 @@ module PRGMQ
 							get do
 									user = allowed?(["admin", "worker"])
 									transaction = Transaction.find(params[:id])
-									result present transaction, with: CAP::Entities::Transaction #, type: :hi
+									result (present transaction, with: CAP::Entities::Transaction) #, type: :hi
 							end
 
 							# DELETE /v1/cap/transaction/:id
+							# TODO: code this
 							desc "Deletes a specific transaction id so it cannot be processed. "+
 									"This will likely move the transaction to an alternative "+
 									"repository in the future, in order to archive it. This is "+
@@ -206,18 +229,19 @@ module PRGMQ
 							end
 							delete do
 								user = allowed?(["admin", "worker"])
-								{
+								result ({
 										"0-123-456" => "deleted"
-								}
+								})
 							end # end of DELETE
 						end # end of namespace: Resource cap/transaction/:id:
 
 						# GET /v1/cap/transaction/
+						# TODO: code this!
 						desc "Returns an estimated number of existing transactions in "+
 								"the CAP Transaction system."
 						get '/' do
 							user = allowed?(["all"])
-							{
+							result({
 								"transactions" =>
 								{
 										"pending" => "20",
@@ -226,7 +250,7 @@ module PRGMQ
 										"retry" => "2",
 										"processing" => "5",
 								}
-							}
+							})
 						end
 
 						# POST /v1/cap/transaction/
@@ -248,7 +272,7 @@ module PRGMQ
 							transaction = Transaction.create(params)
 							# check if we are able to save it
 							if transaction.save
-								present transaction, with:Entities::TransactionCreated
+								result present(transaction, with:Entities::TransactionCreated)
 							else
 								# if the item is not found, raise an error that it could not be saved
 								raise ItemNotFound
@@ -271,7 +295,7 @@ module PRGMQ
 							transaction.review_complete(params)
 							# we try to save the transaction
 							transaction.save
-							present transaction, with:Entities::Transaction
+							result present(transaction, with:Entities::Transaction)
 						end # end of review_complete
 
 
@@ -369,7 +393,9 @@ module PRGMQ
 						if(Goliath.env.to_s == "development" or Goliath.env.to_s.include? == "test")
 							# specify a list of user groups than can access this resource:
 							user = allowed?(["admin"])
-							result({ :test_data =>  redis.get("mkey")})
+							# result({ :test_data =>  redis.get("mkey")})
+							# result "Nothing to test at this time."
+							result env["VISIT_ID"]
 						else
 							raise ResourceNotFound
 						end
@@ -386,7 +412,15 @@ module PRGMQ
 					get '/maintenance' do
 						user = allowed?(["admin"])
 						return {"maintenance_status" => Config.downtime } if params[:activate].nil?
-						Config.downtime = params[:activate]
+						# make sure we're only sent correct data, true or false.
+						# default value is false:
+						value = false
+						if params[:activate].to_s == "true"
+							 # if the user requested we go into maintenance mode, set it to
+							 # true
+							 value = true
+						end
+						Config.downtime = value
 						result({ "maintenance_status" => Config.downtime})
 					end # end of get '/maintenance'
 
@@ -402,6 +436,7 @@ module PRGMQ
 						result({ :groups => security_group_list })
 					end # end of get '/test'
 
+					desc "Reloads the configuration files into memory."
 					get '/reload' do
 						user = allowed?(["admin"])
 						Config.load_config
@@ -413,6 +448,17 @@ module PRGMQ
 						user = allowed?(["admin"])
 						txs = last_transactions
 						res = []
+
+						# TODO: BUG:
+						# This should not ocurr on Syncrhony driver. We shouldn't receive
+						# a fixnum when we're doing a parallel request to Redis. However,
+						# for some reason we are.
+						#
+						# If an error ocurred in parallel requests and the data is not an Array
+						if txs.class != Array
+							raise AppError
+						end
+						puts "We're going to process a data of length #{txs}" if txs.class != Array
 						txs.each do |x|
 							x = Transaction.find x
 							res << [ x.id, x.ip, x.created_at, x.reason]
@@ -422,10 +468,12 @@ module PRGMQ
 
 					# Prints available admin routes. Hard-coded
 					# Let's later do some meta-programming and catch these.
+					# TODO: make this work via API introspection, show admin routes.
 					get '/' do
 						result ({
-							"available_routes" => ["maintenance", "test", "users", "visits",
-																		 "recent"]
+							"available_routes" => ["last", "maintenance", "test", "users",
+																	   "groups",
+																		 {"stats" => ["visits","completed"] } ]
 						})
 					end
 				end # end of the administrator group
