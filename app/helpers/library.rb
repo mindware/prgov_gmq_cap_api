@@ -8,7 +8,7 @@ module PRGMQ
 			# groups to check if he is able to access a resource only available to
 			# allowed_groups.
 			# After we determine if the user is allowed the resource or not we
-			# either return the user's id, or we raise an exception. 
+			# either return the user's id, or we raise an exception.
 			def allowed?(allowed_groups)
 				# we grab the current user from the environment. This is after
 				# said user has passed the scrutiny of a basic authentication.
@@ -24,6 +24,45 @@ module PRGMQ
 						raise InvalidAccess
 				end
 			end
+
+
+			# As this is not priority, this is not implemented at this time:
+			# This is a security measure that could be implemented over Grape API's
+			# present method. The present method is used by Grape in order to allow
+			# Grape Entities to show specific parts of an object in a json format.
+			# Present allows us to send variables to Grape Entities before they
+			# are rendered, and Grape Entities allows us to use those parameters to
+			# determine if we want to show a property of the object or not. This
+			# is typically used when you want to restrict some property from an
+			# object from being displayed if X variables is present.
+			# However, when we have to do checks for multiple types of variables
+			# for a single property, the entity code becomes quite complex and ugly
+			# quickly. In order to keep things more simple, and allow our API to
+			# restrict which groups of users can see which properties, we're could
+			# create entities for the different groups.
+			# For example: in the ../entities/ folder
+			# We could have entity classes defined, such as "TransactionSIJC",
+			# "TransactionWorkers", etc.
+			#
+			# The show method will automate the process of selecting the right
+			# entity depending on the group the user belongs to. Since a user
+			# can belong to multiple groups, we'll check the groups by highest access
+			# first, in a descending order. We'll use the security group that
+			# grants the most visibility first.
+			#
+			# Commented out for now, as it is low priority at this time, and we won't
+			# need to replace the 'present' methods in the API any time soon.
+			# In the future, we if we need more fine grained control of what an
+			# admin sees, vs what progv, workers and other agencies see, we should
+			# could implement this easily.
+			# def show
+			# 	# The entity    # which group only has access to it
+			# 	#entities = {
+			#                 "TransactionSIJC" => [sijc"],
+			#								  "TransactionCreate" => ["prgov"]
+			#									}
+			#
+			# end
 
 			def logger
 				# This will return an instance of the Logger class from Ruby's
