@@ -274,6 +274,15 @@ module PRGMQ
             index = @all["db"]["servers"].keys[0]
           end
 
+          def self.db_pool_size
+            # this is the pool size for connections
+            if(@all["db"].has_key? "pool_size")
+               @all["db"]["pool_size"]
+            else
+              2
+            end
+          end
+
           # Selects which db host to connect to
           # later we could iterate through the hosts found in db.
           def self.db_host
