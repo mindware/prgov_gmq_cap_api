@@ -7,6 +7,8 @@ module PRGMQ
 			# He had proper credentials to get into the API. Here we retrieve his
 			# groups to check if he is able to access a resource only available to
 			# allowed_groups.
+			# After we determine if the user is allowed the resource or not we
+			# either return the user's id, or we raise an exception. 
 			def allowed?(allowed_groups)
 				# we grab the current user from the environment. This is after
 				# said user has passed the scrutiny of a basic authentication.
