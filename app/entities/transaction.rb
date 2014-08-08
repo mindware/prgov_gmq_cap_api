@@ -60,6 +60,9 @@ module PRGMQ
         expose :location
         expose :ttl, documentation: { type: Date, desc: "Time in seconds for record to expire."}
         expose :expires, documentation: { type: Date, desc: "Human readable expiration time."}
+        expose :identity_validated
+        expose :emit_certificate_type
+        expose :certificate_path
         # expose :total_error_count
         # expose :action do
         #     expose :action_id
