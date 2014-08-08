@@ -158,6 +158,13 @@ module PRGMQ
                                                 # receive and send:
                                                 # "positive" - a positive cert
                                                 # "negative" - a negative cert
+                                                # This is set not only by the
+                                                # decision_code when a fuzzy
+                                                # result requires an PRPD
+                                                # analyst, but also by
+                                                # RCI when it determines
+                                                # it has enough data to make a
+                                                # decision.
                     :certificate_path           # The temporary file path to the
                                                 # certificate in disk.
       # Newly created Transactions
@@ -300,11 +307,12 @@ module PRGMQ
         return h
       end
 
+      # Turns a hash into a json object
       def to_json
         to_hash.to_json
       end
 
-      # just an alias
+      # just an alias in order to have an instance method available
       def ip
         self.IP
       end
@@ -382,6 +390,12 @@ module PRGMQ
           end
       end
 
+      # Class method that returns a list of the last transactions in the system
+      # TODO: check what this returns when db is empty.
+      def self.last_transactions
+          Store.db.lrange(Transaction.db_list, 0, -1)
+      end
+
       def save
         # We have to retrieve this here, incase we ever need values here
         # from the Store. If we do it inside the multi or pipelined
@@ -400,7 +414,7 @@ module PRGMQ
         # pipelining however, so that's what we're using for atomic operations.
         debug "Store Pipeline: Attempting to save transaction in Store under key \"#{db_id}\""
         debug "Store Pipeline: Attempting to save into recent transactions list \"#{db_list}\""
-        debug "Store Pipeline: Attempting to save into ready transactions queue \"#{db_ready}\""
+        debug "Store Pipeline: Attempting to save into \"#{queue_pending}\" queue"
 
         Store.db.pipelined do
           # don't worry about an error here, if the db isn't available
@@ -418,16 +432,20 @@ module PRGMQ
           # debug "View it using: ZREVRANGE '#{db_list}' 0 -1"
           # Store.db.zadd(db_list, updated_at.to_i, db_id)
 
-          # Add it to a list of the last 10 items
+          # Add it to a list of the last couple of items items
           Store.db.lpush(db_list, db_cache_info)
-          # trim the items to the last 10
+          # trim the items to the maximum allowed, determined by this constant:
           Store.db.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
+
+          # Add it to our GMQ pending queue, to be grabbed by our workers
+          Store.db.zadd(queue_pending, updated_at.to_i, db_id)
 
           # When we used to do multi/execs, we'd have this line to run all
           # actions in an atomic fashion like this:
           # Store.db.lpush()
         end
-        debug "Saved transaction. View it in Redis using: GET #{db_id}"
+        debug "Saved transaction.\nView the transaction in Redis using: GET #{db_id}\n"+
+              "The recent transaction using: "
         true
       end
 
