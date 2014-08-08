@@ -77,6 +77,9 @@ module PRGMQ
           # request output ends.
           debug "#{ ("-" * 80).bold.yellow }\n"
 
+          # This throw not only ensures we throw the proper Exception,
+          # send the proper json error message, but also makes sure to
+          # return the proper HTTP code, be it a 500, 400, etc. 
           throw :error, :message => message, :status => klass.http_code
         end # end of begin/rescue
       end # end of call(env)
