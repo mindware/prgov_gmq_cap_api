@@ -1,0 +1,8 @@
+{
+  "systemX"       : { "passkey" : "3b9b3a8ddf62325a6031z8d2724x75c5e1dam72c01db42020a83615h",
+                    "groups"  : ["agencyX"]  },
+  "systemY"	  : { "passkey" : "59ca18a088f2e1e08074863cf03f6b699307eb895fdcd5c2c404e29x",
+                    "groups"  : ["agencyY"] },
+  "websiteZ"      : { "passkey" : "f511e1076f3d3c187d1ce3c2f3dzf7a6b43c3a8c757806b94f01a5bb",
+		    "groups"  : ["agencyZ"] }
+}

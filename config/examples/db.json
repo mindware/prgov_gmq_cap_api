@@ -1,0 +1,24 @@
+{
+  "driver"     : "synchrony",
+  "pool_size"  : 3,
+  "servers"    : {
+                    "proxyServer01"  : {
+                                    "user"     : "yourUser",
+                                    "password" : "thePassword",
+                                    "host"     : "localhost",
+                                    "port"     : 5000
+                    },
+                    "redis-server01"  : {
+                                    "user"     : "yourUser",
+                                    "password" : "thePassword",
+                                    "host"     : "localhost",
+                                    "port"     : 6379
+                    },
+                    "redis-server02" :  {
+                                    "user"     : "yourUser",
+                                    "password" : "thePassword",
+                                    "host"     : "localhost",
+                             	    "port"     : 6380
+                }
+  }
+}
