@@ -61,7 +61,8 @@ module PRGMQ
 			#                 "TransactionSIJC" => [sijc"],
 			#								  "TransactionCreate" => ["prgov"]
 			#									}
-			#
+			#   # Here check the current user's groups
+			#   # and show only the highest transction entity that he has access to.			
 			# end
 
 			def logger
