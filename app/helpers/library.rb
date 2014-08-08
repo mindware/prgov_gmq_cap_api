@@ -62,7 +62,7 @@ module PRGMQ
 			#								  "TransactionCreate" => ["prgov"]
 			#									}
 			#   # Here check the current user's groups
-			#   # and show only the highest transction entity that he has access to.			
+			#   # and show only the highest transction entity that he has access to.
 			# end
 
 			def logger
@@ -149,7 +149,7 @@ module PRGMQ
 			# end
 
 			def last_transactions
-					last = Store.db.lrange(Transaction.db_list, 0, -1)
+				  Transaction.last_transactions
 			end
 
 			def request_info
