@@ -18,7 +18,6 @@ Pending:
 11. Change server.rb so that we properly check DB connectivity after EM is up
 12. Confirm connection upon startup.
 13. Logger. IF logging is disabled, debug will print and logger will output to STDOUT. Well have double output. q
-14. Fix bug where syncrhony driver is bugging out on parallel requests, returning Fixnum when it should return array - admin/lasts - api line 445
 Done:
 1. Basic Authentication
 2. Fiber-based connection to APMQ
@@ -32,6 +31,8 @@ Done:
 10. Done testing for Redis server disconnecting and coming back up. GMQ reconnects automatically
 11. Add TTL for transactions as soon as they are saved
 12. Fix str_prefix to print visit id for each logged line
+13. Fix bug where syncrhony driver is bugging out on parallel requests, returning Fixnum when it should return array - admin/lasts - api line 445
+14. Add pool_size support for the Config file, and Connection pools for Store.
 
 ---
 Auto-generated using: github.com/mindware/todo
