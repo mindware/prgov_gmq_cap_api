@@ -444,7 +444,7 @@ module PRGMQ
           Store.db.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
 
           # Add it to our GMQ pending queue, to be grabbed by our workers
-          Store.db.lpush(queue_pending, "#{db_id}:#{updated_at.to_i}")
+          Store.db.lpush(queue_pending, "#{db_id}:#{Time.now.utc.to_i}")
 
           # When we used to do multi/execs, we'd have this line to run all
           # actions in an atomic fashion like this:
