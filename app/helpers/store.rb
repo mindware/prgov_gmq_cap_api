@@ -1,3 +1,8 @@
+# Load our external storage libraries
+require 'redis/connection/synchrony'         # use the asynchronous driver
+require 'redis'															# use redis
+
+
 module PRGMQ
   module CAP
     # The Store class is not meant to be an instance. We use this
