@@ -46,8 +46,8 @@ module PRGMQ
         "#{self.system_prefix}:#{self.db_prefix}"
       end
 
-      def self.queue_ready_prefix
-        "ready"
+      def self.queue_pending_prefix
+        "pending"
       end
 
 
@@ -62,10 +62,10 @@ module PRGMQ
 
       # Queues are stored at the system level and are not specific
       # to a db. For example, new transactions to be processed are
-      # stored in the queue called ready, regardless if they're
+      # stored in the queue called pending, regardless if they're
       # Transactions for service A or any other service.
-      def self.queue_ready
-        "#{self.system_prefix}:#{self.queue_ready_prefix}"
+      def self.queue_pending
+        "#{self.system_prefix}:#{self.queue_pending_prefix}"
       end
 
       # Redefine this per class to store whatever information
@@ -103,12 +103,12 @@ module PRGMQ
         self.class.system_prefix
       end
 
-      def queue_ready_prefix
-        self.class.queue_ready_prefix
+      def queue_pending_prefix
+        self.class.queue_pending_prefix
       end
 
-      def queue_ready
-        self.class.queue_ready
+      def queue_pending
+        self.class.queue_pending
       end
 
     end
