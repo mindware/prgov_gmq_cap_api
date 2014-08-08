@@ -237,6 +237,9 @@ module PRGMQ
               self.analyst_transaction_id     = params["analyst_transaction_id"]
               self.analyst_internal_status_id = params["analyst_internal_status_id"]
               self.decision_code              = params["decision_code"]
+              self.identity_validated         = params["identity_validated"]
+              self.emit_certificate_type      = params["emit_certificate_type"]
+              self.certificate_path           = params["certificate_path"]
 
               # If we had servers in multiple time zones, we'd want
               # to use utc in the next two lines. This might be important
@@ -277,6 +280,9 @@ module PRGMQ
           @analyst_transaction_id = nil
           @analyst_internal_status_id = nil
           @decision_code = nil
+          @identity_validated = nil
+          @emit_certificate_type = nil
+          @certificate_path = nil
       end
 
       def to_hash
@@ -438,15 +444,19 @@ module PRGMQ
           Store.db.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
 
           # Add it to our GMQ pending queue, to be grabbed by our workers
-          Store.db.zadd(queue_pending, updated_at.to_i, db_id)
+          Store.db.lpush(queue_pending, "#{db_id}:#{updated_at.to_i}")
 
           # When we used to do multi/execs, we'd have this line to run all
           # actions in an atomic fashion like this:
           # Store.db.lpush()
         end
-        debug "Saved transaction.\nView the transaction in Redis using: GET #{db_id}\n"+
-              "The recent transaction using: "
-        true
+        debug "Saved transaction.\n"+
+              "View the transaction data in Redis using: GET #{db_id}\n"+
+              "View the last #{LAST_TRANSACTIONS_TO_KEEP_IN_CACHE} transactions using: "+
+              "LRANGE #{db_list} 0 -1\n"+
+              "View the items in pending queue using: LRANGE #{queue_pending} 0 -1\n"+
+              "View the last item in the pending queue using: LINDEX #{queue_pending} 0"
+        return true
       end
 
 
