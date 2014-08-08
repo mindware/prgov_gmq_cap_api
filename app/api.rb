@@ -272,7 +272,11 @@ module PRGMQ
 							transaction = Transaction.create(params)
 							# check if we are able to save it
 							if transaction.save
-								result present(transaction, with:Entities::TransactionCreated)
+								# Temporarily commented out until we can track the entities
+								# bug that is causing present to completely fail.
+								result present(transaction, with: CAP::Entities::TransactionCreated)
+								# present(transaction, with: CAP::Entities::Transaction)
+								# transaction
 							else
 								# if the item is not found, raise an error that it could not be saved
 								raise ItemNotFound
@@ -295,7 +299,7 @@ module PRGMQ
 							transaction.review_complete(params)
 							# we try to save the transaction
 							transaction.save
-							result present(transaction, with:Entities::Transaction)
+							result present(transaction, with: Entities::Transaction)
 						end # end of review_complete
 
 
@@ -312,7 +316,7 @@ module PRGMQ
 							transaction.certificate_ready(params)
 							# we try to save the transaction
 							transaction.save
-							result(present transaction, with:Entities::Transaction)
+							result(present transaction, with: Entities::Transaction)
 							# Only allowed to be set when PRPD requests so through their
 							# action.
 						end
