@@ -6,16 +6,13 @@
 # For: Estado Libre Asociado de Puerto Rico
 
 # Load our external libraries
-require 'redis/connection/synchrony'         # use the asynchronous driver
-require 'redis'															# use redis
-require 'json'															 # gives us JSON parse and to_json
-
+require 'json'	  												# gives us JSON parse and to_json
 # Load our Settings and Helper Methods:
 require 'app/helpers/store'								# our storage subsystem.
 require 'app/helpers/library'							# useful helper methods
-require 'app/helpers/config'							 # configuration helper
-require 'app/helpers/authentication'			 # authentication class
-require 'app/helpers/errors'							 # defines and catches errors
+require 'app/helpers/config'							# configuration helper
+require 'app/helpers/authentication'			# authentication class
+require 'app/helpers/errors'							# defines and catches errors
 require 'app/helpers/validations'					# validates user input
 require 'app/helpers/transaction_id_factory' # to generate ids
 
@@ -272,11 +269,15 @@ module PRGMQ
 							transaction = Transaction.create(params)
 							# check if we are able to save it
 							if transaction.save
-								# Temporarily commented out until we can track the entities
+								# Temporarily commented out until we can track the entities + pools
 								# bug that is causing present to completely fail.
-								result present(transaction, with: CAP::Entities::TransactionCreated)
-								# present(transaction, with: CAP::Entities::Transaction)
-								# transaction
+								# result present(transaction, with: CAP::Entities::TransactionCreated)
+
+								# this fails sporadically
+								# present transaction
+
+								# this works perfectly, but doesn't limit the data we show prgov
+								result transaction
 							else
 								# if the item is not found, raise an error that it could not be saved
 								raise ItemNotFound
