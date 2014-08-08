@@ -18,6 +18,7 @@ Pending:
 11. Change server.rb so that we properly check DB connectivity after EM is up
 12. Confirm connection upon startup.
 13. Logger. IF logging is disabled, debug will print and logger will output to STDOUT. Well have double output. q
+14. Track down bug when using pools that hangs us from continuing after a save.
 Done:
 1. Basic Authentication
 2. Fiber-based connection to APMQ
