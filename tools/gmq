@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 # Command line tool for generate users for
 # the PR.Gov GMQ API system.
 # Developed by: Andrés Colón
@@ -49,3 +50,7 @@ class Gmq < Thor
 		end
 	end
 end
+
+trap("SIGINT") { exit }
+
+Gmq::Generate.start(ARGV)
