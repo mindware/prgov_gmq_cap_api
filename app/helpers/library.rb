@@ -86,6 +86,27 @@ module PRGMQ
 				Stats.add_visit
 			end
 
+			# tells the stats to add a visit
+			def add_pending
+				Stats.add_pending
+			end
+
+			def remove_pending
+				Stats.remove_pending
+			end
+
+			# tells the stats to add a visit
+			def add_completed
+				Stats.add_visit
+			end
+
+			# get totals from stats
+			def total_pending
+				pending = Stats.pending
+				pending.nil? ? 0 : pending
+			end
+
+			# get totals from stats
 			def total_visits
 					visits = Stats.visits
 					visits.nil? ? 0 : visits

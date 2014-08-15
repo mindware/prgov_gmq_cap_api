@@ -28,7 +28,7 @@ module PRGMQ
       end
 
       ########################################
-      #              Increments              #
+      #        Increments / Decrements       #
       ########################################
 
       def self.add_visit
@@ -42,10 +42,12 @@ module PRGMQ
 
       # increment
       def self.add_pending
+        puts "Adding PENDING!".red
         Store.db.incr("#{db_id}:#{pending_prefix}")
       end
 
-      # decrement
+      # decrement a pending, this happens when
+      # when we complete a task or it fails.
       def self.remove_pending
         Store.db.decr("#{db_id}:#{pending_prefix}")
       end
@@ -61,6 +63,10 @@ module PRGMQ
       # A transaction was completed
       def self.completed
         Store.db.get("#{db_id}:#{completed_prefix}")
+      end
+
+      def self.pending
+        Store.db.get("#{db_id}:#{pending_prefix}")
       end
 
     end
