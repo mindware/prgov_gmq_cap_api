@@ -473,6 +473,22 @@ module PRGMQ
         debug "Store Pipeline: Attempting to save into recent transactions list \"#{db_list}\""
         debug "Store Pipeline: Attempting to save into \"#{queue_pending}\" queue"
 
+        # pipelined_save(json)
+        sequential_save(json)
+        # executed_save(json)
+
+        # puts caller
+        debug "#{"Hint".green}: View the transaction data in Redis using: GET #{db_id}\n"+
+              "#{"Hint".green}: View the last #{LAST_TRANSACTIONS_TO_KEEP_IN_CACHE} transactions using: "+
+              "LRANGE #{db_list} 0 -1\n"+
+              "#{"Hint".green}: View the items in pending queue using: LRANGE #{queue_pending} 0 -1\n"+
+              "#{"Hint".green}: View the last item in the pending queue using: LINDEX #{queue_pending} 0"
+        return true
+    end
+
+    # this method is not meant to be called directly, only through save
+    def pipelined_save(json)
+        debug "Pipelined transaction save".bold.green
         Store.db.pipelined do
           # don't worry about an error here, if the db isn't available
           # it'll raise an exception that will be caught by the system
@@ -483,12 +499,6 @@ module PRGMQ
             Store.db.expire(db_id, EXPIRATION)
           end
 
-          # We used to add them by score (time) to a sorted list
-          # but we can achieve that with a simple list.
-          # debug "Adding to ordered transaction list: #{db_list}"
-          # debug "View it using: ZREVRANGE '#{db_list}' 0 -1"
-          # Store.db.zadd(db_list, updated_at.to_i, db_id)
-
           # Add it to a list of the last couple of items items
           Store.db.lpush(db_list, db_cache_info)
           # trim the items to the maximum allowed, determined by this constant:
@@ -497,18 +507,98 @@ module PRGMQ
           # Add it to our GMQ pending queue, to be grabbed by our workers
           Store.db.lpush(queue_pending, "#{db_id}:#{Time.now.utc.to_i}")
 
-          # When we used to do multi/execs, we'd have this line to run all
-          # actions in an atomic fashion like this:
-          # Store.db.lpush()
+          # Add to stats:
+          # this also does a storage request
+          add_pending
         end
-        debug "Saved transaction.\n"+
-              "View the transaction data in Redis using: GET #{db_id}\n"+
-              "View the last #{LAST_TRANSACTIONS_TO_KEEP_IN_CACHE} transactions using: "+
-              "LRANGE #{db_list} 0 -1\n"+
-              "View the items in pending queue using: LRANGE #{queue_pending} 0 -1\n"+
-              "View the last item in the pending queue using: LINDEX #{queue_pending} 0"
-        return true
-      end
+    end
+
+    # Just a note here that we once tried multi execs but have
+    # since decided against it, so we can benefit from twemproxy.
+    # twemproxy (nutcracker) doesn't allow multiexecs
+    # Pipeline does what we need, anyway, so this is just a note
+    # of old code I use as example and we can remove later
+    # def multiexec_save(json)
+    #   # We used to add them by score (time) to a sorted list
+    #   # but we can achieve that with a simple list.
+    #   # debug "Adding to ordered transaction list: #{db_list}"
+    #   # debug "View it using: ZREVRANGE '#{db_list}' 0 -1"
+    #   # Store.db.zadd(db_list, updated_at.to_i, db_id)
+    #   # # Add to stats:
+    #   # # this also does a storage request to update stats
+    #   # # increment pending transaction stats
+    #   # # When we used to do multi/execs, we'd have this line to run all
+    #   # # actions in an atomic fashion like this:
+    #   # Store.db.lpush()
+    #
+    # end
+
+    def executed_save(json)
+        debug "DB-Execute Pipelined transaction save()".bold.green
+        Store.db.execute(true) do |store|
+            store.pipelined do
+              # don't worry about an error here, if the db isn't available
+              # it'll raise an exception that will be caught by the system
+              store.set(db_id, json)
+
+              # If TTL is not nil
+              if(EXPIRATION > 0)
+                store.expire(db_id, EXPIRATION)
+              end
+
+              # We used to add them by score (time) to a sorted list
+              # but we can achieve that with a simple list.
+              # debug "Adding to ordered transaction list: #{db_list}"
+              # debug "View it using: ZREVRANGE '#{db_list}' 0 -1"
+              # store.zadd(db_list, updated_at.to_i, db_id)
+
+              # Add it to a list of the last couple of items items
+              store.lpush(db_list, db_cache_info)
+              # trim the items to the maximum allowed, determined by this constant:
+              store.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
+
+              # Add it to our GMQ pending queue, to be grabbed by our workers
+              store.lpush(queue_pending, "#{db_id}:#{Time.now.utc.to_i}")
+
+              # Add to stats:
+              # this also does a storage request to update stats
+              # increment pending transaction stats
+              add_pending
+
+              # When we used to do multi/execs, we'd have this line to run all
+              # actions in an atomic fashion like this:
+              # store.lpush()
+            end
+        end
+    end
+
+    def sequential_save(json)
+        debug "Sequential transaction save".bold.red
+        Store.db.set(db_id, json)
+
+        # If TTL is not nil
+        if(EXPIRATION > 0)
+          Store.db.expire(db_id, EXPIRATION)
+        end
+
+        # We used to add them by score (time) to a sorted list
+        # but we can achieve that with a simple list.
+        # debug "Adding to ordered transaction list: #{db_list}"
+        # debug "View it using: ZREVRANGE '#{db_list}' 0 -1"
+        # Store.db.zadd(db_list, updated_at.to_i, db_id)
+
+        # Add it to a list of the last couple of items items
+        Store.db.lpush(db_list, db_cache_info)
+        # trim the items to the maximum allowed, determined by this constant:
+        Store.db.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
+
+        # Add it to our GMQ pending queue, to be grabbed by our workers
+        Store.db.lpush(queue_pending, "#{db_id}:#{Time.now.utc.to_i}")
+        # Add to stats:
+        # this also does a storage request to update stats
+        # increment pending transaction stats
+        add_pending
+   end
 
 
       # Called when the transaction's certificate has been generated.
@@ -540,6 +630,9 @@ module PRGMQ
           self.decision_code              = params["decision_code"]
           self
       end
+
+      # declare our private methods here
+      private :pipelined_save, :sequential_save, :executed_save
 
     end
   end
