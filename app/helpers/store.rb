@@ -1,6 +1,7 @@
 # Load our external storage libraries
+require 'em-synchrony'                       # Fiber aware connection pools
+require 'redis'				  										 # use redis
 require 'redis/connection/synchrony'         # use the asynchronous driver
-require 'redis'															# use redis
 
 
 module PRGMQ
@@ -63,8 +64,7 @@ module PRGMQ
               @db = EventMachine::Synchrony::ConnectionPool.new(size: Config.db_pool_size) do
                     Redis.new(:host =>   Config.db_host,
                               :port =>   Config.db_port,
-                              :driver => Config.db_driver,
-                              :thread_safe => true)
+                              :driver => Config.db_driver)
               end
           else
               @db
