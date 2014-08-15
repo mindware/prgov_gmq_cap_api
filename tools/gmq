@@ -3,10 +3,18 @@
 # the PR.Gov GMQ API system.
 # Developed by: Andrés Colón
 # Date: 2014-05-20 4:55AM
+
+# Save the root path of the application
+ROOT_DIR = File.expand_path(File.dirname(__FILE__) +"/../")
+# First, fix the paths so that everything under the main directory
+# is in the ruby path. This way we don't have to include relative filepaths
+$: << ROOT_DIR
+
 require 'json'
 require 'digest/md5'
 require 'securerandom'
 require 'thor'
+require 'app/helpers/colorize'
 
 class Gmq < Thor
 
@@ -47,6 +55,41 @@ class Gmq < Thor
 			# puts "The pass-key for the system: #{hash}"
 			puts "This is the pass-key for the system: #{random_salt + hash}"
 			return "#{random_salt + hash}"
+		end
+	
+		desc "start", "Start the GMQ server"
+		def start
+			puts "Starting GMQ...".bold.green
+			#system "ruby ../server.rb &"
+			Dir.chdir ROOT_DIR
+			system "ruby server.rb &"
+		end
+	
+		desc "go", "Starts the server, stopping any existing process first"
+		def go
+			stop
+			start
+		end
+
+		desc "stop", "Stop the GMQ server"
+		def stop 
+			current_user = `whoami`.strip
+			output = `ps -u #{current_user} | grep ruby`
+			pid = nil
+			puts "#{"Stopping".bold.red} all GMQ processes under user #{current_user}."
+			output.split("\n").each do |line|
+				if line.include? "ruby server.rb"
+					pid = line.split(" ")
+					#puts "Found: #{pid}"
+					pid = pid[1]
+					puts "Found pid #{pid} for the GMQ. Trying to stop it."
+					system `kill -9 #{pid}` if pid
+					puts "Stopped process #{pid}. Done".bold.red
+				end
+			end
+			if pid.nil?
+				puts "Could not find a GMQ process under user #{current_user}."
+			end
 		end
 	end
 end
