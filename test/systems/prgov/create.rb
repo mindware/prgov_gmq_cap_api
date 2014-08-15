@@ -1,4 +1,6 @@
 require '../lib/rest'
+
+def setup
 user = "***REMOVED***"
 pass = "***REMOVED***"
 # credentials via basic auth
@@ -10,7 +12,7 @@ ssn =	'111-22-3333'
 license = '123456789'
 birth_date = '01/01/1982' 
 residency  = 'San Juan'
-IP = '192.168.1.2'
+ip = '192.168.1.2'
 reason = 'Background check to join S.H.I.E.L.D.'
 birth_place = "San Juan"
 email = "acolon@ogp.pr.gov"
@@ -18,6 +20,7 @@ email = "acolon@ogp.pr.gov"
 language = 'english'
 language = 'spanish'
 
+first_name << (rand(500) + rand(500)).to_s 
 payload = { 
 		:first_name => first_name,
 		:last_name  => last_name,
@@ -26,7 +29,7 @@ payload = {
 		:license_number => license,
 		:birth_date => birth_date,
 		:residency  => residency,
-		:IP	    => IP,
+		:IP	    => ip,
 		:reason	    => reason,
 		:birth_place=> birth_place,
 		:email	    => email,
@@ -37,3 +40,8 @@ type = "json"
 
 a = Rest.new(url, user, pass, type, payload, method)
 a.request
+end
+
+setup
+#setup
+puts "Done!"
