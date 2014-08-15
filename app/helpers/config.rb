@@ -34,14 +34,17 @@ module PRGMQ
             # Set debug to true if we're in development mode.
             @debug = (Goliath.env.to_s == "development")
           else
-            puts "WARNING: Config could not determine current environment "+
-                 "from Webserver. Are we not using Goliath? This will affect "+
-                 "API's Config.environment method for checking environment and "+
-                 "displaying debugging information. For now, we'll default "+
-                 "into 'production' for safety. If you're not running the "+
-                 "actual webserver, you can ignore this message, otherwise "+
-                 "if you are, this needs fixing if you ever want to see "+
-                 "debugging information! Please look into it."
+            # puts "WARNING: Config could not determine current environment "+
+            #      "from Webserver. Are we not using Goliath? This will affect "+
+            #      "API's Config.environment method for checking environment and "+
+            #      "displaying debugging information. For now, we'll default "+
+            #      "into 'production' for safety. If you're not running the "+
+            #      "actual webserver, you can ignore this message, otherwise "+
+            #      "if you are, this needs fixing if you ever want to see "+
+            #      "debugging information! Please look into it."
+            warn "Info: This script doesn't appear to be running in a "+
+                 "Goliath webserver environment. See app/helpers/config.rb "+
+                 "for commented information."
             @debug = false
           end
 
@@ -62,6 +65,7 @@ module PRGMQ
           # Gets the current environment (production, development, testing)
           # from the Webserver. At this time, we use Goliath for its awesome
           # asynchronous EM capabilities.
+
           def self.environment
             if(Object.const_defined?('Goliath'))
                return Goliath.env.to_s
