@@ -34,7 +34,7 @@ module PRGMQ
 				begin
 					puts "Loading CAP API."
 					# Store.connected?
-					status = Store.connected? if !Store.nil?
+					# status = Store.connected? if !Store.nil?
 					# puts "Storage is #{status ? "online" : "offline"}"
 					super
 				rescue Exception => e
@@ -92,7 +92,7 @@ module PRGMQ
 							if !path.start_with? "/:version/cap/admin/maintenance" and
 							 	 !path.start_with? "/:version/cap/health" #and !Config.downtime
 										# Add a visit, and save it as string.
-										env["VISIT_ID"] = "#{add_visit}"
+										env["VISIT_ID"] = add_visit.to_s
 							else
 										# No id for empty visits
 										env["VISIT_ID"] = "-"
@@ -241,11 +241,12 @@ module PRGMQ
 							result({
 								"transactions" =>
 								{
-										"pending" => "20",
-										"completed" => "100",
-										"failed" => "1",
-										"retry" => "2",
-										"processing" => "5",
+										:pending => total_pending,
+										:completed => total_completed,
+										:visits => total_visits,
+										"failed" => false,
+										"retry" => false,
+										"processing" => false,
 								}
 							})
 						end
@@ -278,6 +279,7 @@ module PRGMQ
 
 								# this works perfectly, but doesn't limit the data we show prgov
 								result transaction
+								# transaction
 							else
 								# if the item is not found, raise an error that it could not be saved
 								raise ItemNotFound
@@ -385,6 +387,7 @@ module PRGMQ
 						get '/' do
 							user = allowed?(["admin"])
 							result({
+								:pending => total_pending,
 							  :completed => total_completed,
 							  :visits => total_visits
 							})
@@ -393,19 +396,32 @@ module PRGMQ
 
 					# This resource is here for testing things. It's our own special lab.
 					# Get cap/test
-					get '/test' do
-						# only allowed if we're in development or testing. Disabled on production.
-						if(Goliath.env.to_s == "development" or Goliath.env.to_s.include? == "test")
-							# specify a list of user groups than can access this resource:
-							user = allowed?(["admin"])
-							# result({ :test_data =>  redis.get("mkey")})
-							# result "Nothing to test at this time."
-							result env["VISIT_ID"]
-						else
-							raise ResourceNotFound
-						end
-					end # end of get '/test'
+					group :test do
 
+						get '/stress' do
+							# only allowed if we're in development or testing. Disabled on production.
+							if(Goliath.env.to_s == "development" or Goliath.env.to_s.include? == "test")
+								# specify a list of user groups than can access this resource:
+								user = allowed?(["admin"])
+								# Let's do a stress test.
+								Transaction.stress_test_save
+							else
+								raise ResourceNotFound
+							end
+						end # end of get 'test/stress'
+
+						get '/' do
+							# only allowed if we're in development or testing. Disabled on production.
+							if(Goliath.env.to_s == "development" or Goliath.env.to_s.include? == "test")
+								# specify a list of user groups than can access this resource:
+								user = allowed?(["admin"])
+								# Write your test here:
+								"Your test here"
+							else
+								raise ResourceNotFound
+							end
+						end # end of test's root resource '/'
+					end # end of /test/ group
 
 					# This resource is here for testing things. It's our own special lab.
 					# Get cap/maintenance
