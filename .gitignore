@@ -1,5 +1,6 @@
 /logs/*
 *.log
+*.bk
 /config/db.json
 /config/users.json
 passwords.list
