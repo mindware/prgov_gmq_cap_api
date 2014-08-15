@@ -40,6 +40,9 @@ type = "json"
 
 a = Rest.new(url, user, pass, type, payload, method)
 a.request
+a.request
+a.request
+a.request
 end
 
 setup
