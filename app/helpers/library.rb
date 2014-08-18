@@ -82,39 +82,39 @@ module PRGMQ
 			end
 
 			# tells the stats to add a visit
-			def add_visit
-				Stats.add_visit
+			def add_visit(db_connection=nil)
+				Stats.add_visit(db_connection)
 			end
 
 			# tells the stats to add a visit
-			def add_pending
-				Stats.add_pending
+			def add_pending(db_connection=nil)
+				Stats.add_pending(db_connection)
 			end
 
-			def remove_pending
-				Stats.remove_pending
+			def remove_pending(db_connection=nil)
+				Stats.remove_pending(db_connection)
 			end
 
 			# tells the stats to add a visit
-			def add_completed
-				Stats.add_visit
+			def add_completed(db_connection=nil)
+				Stats.add_visit(db_connection)
 			end
 
 			# get totals from stats
-			def total_pending
-				pending = Stats.pending
+			def total_pending(db_connection=nil)
+				pending = Stats.pending(db_connection)
 				pending.nil? ? 0 : pending
 			end
 
 			# get totals from stats
-			def total_visits
-					visits = Stats.visits
+			def total_visits(db_connection=nil)
+					visits = Stats.visits(db_connection)
 					visits.nil? ? 0 : visits
 			end
 
 			# helper method to interact with Stats and get completed transactions
-			def total_completed
-					completed = Stats.completed
+			def total_completed(db_connection=nil)
+					completed = Stats.completed(db_connection)
 					completed.nil? ? 0 : completed
 			end
 

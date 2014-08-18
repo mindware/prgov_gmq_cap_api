@@ -466,15 +466,8 @@ module PRGMQ
         # atomic fashion:
         # Store.db.multi do
 
-        # We are no longer using multi, as our Storage proxy
-        # (Twemproxy/Nutcracker) does not support multi/exec. It does support
-        # pipelining however, so that's what we're using for atomic operations.
-        debug "Store Pipeline: Attempting to save transaction in Store under key \"#{db_id}\""
-        debug "Store Pipeline: Attempting to save into recent transactions list \"#{db_list}\""
-        debug "Store Pipeline: Attempting to save into \"#{queue_pending}\" queue"
-
-        # pipelined_save(json)
-        sequential_save(json)
+        pipelined_save(json)
+        # sequential_save(json)
         # executed_save(json)
 
         # puts caller
@@ -488,29 +481,37 @@ module PRGMQ
 
     # this method is not meant to be called directly, only through save
     def pipelined_save(json)
-        debug "Pipelined transaction save".bold.green
-        Store.db.pipelined do
+        debug "Store Pipeline: Attempting to save transaction in Store under key \"#{db_id}\""
+        debug "Store Pipeline: Attempting to save into recent transactions list \"#{db_list}\""
+        debug "Store Pipeline: Attempting to save into \"#{queue_pending}\" queue"
+        Store.db.pipelined do |db_connection|
           # don't worry about an error here, if the db isn't available
           # it'll raise an exception that will be caught by the system
-          Store.db.set(db_id, json)
+          db_connection.set(db_id, json)
 
           # If TTL is not nil
           if(EXPIRATION > 0)
-            Store.db.expire(db_id, EXPIRATION)
+            db_connection.expire(db_id, EXPIRATION)
           end
 
           # Add it to a list of the last couple of items items
-          Store.db.lpush(db_list, db_cache_info)
+          db_connection.lpush(db_list, db_cache_info)
           # trim the items to the maximum allowed, determined by this constant:
-          Store.db.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
+          db_connection.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
 
           # Add it to our GMQ pending queue, to be grabbed by our workers
-          Store.db.lpush(queue_pending, "#{db_id}:#{Time.now.utc.to_i}")
+          db_connection.lpush(queue_pending, "#{db_id}:#{Time.now.utc.to_i}")
 
-          # Add to stats:
-          # this also does a storage request
-          add_pending
+          # We can't use any method that uses Store.db here
+          # because that would cause us to checkout a db connection from the
+          # pool for each of those commands; the pipelined commands need to
+          # run on the same connection as the commands in the pipeline,
+          # so we will not use the Store.add_pending method. For any
+          # of our own method that requires access to the db, we will
+          # recycle the current db_connection.
+          add_pending(db_connection)
         end
+        debug "Saved!".bold.green
     end
 
     # Just a note here that we once tried multi execs but have
@@ -519,6 +520,9 @@ module PRGMQ
     # Pipeline does what we need, anyway, so this is just a note
     # of old code I use as example and we can remove later
     # def multiexec_save(json)
+    #   # # We are no longer using multi, as our Storage proxy
+    #   # (Twemproxy/Nutcracker) does not support multi/exec. It does support
+    #   # pipelining however, so that's what we're using for atomic operations.
     #   # We used to add them by score (time) to a sorted list
     #   # but we can achieve that with a simple list.
     #   # debug "Adding to ordered transaction list: #{db_list}"
@@ -534,7 +538,12 @@ module PRGMQ
     # end
 
     def executed_save(json)
-        debug "DB-Execute Pipelined transaction save()".bold.green
+        # We are no longer using multi, as our Storage proxy
+        # (Twemproxy/Nutcracker) does not support multi/exec. It does support
+        # pipelining however, so that's what we're using for atomic operations.
+        debug "DB-Execute Pipelined: Attempting to save transaction in Store under key \"#{db_id}\""
+        debug "DB-Execute Pipelined: Attempting to save into recent transactions list \"#{db_list}\""
+        debug "DB-Execute Pipelined: Attempting to save into \"#{queue_pending}\" queue"
         Store.db.execute(true) do |store|
             store.pipelined do
               # don't worry about an error here, if the db isn't available
@@ -573,7 +582,9 @@ module PRGMQ
     end
 
     def sequential_save(json)
-        debug "Sequential transaction save".bold.red
+        debug "Sequential Request: Attempting to save transaction in Store under key \"#{db_id}\"".bold.red
+        debug "Sequential Request: Attempting to save into recent transactions list \"#{db_list}\"".bold.red
+        debug "Sequential Request: Attempting to save into \"#{queue_pending}\" queue".bold.red
         Store.db.set(db_id, json)
 
         # If TTL is not nil
