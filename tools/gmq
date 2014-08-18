@@ -12,6 +12,8 @@ $: << ROOT_DIR
 
 require 'json'
 require 'digest/md5'
+require 'base64'
+require 'uri'
 require 'securerandom'
 require 'thor'
 require 'app/helpers/colorize'
@@ -90,6 +92,29 @@ class Gmq < Thor
 			if pid.nil?
 				puts "Could not find a GMQ process under user #{current_user}."
 			end
+		end
+		
+		desc "stress <user> <password> <gmq url>", 
+		     "Partly implemented: Perform a stress test using httperf on a url."
+		def stress_test(user, password, url) 
+			#puts "#{user}, #{password}, #{url}"	
+			credentials = "#{user.strip}:#{password.strip}"
+			credentials = Base64.encode64(credentials)
+			begin
+				uri = URI(url) 
+				server = uri.host
+				port = uri.port
+				scheme = uri.scheme # http or https
+				path = uri.request_uri # the path of the request with any queries, ie: /v1/cap/?q=1 
+			rescue Exception => e
+				puts "Could not parse the URL. Error: #{e}"
+				exit
+			end
+			cmd = "httperf --server #{server} --port #{port} --uri #{path} "+
+			      "--add-header 'Authorization: Basic #{credentials}\n' "+
+			      "--num-conns 20 --rate 20" 
+			puts "Running command: #{cmd}"
+			`#{cmd}`  # execute the command and output to STDOUT.
 		end
 	end
 end
