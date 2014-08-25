@@ -24,7 +24,11 @@ module PRGMQ
       def self.generate_key
         # change this later for snow flake.
         # Always use 0 at the start.
-        "0" + SecureRandom.uuid.gsub("-", "").to_s[0..16]
+        #  000-000-id
+        # [000] = agency
+        #  xxx-[000] = API system that can validate
+        #  PRG-001-&qerqwer0qerqe
+        "0" + SecureRandom.uuid.gsub("-", "").to_s #[0..16]
       end
 
     end
