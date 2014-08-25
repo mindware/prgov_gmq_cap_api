@@ -31,14 +31,24 @@ module PRGMQ
       extend TransactionIdFactory
       include LibraryHelper
 
-      # Expiration: Transaction expiration means expiration from the DB
-      # as in, disappearing from the system entirely.
+      # A note on the expiration of transactions:
+      # Transaction expiration means expiration from the DB
+      # as in, disappearing from the system entirely. The system has been
+      # designed to expire Transactions after time. The backup strategy
+      # implemented by the system administrators will determine the longrevity
+      # of the data in an alternate medium, and such will be the strategy for
+      # compliance for audits that span a period of time longer than the
+      # maximum retention of this system. An alternate archival strategy
+      # could be implemented where transactions are stored in an alternate
+      # database for inspection, but this is left as an exercise for a future
+      # version of the system.
       #
-      # This shouldn't be confused with the expiration of a certificate.
-      # A certificate could be invalidated by the PR.Gov validation system
-      # even if its transaction still hasn't expired. For example, say it has
+      # Transaction Expiration vs Certificate Expiration:
+      # Transaction expiration shouldn't be confused with that of a certificate.
+      # A certificate could be invalidated by the PR.Gov's validation system
+      # even if the transaction still hasn't expired. For example, say it has
       # been determined that a certificate shouldn't be valid after 1 month,
-      # in such a case PR.Gov validation mechanism could check the transaction
+      # in such a case PR.Gov's validation mechanism could check the transaction
       # approval date and see if it has already reached its certificate
       # expiration limit. However, the Transaction expiration might still not
       # have come into effect, and thus, we could have the ability to peer into
@@ -51,22 +61,29 @@ module PRGMQ
       # Transaction expiration is going to be performed at the Storage level.
       # This means if you ever manually restore a backup, in order to peer at
       # old transactions, such as for an audit, it is important that the time
-      # of the server is modified to the past in question, otherwise, the
+      # of the server be modified to the time of the backup, otherwise, the
       # storage system will see the time difference (Redis) and determine that
       # the transactions expiration time has come up, and immediately expire
       # data. This is because the storage mechanism that performs expiration of
       # keys does it using the current time. If you restore data from the past
       # into a server whose datetime is configured to the present or future,
       # expiration will come into effect for anythign that should be expired.
+      # This would have the effect that you know you're restoring data, but
+      # as soon as you peek at it, it's gone (expired).
       #
-      # If you set MONTHS_TO_EXPIRATION_OF_TRANSACTION to 0, transactions
-      # will never expire. (Hint: that could fill up the database store, be
-      # careful). Only do it if you know what you're doing or would like to get
+      # If you set MONTHS_TO_EXPIRATION_OF_TRANSACTION to 0, new transactions
+      # will never expire. (Hint: that could fill up the database store quickly
+      # leaving the server without RAM, it is **not** recommended, be very
+      # careful). Only do it if you know what you're doing, or are eager to get
       # fired. Seriously, don't do it.
-      # By default, we use 1 or three months to keep the transaction in the
-      # system for inspection. Once expired, it's really gone!
-      # Max is 25 years (25 * 12). Don't try it.
-      MONTHS_TO_EXPIRATION_OF_TRANSACTION = 3
+      #
+      # By default, we recomend 1 or three months to keep the transaction in the
+      # system for inspection after it has become idle. Once expired, it's
+      # really gone. Redis allows for a maximum of 25 years (25 * 12), but
+      # again, don't try it as the system will quickly store everything in ram
+      # and run out of it. If a transaction is touched (ie, updated in anyway)
+      # its time to live (TTL) will reset.
+      MONTHS_TO_EXPIRATION_OF_TRANSACTION = 6
       # The expiration is going to be Z months, in seconds.
       # Time To Live - Math:
       # 604800 seconds in a week X 4 weeks = 1 month in seconds
@@ -402,6 +419,45 @@ module PRGMQ
           Store.db.lrange(Transaction.db_list, 0, -1)
       end
 
+
+      # This method returns a proper Resque Job JSON.
+      # Instead of using the official Resque enqueue method, which uses its
+      # own database connection, we directly talk to Redis and place a job
+      # JSON, built by this method, for Resque to grab in the Transaction's save
+      # method. We read Resque's source-code and identified the standard for
+      # placing Jobs in the queue (File lib/resque/job.rb, line 38 and
+      # File lib/resque.rb, line 56). Essentially what Resque does is this:
+      # Resque.push(queue, :class => klass.to_s, :args => args)
+      # Translates to: redis.rpush "queue:#{queue}", encode(item).
+      # Basically it is this: redis.rpush queue_name, json_payload
+      # where queue_name is "resque:queue:#{queue_name}" and the json
+      # payload is a job in the form of:
+      # {:class => klass.to_s, :args => args}.to_json
+      #
+      # This job_data method performs the creation of that proper json job
+      # payload. It generates generates a hash that includes the
+      # worker that will be instantiated by the Resque and the id it will
+      # process.
+      def job_data()
+        # "{ \"class\":\"RequestWorker\", \"args\":[\"#{db_id}\"] }"
+        # Here we create a hash of what the Resque system will expect in
+        # the redis queue under resque:queue:prgov_cap.
+        # Note: don't use single quotes for string values on JSON.
+        # Resque expects a JSON so we will create a ruby hash, and safely
+        # turn it to JSON.
+        # There's no need to send the entiret tx object to the worker, we just
+        # send it the id and it'll fetch it and work with it, using the latest
+        # information in the db.
+        # Finally: the information the job_data sends to resque is
+        { "class" => "RequestWorker", "args" => ["#{id}",
+          "queued_at" => "#{Time.now.utc}"]}.to_json
+      end
+
+      # This method returns the name of the queue we're going to use
+      def queue_pending
+        "resque:queue:prgov_cap"
+      end
+
       # a method that creates fake transactions
       # for a massive stress test. This method is available
       # to the admin member group only and is available only
@@ -486,6 +542,7 @@ module PRGMQ
     # that pipeline, or else a new connection from the Connection Pool would
     # be used, which would lead to instability in the system. By recycling the
     # same db connection, we make the system perform with excellent performance.
+    #
     def pipelined_save(json)
         debug "Store Pipeline: Attempting to save transaction in Store under key \"#{db_id}\""
         debug "Store Pipeline: Attempting to save into recent transactions list \"#{db_list}\""
@@ -509,7 +566,7 @@ module PRGMQ
           # trim the items to the maximum allowed, determined by this constant:
           db_connection.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
           # Add it to our GMQ pending queue, to be grabbed by our workers
-          db_connection.lpush(queue_pending, "#{db_id}:#{Time.now.utc.to_i}")
+          db_connection.rpush(queue_pending, job_data)
 
           # We can't use any method that uses Store.db here
           # because that would cause us to checkout a db connection from the
