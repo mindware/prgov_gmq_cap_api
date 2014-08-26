@@ -79,7 +79,7 @@ module PRGMQ
 
           # This throw not only ensures we throw the proper Exception,
           # send the proper json error message, but also makes sure to
-          # return the proper HTTP code, be it a 500, 400, etc. 
+          # return the proper HTTP code, be it a 500, 400, etc.
           throw :error, :message => message, :status => klass.http_code
         end # end of begin/rescue
       end # end of call(env)
@@ -570,6 +570,22 @@ module PRGMQ
         }
       end
     end
+
+    class InvalidWorkerClassError < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "500 Bad Request",
+                       "http_code" => 500,
+                       "app_error" => "An internal error has ocurred. "+
+                       "An Invalid worker class has been attempted to be "+
+                       "enqueued by the transaction. Note: valid constants "+
+                       " must begin with capital letters.",
+                       "app_code" => 2020
+                    }
+        }
+      end
+    end
+
+
 
     ################################################################
     ########          Additional Validation Errors          ########
