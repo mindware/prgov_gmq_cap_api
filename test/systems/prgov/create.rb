@@ -41,9 +41,8 @@ type = "json"
 a = Rest.new(url, user, pass, type, payload, method)
 a.request
 end
-
-total = 1000
-(1..total).each do |i|
+total = 1
+(0..total).each do |i|
 	setup
 end
 puts "Done! (#{total} added)"

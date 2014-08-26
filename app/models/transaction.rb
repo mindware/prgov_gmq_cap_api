@@ -449,8 +449,10 @@ module PRGMQ
         # send it the id and it'll fetch it and work with it, using the latest
         # information in the db.
         # Finally: the information the job_data sends to resque is
-        { "class" => "RequestWorker", "args" => ["#{id}",
-          "queued_at" => "#{Time.now.utc}"]}.to_json
+        { "class" => "RequestWorker",
+                     "args" => ["#{id}",
+                     "queued_at" => "#{Time.now}"]
+        }.to_json
       end
 
       # This method returns the name of the queue we're going to use
