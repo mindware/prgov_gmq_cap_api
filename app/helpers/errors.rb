@@ -571,21 +571,6 @@ module PRGMQ
       end
     end
 
-    class InvalidWorkerClassError < PRGMQ::CAP::AppError
-      def self.data
-        { "error" => { "http_error" => "500 Bad Request",
-                       "http_code" => 500,
-                       "app_error" => "An internal error has ocurred. "+
-                       "An Invalid worker class has been attempted to be "+
-                       "enqueued by the transaction. Note: valid constants "+
-                       " must begin with capital letters.",
-                       "app_code" => 2020
-                    }
-        }
-      end
-    end
-
-
 
     ################################################################
     ########          Additional Validation Errors          ########
