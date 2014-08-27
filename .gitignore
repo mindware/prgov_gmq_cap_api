@@ -5,3 +5,4 @@
 /config/users.json
 passwords.list
 stdout
+.DS_Store

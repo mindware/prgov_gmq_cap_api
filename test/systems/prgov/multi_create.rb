@@ -15,8 +15,7 @@ residency  = 'San Juan'
 ip = '192.168.1.2'
 reason = 'Background check to join S.H.I.E.L.D.'
 birth_place = "San Juan"
-#email = "acolon@ogp.pr.gov"
-email = "andres@thoughtware.tv"
+email = "acolon@ogp.pr.gov"
 # Test it in english and spanish. Comment last one to try the other.
 language = 'english'
 language = 'spanish'
@@ -42,8 +41,9 @@ type = "json"
 a = Rest.new(url, user, pass, type, payload, method)
 a.request
 end
-total = 1
-(0..total).each do |i|
+
+total = 10
+(1..total).each do |i|
 	setup
 end
 puts "Done! (#{total} added)"
