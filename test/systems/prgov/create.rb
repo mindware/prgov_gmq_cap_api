@@ -15,7 +15,8 @@ residency  = 'San Juan'
 ip = '192.168.1.2'
 reason = 'Background check to join S.H.I.E.L.D.'
 birth_place = "San Juan"
-email = "acolon@ogp.pr.gov"
+#email = "acolon@ogp.pr.gov"
+email = "andres@thoughtware.tv"
 # Test it in english and spanish. Comment last one to try the other.
 language = 'english'
 language = 'spanish'
