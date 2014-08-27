@@ -449,9 +449,12 @@ module PRGMQ
         # send it the id and it'll fetch it and work with it, using the latest
         # information in the db.
         # Finally: the information the job_data sends to resque is
-        { "class" => "RequestWorker",
-                     "args" => ["#{id}",
-                     "queued_at" => "#{Time.now}"]
+        { "class" => "GMQ::Workers::EmailWorker",
+                     "args" => [{
+                                 "id" => "#{id}",
+                                 "queued_at" => "#{Time.now}",
+				                         "message" => "hello"
+                                }]
         }.to_json
       end
 
