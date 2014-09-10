@@ -6,3 +6,4 @@
 passwords.list
 stdout
 .DS_Store
+.env
