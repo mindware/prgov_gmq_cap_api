@@ -1,18 +1,20 @@
 # First, fix the paths so that every scripts used by this test is properly found and
 # is in the ruby path. This way we don't have to include relative filepaths
-$: << File.expand_path(File.dirname(__FILE__))
+$: << File.expand_path(File.dirname(__FILE__) +"/../../../")
 
 require 'json'
 require 'rest_client'
 require 'grape'
+
+require 'dotenv'
+Dotenv.load("../../../.env")
 # include all helpers - since the scripts are ran under us, we take their path
 # into consideration, and so an additiona ../
-require "../../../app/helpers/library" 
-Dir["../../../app/helpers/*.rb"].each {|file| require file } 
-
-include PRGMQ::CAP::LibraryHelper	# General Helper Methods
+require "app/helpers/library" 
+Dir["app/helpers/*.rb"].each {|file| require file } 
 
 class Rest
+include PRGMQ::CAP::LibraryHelper	# General Helper Methods
 
   attr_accessor :user, :pass, :credentials, :url, :payload, :method, :type
 

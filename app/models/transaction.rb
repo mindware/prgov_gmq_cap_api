@@ -1,3 +1,4 @@
+require 'htmlentities'
 # The transaction class is the Object that represents a transaction as it is
 # stored in the database. It uses the Base class, which holds the basic
 # methods for representing the way keys are stored in the data Store (db).
@@ -419,6 +420,14 @@ module PRGMQ
           Store.db.lrange(Transaction.db_list, 0, -1)
       end
 
+      # Generates a full name based on aggregating transaction citizen name data
+      def full_name
+          name = first_name # required
+          name << " #{middle_name}" if !middle_name.nil?
+          name << " #{last_name}" # required
+          name << " #{mother_last_name}" if !mother_last_name.nil?
+      end
+
 
       # This method returns a proper Resque Job JSON.
       # Instead of using the official Resque enqueue method, which uses its
@@ -438,7 +447,7 @@ module PRGMQ
       # payload. It generates generates a hash that includes the
       # worker that will be instantiated by the Resque and the id it will
       # process.
-      def job_data()
+      def job_notification_data()
         # "{ \"class\":\"RequestWorker\", \"args\":[\"#{db_id}\"] }"
         # Here we create a hash of what the Resque system will expect in
         # the redis queue under resque:queue:prgov_cap.
@@ -449,11 +458,66 @@ module PRGMQ
         # send it the id and it'll fetch it and work with it, using the latest
         # information in the db.
         # Finally: the information the job_data sends to resque is
+        # message = Config.all["messages"]["initial_confirmation"]
+
+        if language == "english"
+          message = "Thank you for using PR.Gov's online services. You are "+
+                    "receiving this email because you or someone claiming to "+
+                    "be you, has requested a Goodstanding Certificate "+
+                    "from the Puerto Rico Police Department be develiered at "+
+                    "this email address "+
+                    "for #{full_name}.\n\n"+
+                    "The information is being checked against multiple systems"+
+                    "and data sources, including the Puerto Rico Police "+
+                    "Department, the Department of Transportion and Public "+
+                    "Works, and the Criminal Justice Information Division. "+
+                    "Once the check is completed, you will be receiving "+
+                    "additional communications from us regarding this request"+
+                    "\n\n"+
+                    "If you have not requested this "+
+                    "certificate and believe it to be an error, we ask that you"+
+                    "ignore and delete this and any related messages."
+        else
+          #spanish
+          message = "Gracias por utilizar los servicios de PR.Gov. Está "+
+                    "recibiendo este correo por que usted o alguien "+
+                    "haciendose pasar por usted ha solicitado el que un "+
+                    "certificado de Buena Conducta de la Policia de "+
+                    "de Puerto Rico, para #{full_name}, sea enviado a esta "+
+                    "dirección de correo electrónico}.\n\n"+
+                    "La solicitud está siendo revisada con sistemas "+
+                    "del Sistema Integrado de Justicia Criminal del "+
+                    "Departamento de Justicia, la Policia de Puerto Rico, "+
+                    "el Departamento de Obras Públicas entre otros. "+
+                    "Una vez completado la revisión estará "+
+                    "recibiendo otro comunicado de nuestra parte.\n\n"+
+                    "El número de la transacción es: #{id}\n\n"+
+                    "Si entiende que esta solicitud fue en error, por favor "+
+                    "ignore y elimine este, y cualquier correo relacionado al "+
+                    "mismo."
+        end
+
+        html_message = HTMLEntities.new.encode(message, :named)
+
+
         { "class" => "GMQ::Workers::EmailWorker",
                      "args" => [{
                                  "id" => "#{id}",
                                  "queued_at" => "#{Time.now}",
-				                         "message" => "hello"
+				                         "text_message" => message,
+                                 "html_message" => html_message
+                                }]
+        }.to_json
+      end
+
+      def job_rapsheet_validation_data
+        # Here we create a hash of what the Resque system will expect in
+        # the redis queue under resque:queue:prgov_cap.
+        # Note: don't use single quotes for string values on JSON.
+        { "class" => "GMQ::Workers::RapsheetWorker",
+                     "args" => [{
+                                 "id" => "#{id}",
+                                 "queued_at" => "#{Time.now}"
                                 }]
         }.to_json
       end
@@ -527,11 +591,13 @@ module PRGMQ
         # do a pipeline command, executing all commands in an atomic fashion.
         pipelined_save(json)
         # puts caller
-        debug "#{"Hint".green}: View the transaction data in Redis using: GET #{db_id}\n"+
-              "#{"Hint".green}: View the last #{LAST_TRANSACTIONS_TO_KEEP_IN_CACHE} transactions using: "+
-              "LRANGE #{db_list} 0 -1\n"+
-              "#{"Hint".green}: View the items in pending queue using: LRANGE #{queue_pending} 0 -1\n"+
-              "#{"Hint".green}: View the last item in the pending queue using: LINDEX #{queue_pending} 0"
+        if Config.display_hints
+          debug "#{"Hint".green}: View the transaction data in Redis using: GET #{db_id}\n"+
+                "#{"Hint".green}: View the last #{LAST_TRANSACTIONS_TO_KEEP_IN_CACHE} transactions using: "+
+                "LRANGE #{db_list} 0 -1\n"+
+                "#{"Hint".green}: View the items in pending queue using: LRANGE #{queue_pending} 0 -1\n"+
+                "#{"Hint".green}: View the last item in the pending queue using: LINDEX #{queue_pending} 0"
+        end
         return true
     end
 
@@ -549,9 +615,11 @@ module PRGMQ
     # same db connection, we make the system perform with excellent performance.
     #
     def pipelined_save(json)
-        debug "Store Pipeline: Attempting to save transaction in Store under key \"#{db_id}\""
-        debug "Store Pipeline: Attempting to save into recent transactions list \"#{db_list}\""
-        debug "Store Pipeline: Attempting to save into \"#{queue_pending}\" queue"
+        if Config.display_hints
+          debug "Store Pipeline: Attempting to save transaction in Store under key \"#{db_id}\""
+          debug "Store Pipeline: Attempting to save into recent transactions list \"#{db_list}\""
+          debug "Store Pipeline: Attempting to save into \"#{queue_pending}\" queue"
+        end
 
         # This is where we do an atomic save on the database. We grab a
         # connection from the pool, and use it. If a connection is unavailable
@@ -570,8 +638,12 @@ module PRGMQ
           db_connection.lpush(db_list, db_cache_info)
           # trim the items to the maximum allowed, determined by this constant:
           db_connection.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
+
           # Add it to our GMQ pending queue, to be grabbed by our workers
-          db_connection.rpush(queue_pending, job_data)
+          # Enqueue a email notification job
+          db_connection.rpush(queue_pending, job_notification_data)
+          # Enqueue a rapsheet validation job
+          db_connection.rpush(queue_pending, job_rapsheet_validation_data)
 
           # We can't use any method that uses Store.db here
           # because that would cause us to checkout a db connection from the

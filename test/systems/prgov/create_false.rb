@@ -1,26 +1,27 @@
 require '../lib/rest'
 
 def setup
-user = ENV["API_USER"]
-pass = ENV["API_PASSWORD"]
+user = "***REMOVED***"
+pass = "***REMOVED***"
 # credentials via basic auth
 url = "http://localhost:9000/v1/cap/transaction/"
-first_name = ENV["NAME"]
-last_name  = ENV["LASTNAME"]
-mother_last_name = ENV["MOTHER_LASTNAME"] 
-ssn = ENV["SSN"]
-license = ENV["LICENSE"] 
-birth_date = ENV["BIRTH_DATE"]  
-residency  = ENV["RESIDENCY"]
+first_name = 'Andrés' 
+last_name  = 'Colón'
+mother_last_name = 'Pérez' 
+ssn =	'111-22-3333'
+license = '123456789'
+birth_date = '01/01/1982' 
+residency  = 'San Juan'
 ip = '192.168.1.2'
 reason = 'Background check to join S.H.I.E.L.D.'
-birth_place = ENV["BIRTH_PLACE"]
-email = ENV["EMAIL"]
+birth_place = "San Juan"
+#email = "acolon@ogp.pr.gov"
+email = "andres@thoughtware.tv"
 # Test it in english and spanish. Comment last one to try the other.
 language = 'english'
 language = 'spanish'
 
-#first_name << (rand(500) + rand(500)).to_s 
+first_name << (rand(500) + rand(500)).to_s 
 payload = { 
 		:first_name => first_name,
 		:last_name  => last_name,
@@ -43,6 +44,6 @@ a.request
 end
 total = 1
 (0..total).each do |i|
-	setup()
+	setup
 end
 puts "Done! (#{total} added)"

@@ -118,9 +118,80 @@ module PRGMQ
 					completed.nil? ? 0 : completed
 			end
 
+			# Used to define prefixes for strings, useful for prepending strings
+			# when logging on an API.
+			def str_prefix
+				# Since our prefix will contain specific colors based on
+				# certain configurations, one of the first thing we'll do is:
+				# We check to see if the WebServer environment is defined.
+				# This will be available only within a request, and not while
+				# the webserver is starting up.
+				env_defined = nil
+				begin
+					# If toggle the env_defined flag, if env is defined
+					if(!env.nil?)
+						 env_defined = true
+					end
+				rescue Exception => e
+					# if we try to read env, but it doesn't exist, we'll get an error.
+					# this means env isn't defined.
+					env_defined = false
+				end
+
+				# Now, lets get to the good stuff: depending on the class,
+				# we add a prefix:
+				if self.class.to_s.include? "API" or self.class.to_s.start_with? "Grape" or
+					 self.class.to_s.include? "Transaction"
+					# If we have an environment defined, from which to get a visit id
+					if env_defined
+						# If visit_id has a valid length, we'll color it:
+						visit_id = (env["VISIT_ID"].to_s.strip.length > 0 ? "#{env["VISIT_ID"]}: " : "")
+
+						if(visit_id.length > 0)
+								# Here we'll be adding the visit id. Let's color the visit id
+								# depending on the visit id number. The color will depend on the
+								# last digit (ie if its 57, we grab 7. If its 198, we grab 8, etc.)
+								# First lets break apart the number and grab the last digit:
+								last_digit = env["VISIT_ID"].to_s.split('')[-1]
+								case last_digit
+									when "0" then
+										visit_id = visit_id.yellow
+									when "1" then
+										visit_id = visit_id.green
+									when "2" then
+										visit_id = visit_id.blue
+									when "3" then
+										visit_id = visit_id.magenta
+									when "4" then
+										visit_id = visit_id.red
+									when "5" then
+										visit_id = visit_id.cyan
+									when "6" then
+										visit_id = visit_id.bold.yellow
+									when "7" then
+										visit_id = visit_id.bold.green
+									when "8" then
+										visit_id = visit_id.bold.blue
+									else
+										visit_id = visit_id.bold.magenta
+								end
+						end
+						return "#{"API: ".bold.yellow}#{visit_id}"
+					else
+						return "API: ".bold.yellow
+					end
+				elsif self.class.to_s.include? "Goliath"
+					return "Webserver: ".bold.green
+				elsif self.to_s.include? "Store"
+					return "Store: ".magenta
+				else
+					return ""
+				end
+			end
+
 			# Prints details if we're in debug mode
 			def debug(str, use_title=false, use_prefix=true, log_type="info")
-				  title = "DEBUG: "   if use_title
+				  title = "DEBUG: ".bold.red   if use_title
 					prefix = str_prefix.brown	if use_prefix
 				  # print to screen
 				  # puts "#{title}#{str}" if Config.debug
@@ -152,18 +223,6 @@ module PRGMQ
 				debug(str, false, true, "error")
 			end
 
-			# Used to define prefixes for strings, useful for prepending strings
-			# when logging on an API.
-			def str_prefix
-				# if Object.const_defined?("env")
-				# puts self.class.to_s.include? "Grape"
-				if self.class.to_s.include? "API" or self.class.to_s.start_with? "Grape"
-					# If we have a visit id assigned
-					return "#{(env["VISIT_ID"].to_s.strip.length > 0 ? "#{env["VISIT_ID"]}: " : "") }"
-				else
-					return ""
-				end
-			end
 
 			# def log(str)
 			# 		puts "#{str}" if Config.logging
@@ -225,7 +284,7 @@ module PRGMQ
 					 end
 					output << "\n"
 				end
-				if(route.route_description.to_s.length > 0)
+				if(route.route_description.to_s.length > 0 and Config.display_hints)
 					 output << "Description:\n#{route.route_description}\n"
 				end
 				output << "#{"Result".bold.cyan}:\n"
