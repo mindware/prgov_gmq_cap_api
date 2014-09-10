@@ -14,7 +14,9 @@ module PRGMQ
                           :logger,  # returns the logger object. STDOUT if not logging
                           :system,  # class method that returns system config in @all
                           :display_results, # shows what we return to client, in console
-                          :display_certificates # prints out base64 data to console
+                          :display_certificates, # prints out base64 data to console
+                          :display_hints # prints out hints to console, such as API
+                                         # resource descriptions & DB commands. 
               attr_writer :downtime # This setter lets us go into maintainance mode
           end
 
@@ -61,6 +63,7 @@ module PRGMQ
       	  # variable that determines if incoming base64 certs are displayed in
       	  # console and logged.
       	  @display_certificates = false
+          @display_hints = false
 
           # Gets the current environment (production, development, testing)
           # from the Webserver. At this time, we use Goliath for its awesome
@@ -220,6 +223,8 @@ module PRGMQ
                @logging   = @all["system"]["logging"] unless @all["system"]["logging"].nil?
                @downtime  = @all["system"]["downtime"] unless @all["system"]["downtime"].nil?
                @display_certificates = @all["system"]["display_certificates"] unless @all["system"]["display_certificates"].nil?
+               # sets the system to display hints in console where appropriate
+               @display_hints = @all["system"]["display_hints"] unless @all["system"]["display_hints"].nil?
                # Determines wether we print out to STDOUT what we send to our
                # clients. So, with this, you can see in the console the HTTP
                # result sent to clients.

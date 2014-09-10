@@ -6,5 +6,6 @@
   "backtrace_errors"      : false,
   "display_results"       : true,
   "display_certificates"  : false,
+  "display_hints"         : false,
   "downtime"              : false
 }

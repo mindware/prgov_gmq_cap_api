@@ -15,3 +15,6 @@ gem "em-synchrony", "~> 1.0.3" # for redis-rb synchrony driver. Allows compatibi
 
 # State Machine support for Transactions
 gem 'aasm', "~> 3.2.0"
+
+# For safely decoding and encoding strings to proper HTML
+gem 'htmlentities', "~> 4.3.2"

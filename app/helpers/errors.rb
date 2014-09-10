@@ -46,6 +46,7 @@ module PRGMQ
             puts "An #{e.class.to_s.bold.red} error was raised." if Config.debug
             message = AppError.data
             klass = AppError
+	    # Here we set the exception class name to the app_exception_message
             message["error"]["app_exception_class"] = "#{e.class.to_s}"
           end
           # Sprinkle some additonal data if we're in development mode.

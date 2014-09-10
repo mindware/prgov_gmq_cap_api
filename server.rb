@@ -29,6 +29,9 @@ class Server < Goliath::API
 	def response(env)
 		# any specific html document request that meets a criteria, we handle
 		# through the public directory, by servering the proper html files:
+
+		# Print out a message indicating IP and path being requested.
+		debug "#{env['REMOTE_ADDR'].cyan} requests '#{env["REQUEST_PATH"].bold.cyan}'"
 		if env['REQUEST_PATH'] == '/panel/'
 			[200, {}, erb(:index, :views => Goliath::Application.root_path('public'))]
 		else
@@ -65,25 +68,24 @@ class Server < Goliath::API
 						warning "WARNING: #{e.message}"
 						exit
 			end
-			debug "GMQ CAP API Server is starting "+
-			     "up in #{((Goliath.env.to_s.capitalize) + (" Mode")).bold.brown} "
+			puts "GMQ Webserver is starting "+
+			     "up in #{((Goliath.env.to_s.capitalize) + (" Mode")).bold.brown}"+
+					 "...waiting for requests."
 		end
 
-		# # Establishes and check db connection
+		# Establishes and check db connection
+		# Unfortunately, this won't work, since EventMachine is not yet up,
+		# so the EM::Synchrony connection pool will not be ready yet. Redis-Rb
+		# lazily connects, so only when the first connection happens will we be
+		# knowing if the Store connected or not. We might improve this later.
+		# Ideally, we'd know if the Store is having problems at load time.
+		#
 		# if (PRGMQ::CAP::Store.connected?)
-		# 		puts "established connection!"
+		# 		puts "Established connection to the Transaction STore!"
 		# else
 		# 		puts "WARNING: Connection to Storage Failed! We will try reconnecting "+
 		# 		"until it comes back online."
 		# end
-		# puts "Lets wait this out..."
-		# while !PRGMQ::CAP::Store.connected?
-		# 	sleep 1
-		# 	puts PRGMQ::CAP::Store.connected?
-		# end
-		# This takes a while to connect and it does so asynchronously,
-		# so no way to know if its already connected until a request is done.
-		# PRGMQ::CAP::Store.connected?
 	end
 
 	########################################################
@@ -97,7 +99,8 @@ class Server < Goliath::API
 
 	# Prints details if we're in debug mode and logs them properly
 	def debug(str, use_title=false)
-			title = "DEBUG: " if use_title
+			# title = "DEBUG: " if use_title
+			title = "Webserver: ".bold.green
 			str = str.to_s
 			# print to screen
 			puts "#{title}#{str}" if PRGMQ::CAP::Config.debug
