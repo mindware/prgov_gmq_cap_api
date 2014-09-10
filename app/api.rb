@@ -30,12 +30,16 @@ module PRGMQ
 	module CAP
 		class API < Grape::API
 
+			include LibraryHelper
+
 			def initialize
 				begin
-					puts "Loading CAP API."
-					# Store.connected?
-					# status = Store.connected? if !Store.nil?
-					# puts "Storage is #{status ? "online" : "offline"}"
+					puts "#{"API".bold.yellow}: Loading CAP API."
+					# We don't validate store here, because it's not necessarily
+					# available at this point.
+					Store.connected?
+					status = Store.connected? if !Store.nil?
+					debug "Storage is #{status ? "online".bold.yellow : "offline".bold.redg}!"
 					super
 				rescue Exception => e
 					puts "Error initializing CAP API (Grape), was: #{e.message}\nBacktrace: #{e.backtrace[0]}"
@@ -57,14 +61,23 @@ module PRGMQ
 
 			http_basic do |username, password|
 			  # verify user's password here
-			  Authentication.valid?(username, password)
+			  if(Authentication.valid?(username, password))
+					debug("Authentication Successful "+
+							  "for user: #{username.yellow}")
+					true
+				else
+					debug("#{"Invalid credentials".bold.red}, provided user: "+
+								"'#{username}'")
+					raise InvalidCredentials
+					# false
+				end
 			end
 
 
 			before do
 				# If we're in verbose mode, print everything to STDOUT
 				# Print a set of dashes to make viewing output easier:
-				debug "#{ ("-" * 80).bold.yellow }\n", false
+				debug "#{ ("-" * 80).bold.yellow }\n", false, false
 				puts "Request Id: #{env["VISIT_ID"]}" unless env["VISIT_ID"].to_s.length == 0
 
 				# If the system is set up for downtime/maintenance:

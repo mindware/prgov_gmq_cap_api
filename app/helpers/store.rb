@@ -1,4 +1,5 @@
 # Load our external storage libraries
+require 'app/helpers/library'
 require 'em-synchrony'                       # Fiber aware connection pools
 require 'redis'				  										 # use redis
 require 'redis/connection/synchrony'         # use the asynchronous driver
@@ -12,6 +13,11 @@ module PRGMQ
     # All Store selections have taken thread-safety into account.
     # Do not add a Store sub-system that isn't thread safe to use.
     class Store
+
+      class << self
+          include LibraryHelper
+      end
+
 
       # We're using Redis: rather than thinking about redis as
       # a database with some kind of non-existent relationship to SQL,
@@ -59,8 +65,8 @@ module PRGMQ
               # First we choose the driver. By default we use the synchrony one.
               # If we weren't running on Eventmachine, we'd use a different one
               # such as hiredis
-              puts "Storage: connecting to #{Config.db_name} at #{Config.db_host}:#{Config.db_port} "+
-                   "(using #{Config.db_driver} driver with a pool_size of #{Config.db_pool_size})..."
+              debug "connecting to #{Config.db_name} at #{Config.db_host}:#{Config.db_port} "+
+                    "(using #{Config.db_driver} driver with a pool_size of #{Config.db_pool_size})..."
               @db = EventMachine::Synchrony::ConnectionPool.new(size: Config.db_pool_size) do
                     Redis.new(:host =>   Config.db_host,
                               :port =>   Config.db_port,
@@ -78,14 +84,31 @@ module PRGMQ
       # A quick check on the db. If we're disconnected, we connect.
       # This is used when the server is loading up to force a simple
       # connection, without needing to query for anything specific.
+      # Redis-rb lazily connects (ie, only when an action is performed)
+      # does it establish the connection. So if this is the first time
+      # we need to ping it to check if the server is really available
+      # or not.
       def self.connected?
-          # if this is called before EM is ready, we'll just
-          # set it up to connect, but we won't receive a confirmation
-          # in fact, it'll return false until we get the first request.
-          # We need to fix this.
+          # If db is ever nil, we return false
           return false if self.db.nil?
+          # if we know we're connected,
           return true  if self.db.connected?
-          return false
+          # If we don't know if we're connected,
+          # lets connect and PING the server. If we get an exception
+          # the server is unavailable, otherwise its up.
+          # Note:
+          # This will work on API startup, but not on WebServer initial startup.
+          # Unfortunately, this doesn't work on webserver startup, because
+          # eventmachine hasn't started at that point yet. So it's not possible
+          # to tell the WebServer at load time that the Storage is down.
+          # It requires EM to be up first. We'll use this when the API starts
+          # which will happen upon the first request.
+          begin
+            self.db.ping
+            return true
+          rescue Exception => e
+            return false
+          end
       end
 
     end
