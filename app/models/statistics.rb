@@ -23,6 +23,10 @@ module PRGMQ
         "pending"
       end
 
+      def self.failed_prefix
+        "failed"
+      end
+
       def self.db_id
         "#{Store.db_prefix}:#{db_prefix}"
       end
@@ -83,15 +87,16 @@ module PRGMQ
         db_connection.get("#{db_id}:#{completed_prefix}")
       end
 
+      # pending transactions
       def self.pending(db_connection=nil)
         db_connection = Store.db if db_connection.nil?
         db_connection.get("#{db_id}:#{pending_prefix}")
       end
 
-      # We get the total failed count from the workers that have failed.
+      # Failed transactions.
       def self.failed(db_connection=nil)
         db_connection = Store.db if db_connection.nil?
-        db_connection.llen("resque:failed")
+        db_connection.llen("#{db_id}:#{failed_prefix}")
       end
 
     end
