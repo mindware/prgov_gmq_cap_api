@@ -257,7 +257,7 @@ module PRGMQ
 										:pending => total_pending,
 										:completed => total_completed,
 										:visits => total_visits,
-										"failed" => false,
+										"failed" => total_failed,
 										"retry" => false,
 										"processing" => false,
 								}

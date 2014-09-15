@@ -118,6 +118,35 @@ module PRGMQ
 					completed.nil? ? 0 : completed
 			end
 
+			def total_failed(db_connection=nil)
+					failed = Stats.failed(db_connection)
+					failed.nil? ? 0 : failed
+			end
+
+			# # Methods to access Resque (distributed workers) statistics
+			# # Resque at the beginning of this project is dedicated to the CAP.
+			# # But was
+			# # Total workers in Resque. Assumes some are workers for this API's transaction
+			# def total_work_workers(db_connection=nil)
+			# 		data = Stats.workers(db_connection)
+			# 		data.nil? ? 0 : data
+			# end
+			#
+			# # Workers working in Resque. Assumes some are working on API's transactions
+			# def total_work_working(db_connection=nil)
+			# 		data = Stats.working(db_connection)
+			# 		data.nil? ? 0 : data
+			# end
+			#
+			# # Jobs Processed in Resque. Assumes some are working on API's transactions
+			# def total_work_processed(db_connection=nil)
+			# 		data = Stats.processed(db_connection)
+			# 		data.nil? ? 0 : data
+			# end
+			#
+			# def total_work_retried(db_connection=nil)
+			# end
+
 			# Used to define prefixes for strings, useful for prepending strings
 			# when logging on an API.
 			def str_prefix

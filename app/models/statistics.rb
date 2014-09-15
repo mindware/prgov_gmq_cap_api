@@ -88,6 +88,12 @@ module PRGMQ
         db_connection.get("#{db_id}:#{pending_prefix}")
       end
 
+      # We get the total failed count from the workers that have failed.
+      def self.failed(db_connection=nil)
+        db_connection = Store.db if db_connection.nil?
+        db_connection.llen("resque:failed")
+      end
+
     end
   end
 end
