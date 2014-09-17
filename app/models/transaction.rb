@@ -396,7 +396,7 @@ module PRGMQ
           # end
 
           if(!data = Store.db.get(db_id(id)))
-            raise ItemNotFound
+            raise TransactionNotFound
           else
             begin
               # grab the JSON from this transaction id
@@ -515,6 +515,19 @@ module PRGMQ
         # the redis queue under resque:queue:prgov_cap.
         # Note: don't use single quotes for string values on JSON.
         { "class" => "GMQ::Workers::RapsheetWorker",
+                     "args" => [{
+                                 "id" => "#{id}",
+                                 "queued_at" => "#{Time.now}"
+                                }]
+        }.to_json
+      end
+
+
+      def job_generate_negative_certificate_data
+        # Here we create a hash of what the Resque system will expect in
+        # the redis queue under resque:queue:prgov_cap.
+        # Note: don't use single quotes for string values on JSON.
+        { "class" => "GMQ::Workers::CreateCert",
                      "args" => [{
                                  "id" => "#{id}",
                                  "queued_at" => "#{Time.now}"
@@ -666,12 +679,13 @@ module PRGMQ
       def certificate_ready(params)
           # validate these parameters. If this passes, we can safely import
           params = validate_certificate_ready_parameters(params)
-          # self.certificate_base64          = params["certificate_base64"]
+          self.certificate_base64          = params["certificate_base64"]
           # to reduce memory usage, we no longer store the base64 cert, we
           # merely mark it as received, and look it up in SIJC's RCI when
           # we're ready to send it via email.
-          self.certificate_base64            = true
-          self
+          # self.certificate_base64            = true
+          # Generate the Certificate job:
+          Store.db.rpush(queue_pending, job_generate_negative_certificate_data)
       end
 
 

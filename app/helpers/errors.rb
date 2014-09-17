@@ -646,6 +646,20 @@ module PRGMQ
       end
     end
 
+    # Same as ItemNotFound but with a class name that is more explicit.
+    # Returned by the API and the Transaction class.
+    class TransactionNotFound < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => {  "http_error" => "404 Not Found",
+                        "http_code" => 404,
+                        "app_error" => "The requested item could not be found."+
+                        " The item might've expired, been deleted or may have "+
+                        "never existed.",
+                        "app_code" => 5001
+                    }
+        }
+      end
+    end
 
     ################################################################
     ########               Internal Errors                  ########
