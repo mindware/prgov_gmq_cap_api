@@ -28,7 +28,8 @@ module PRGMQ
         # [000] = agency
         #  xxx-[000] = API system that can validate
         #  PRG-001-&qerqwer0qerqe
-        "0" + SecureRandom.uuid.gsub("-", "").to_s #[0..16]
+        # "0" + SecureRandom.uuid.gsub("-", "").to_s #[0..16]
+        "PRGCAP" + SecureRandom.uuid.gsub("-", "").to_s #[0..16]
       end
 
     end
