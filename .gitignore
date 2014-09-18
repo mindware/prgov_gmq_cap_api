@@ -7,3 +7,4 @@ passwords.list
 stdout
 .DS_Store
 .env
+*.base64
