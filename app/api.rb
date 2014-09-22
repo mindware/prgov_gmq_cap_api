@@ -257,7 +257,7 @@ module PRGMQ
 										:pending => total_pending,
 										:completed => total_completed,
 										:visits => total_visits,
-										"failed" => false,
+										"failed" => total_failed,
 										"retry" => false,
 										"processing" => false,
 								}
@@ -295,7 +295,7 @@ module PRGMQ
 								# transaction
 							else
 								# if the item is not found, raise an error that it could not be saved
-								raise ItemNotFound
+								raise TransactionNotFound
 							end
 						end
 

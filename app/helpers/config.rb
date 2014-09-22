@@ -173,8 +173,8 @@ module PRGMQ
               # here we check if the config is already loaded in memory
               if @all.nil?
                 if(load_config)
-		              # Once the configuration is loaded, print some info to STDOUT
-                  puts "Loading configuration files into memory: #{@all.keys.join(", ").to_s}"
+	       		  # Once the configuration is loaded, print some info to STDOUT
+	                  puts "Loading configuration files into memory: #{@all.keys.join(", ").to_s}"
             		  puts "Allowed users: #{@all["users"].keys.join(", ")}" if @debug
             		  print "System settings:"# if @debug
             		  list = ""
