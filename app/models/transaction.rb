@@ -22,6 +22,9 @@ require 'htmlentities'
 # Government of Puerto Rico
 # May - 2014
 #
+require 'app/models/base'
+require 'app/helpers/validations'
+
 module PRGMQ
   module CAP
     class Transaction < PRGMQ::CAP::Base
@@ -661,7 +664,7 @@ module PRGMQ
           end
 
           # if this is the first time this transaction is saved:
-          if first_time
+          if first_save
             # Add it to a list of the last couple of items
             db_connection.lpush(db_list, db_cache_info)
             # trim the items to the maximum allowed, determined by this constant:
@@ -684,7 +687,7 @@ module PRGMQ
             # which makes it safe for the underlying classes to perform
             # database requests, appending them to this pipeline block.
             add_pending(db_connection)
-          end # end of first_time save for new transactions
+          end # end of first_save for new transactions
         end
         debug "Saved!".bold.green
     end
