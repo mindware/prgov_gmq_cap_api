@@ -12,9 +12,11 @@ url = "http://localhost:9000/v1/cap/transaction/certificate_ready"
 #             "residency" : "San Juan", "IP" : "192.168.1.2",
 #             "reason" : "Solicitud de Empleo", "birth_place" : "San Juan",
 #             "email" : "acolon@ogp.pr.gov", "license_number" : "1234567"}')
-file = File.open("./sample/sagan.jpg", "rb")
-contents = file.read
-cert64 = Base64.strict_encode64(contents)
+#file = File.open("./sample/sagan.jpg", "rb")
+file = File.open("./sample/cert.base64", "rb")
+#contents = file.read
+cert64 = file.read.strip
+#cert64 = Base64.strict_encode64(contents)
 # Grab the id from the params, otherwise us an id that may or may not exist.
 if ARGV[0].to_s != ""
 	id = ARGV[0]

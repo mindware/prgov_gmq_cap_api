@@ -22,6 +22,9 @@ require 'htmlentities'
 # Government of Puerto Rico
 # May - 2014
 #
+require 'app/models/base'
+require 'app/helpers/validations'
+
 module PRGMQ
   module CAP
     class Transaction < PRGMQ::CAP::Base
@@ -92,9 +95,7 @@ module PRGMQ
       # can last before expiring.
       EXPIRATION = (604800 * 4) * MONTHS_TO_EXPIRATION_OF_TRANSACTION
 
-
       LAST_TRANSACTIONS_TO_KEEP_IN_CACHE = 50
-
 
       ######################################################
       # A transaction generally consists of the following: #
@@ -214,7 +215,7 @@ module PRGMQ
           tx.created_at          = Time.now.utc
           tx.status              = "received"
           tx.location            = "PR.gov GMQ"
-          tx.state               = :started
+          tx.state               = :new
 
           # Pending stuff that we've yet to develop:
           # tx["history"]           = { "received" => { Time.now }}
@@ -396,7 +397,7 @@ module PRGMQ
           # end
 
           if(!data = Store.db.get(db_id(id)))
-            raise ItemNotFound
+            raise TransactionNotFound
           else
             begin
               # grab the JSON from this transaction id
@@ -522,6 +523,19 @@ module PRGMQ
         }.to_json
       end
 
+
+      def job_generate_negative_certificate_data
+        # Here we create a hash of what the Resque system will expect in
+        # the redis queue under resque:queue:prgov_cap.
+        # Note: don't use single quotes for string values on JSON.
+        { "class" => "GMQ::Workers::CreateCertificate",
+                     "args" => [{
+                                 "id" => "#{id}",
+                                 "queued_at" => "#{Time.now}"
+                                }]
+        }.to_json
+      end
+
       # This method returns the name of the queue we're going to use
       def queue_pending
         "resque:queue:prgov_cap"
@@ -581,15 +595,25 @@ module PRGMQ
       # The public method that allows this instance to be saved to the
       # database.
       def save
+        # Flag that will determine if this is the first time we save.
+        first_save = false
+        # if this is our first time saving this transaction
+        if(@state == :new)
+          @state = :started
+          first_save = true
+        end
+        # Now lets convert the transaction object to a json. Note:
         # We have to retrieve this here, incase we ever need values here
         # from the Store. If we do it inside the multi or pipelined
         # we won't have those values availble when building the json
         # and all we'll have is a Redis::Future object. By doing
         # the following to_json call here, we would've retrieved the data
-        # needed before the save.
+        # needed before the save, properly.
         json = self.to_json
         # do a pipeline command, executing all commands in an atomic fashion.
-        pipelined_save(json)
+        # inform the pipelined save if this is the first time we're saving the
+        # transaction, so that proper jobs may be enqueued.
+        pipelined_save(json, first_save)
         # puts caller
         if Config.display_hints
           debug "#{"Hint".green}: View the transaction data in Redis using: GET #{db_id}\n"+
@@ -614,7 +638,7 @@ module PRGMQ
     # be used, which would lead to instability in the system. By recycling the
     # same db connection, we make the system perform with excellent performance.
     #
-    def pipelined_save(json)
+    def pipelined_save(json, first_save=false)
         if Config.display_hints
           debug "Store Pipeline: Attempting to save transaction in Store under key \"#{db_id}\""
           debug "Store Pipeline: Attempting to save into recent transactions list \"#{db_list}\""
@@ -628,34 +652,42 @@ module PRGMQ
         Store.db.pipelined do |db_connection|
           # don't worry about an error here, if the db isn't available
           # it'll raise an exception that will be caught by the system
+
+          # Update the transaction object in the database by storing the JSON
+          # in the key under this ID in the database store.
           db_connection.set(db_id, json)
-          # If TTL is not nil
+          
+          # If TTL is not nil, update the Time to Live everytime a transaction
+          # is saved/updated
           if(EXPIRATION > 0)
             db_connection.expire(db_id, EXPIRATION)
           end
 
-          # Add it to a list of the last couple of items items
-          db_connection.lpush(db_list, db_cache_info)
-          # trim the items to the maximum allowed, determined by this constant:
-          db_connection.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
+          # if this is the first time this transaction is saved:
+          if first_save
+            # Add it to a list of the last couple of items
+            db_connection.lpush(db_list, db_cache_info)
+            # trim the items to the maximum allowed, determined by this constant:
+            db_connection.ltrim(db_list, 0, LAST_TRANSACTIONS_TO_KEEP_IN_CACHE)
 
-          # Add it to our GMQ pending queue, to be grabbed by our workers
-          # Enqueue a email notification job
-          db_connection.rpush(queue_pending, job_notification_data)
-          # Enqueue a rapsheet validation job
-          db_connection.rpush(queue_pending, job_rapsheet_validation_data)
+            # Add it to our GMQ pending queue, to be grabbed by our workers
+            # Enqueue a email notification job
+            db_connection.rpush(queue_pending, job_notification_data)
+            # Enqueue a rapsheet validation job
+            db_connection.rpush(queue_pending, job_rapsheet_validation_data)
 
-          # We can't use any method that uses Store.db here
-          # because that would cause us to checkout a db connection from the
-          # pool for each of those commands; the pipelined commands need to
-          # run on the same connection as the commands in the pipeline,
-          # so we will not use the Store.add_pending method. For any
-          # of our own method that requires access to the db, we will
-          # recycle the current db_connection. In this case, the add_pending
-          # LibraryHelper method supports receiving an existing db connection
-          # which makes it safe for the underlying classes to perform
-          # database requests, appending them to this pipeline block.
-          add_pending(db_connection)
+            # We can't use any method that uses Store.db here
+            # because that would cause us to checkout a db connection from the
+            # pool for each of those commands; the pipelined commands need to
+            # run on the same connection as the commands in the pipeline,
+            # so we will not use the Store.add_pending method. For any
+            # of our own method that requires access to the db, we will
+            # recycle the current db_connection. In this case, the add_pending
+            # LibraryHelper method supports receiving an existing db connection
+            # which makes it safe for the underlying classes to perform
+            # database requests, appending them to this pipeline block.
+            add_pending(db_connection)
+          end # end of first_save for new transactions
         end
         debug "Saved!".bold.green
     end
@@ -666,12 +698,13 @@ module PRGMQ
       def certificate_ready(params)
           # validate these parameters. If this passes, we can safely import
           params = validate_certificate_ready_parameters(params)
-          # self.certificate_base64          = params["certificate_base64"]
+          self.certificate_base64          = params["certificate_base64"]
           # to reduce memory usage, we no longer store the base64 cert, we
           # merely mark it as received, and look it up in SIJC's RCI when
           # we're ready to send it via email.
-          self.certificate_base64            = true
-          self
+          # self.certificate_base64            = true
+          # Generate the Certificate job:
+          Store.db.rpush(queue_pending, job_generate_negative_certificate_data)
       end
 
 

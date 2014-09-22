@@ -5,18 +5,18 @@ user = ENV["API_USER"]
 pass = ENV["API_PASSWORD"]
 # credentials via basic auth
 url = "http://localhost:9000/v1/cap/transaction/"
-first_name = ENV["NAME"]
-last_name  = ENV["LASTNAME"]
-mother_last_name = ENV["MOTHER_LASTNAME"] 
-ssn = ENV["SSN"]
-license = ENV["LICENSE"] 
-birth_date = ENV["BIRTH_DATE"]  
-residency  = ENV["RESIDENCY"]
+first_name = ENV["FUZZY_NAME"]
+last_name  = ENV["FUZZY_LASTNAME"]
+mother_last_name = ENV["FUZZY_MOTHER_LASTNAME"] 
+ssn = ENV["FUZZY_SSN"]
+license = ENV["FUZZY_LICENSE"] 
+birth_date = ENV["FUZZY_BIRTH_DATE"]  
+residency  = ENV["FUZZY_RESIDENCY"]
 ip = '192.168.1.2'
 reason = 'Background check to join S.H.I.E.L.D.'
-birth_place = ENV["BIRTH_PLACE"]
+birth_place = ENV["FUZZY_BIRTH_PLACE"]
 #birth_place = "398174400000"
-email = ENV["EMAIL"]
+email = ENV["FUZZY_EMAIL"]
 # Test it in english and spanish. Comment last one to try the other.
 language = 'english'
 language = 'spanish'
@@ -46,4 +46,4 @@ total = 0
 (0..total).each do |i|
 	setup()
 end
-puts "Done! (#{total + 1} added)"
+puts "Done! (#{total} added)"
