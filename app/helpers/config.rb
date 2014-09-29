@@ -16,7 +16,7 @@ module PRGMQ
                           :display_results, # shows what we return to client, in console
                           :display_certificates, # prints out base64 data to console
                           :display_hints # prints out hints to console, such as API
-                                         # resource descriptions & DB commands. 
+                                         # resource descriptions & DB commands.
               attr_writer :downtime # This setter lets us go into maintainance mode
           end
 
@@ -319,6 +319,23 @@ module PRGMQ
                  @all["db"]["driver"].to_sym
               else
                  :synchrony
+              end
+          end
+
+          # Returns the database we're going to be connecting to.
+          # The redis database number we're connecting to. Redis uses
+          # numbered database (instead of database names) to distinguish
+          # on which database you're working on. This can be specified in
+          # the projects root's config folder, in tehe file db.json, by
+          # adding a key and value to each database server config, such as:
+          # "db_id"    : 0
+          def self.db_id
+              if(@all["db"].has_key? "db_id")
+                 @all["db"]["db_id"]
+              else
+                 # by default, use database number 0 for redis unless
+                 # specified.
+                 0
               end
           end
       end
