@@ -39,7 +39,7 @@ module PRGMQ
 					# available at this point.
 					Store.connected?
 					status = Store.connected? if !Store.nil?
-					debug "Storage is #{status ? "online".bold.yellow : "offline".bold.redg}!"
+					debug "Storage is #{status ? "online".bold.yellow : "offline".bold.red}!"
 					super
 				rescue Exception => e
 					puts "Error initializing CAP API (Grape), was: #{e.message}\nBacktrace: #{e.backtrace[0]}"
