@@ -316,7 +316,7 @@ module PRGMQ
 				if(route.route_description.to_s.length > 0 and Config.display_hints)
 					 output << "Description:\n#{route.route_description}\n"
 				end
-				output << "#{"Result".bold.cyan}:\n"
+				output << "#{"Result".bold.cyan}:\n" if Config.display_results
 				return output
 			end
 
