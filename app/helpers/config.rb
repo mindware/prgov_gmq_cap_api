@@ -338,6 +338,20 @@ module PRGMQ
                  0
               end
           end
+
+          # Returns the password we're going to use to connect to redis
+	  def self.db_password
+	      # later change this so that we use the port
+              # of the current db_host, when we add iteration
+              # in case of failure
+              index = @all["db"]["servers"].keys[0]
+              if(@all["db"]["servers"][index].has_key? "password")
+                 @all["db"]["servers"][index]["password"]
+              else
+                 # by default, send an empty password.
+                 ""
+              end
+          end
       end
   end
 end

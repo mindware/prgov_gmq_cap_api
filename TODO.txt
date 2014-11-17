@@ -18,7 +18,7 @@ Pending:
 11. Change server.rb so that we properly check DB connectivity after EM is up
 12. Confirm connection upon startup.
 13. Logger. IF logging is disabled, debug will print and logger will output to STDOUT. Well have double output. q
-14. Track down bug when using pools that hangs us from continuing after a save.
+14. Consider making authentication db.based on a future version.
 Done:
 1. Basic Authentication
 2. Fiber-based connection to APMQ
@@ -34,6 +34,7 @@ Done:
 12. Fix str_prefix to print visit id for each logged line
 13. Fix bug where syncrhony driver is bugging out on parallel requests, returning Fixnum when it should return array - admin/lasts - api line 445
 14. Add pool_size support for the Config file, and Connection pools for Store.
+15. Track down bug when using pools that hangs us from continuing after a save.
 
 ---
 Auto-generated using: github.com/mindware/todo

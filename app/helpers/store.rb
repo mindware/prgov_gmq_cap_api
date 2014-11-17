@@ -72,10 +72,11 @@ module PRGMQ
               debug "connecting to #{Config.db_name} at #{Config.db_host}:#{Config.db_port} "+
                     "(using #{Config.db_driver} driver with a pool_size of #{Config.db_pool_size})..."
               @db = EventMachine::Synchrony::ConnectionPool.new(size: Config.db_pool_size) do
-                    Redis.new(:host =>   Config.db_host,
-                              :port =>   Config.db_port,
-                              :driver => Config.db_driver,
-                              :db     => Config.db_id)
+                    Redis.new(:host =>     Config.db_host,
+                              :port =>     Config.db_port,
+                              :driver =>   Config.db_driver,
+                              :db     =>   Config.db_id,
+			      :password => Config.db_password)
               end
           else
               @db
