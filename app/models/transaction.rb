@@ -259,12 +259,6 @@ module PRGMQ
               self.identity_validated         = params["identity_validated"]
               self.emit_certificate_type      = params["emit_certificate_type"]
               self.certificate_path           = params["certificate_path"]
-
-              # If we had servers in multiple time zones, we'd want
-              # to use utc in the next two lines. This might be important
-              # if we go cloud in multiple availability zones, since
-              # we'll use the Time.now to order transactions.
-              self.updated_at                 = Time.now.utc
           end
           return self
       end
@@ -595,6 +589,13 @@ module PRGMQ
       # The public method that allows this instance to be saved to the
       # database.
       def save
+        # Update the updated_at timestamp.
+        # If we had servers in multiple time zones, we'd want
+        # to use utc in the next line. This might be important
+        # if we go cloud in multiple availability zones, this
+        # way time is consistent across zones. 
+        self.updated_at                 = Time.now.utc
+
         # Flag that will determine if this is the first time we save.
         first_save = false
         # if this is our first time saving this transaction
@@ -656,7 +657,7 @@ module PRGMQ
           # Update the transaction object in the database by storing the JSON
           # in the key under this ID in the database store.
           db_connection.set(db_id, json)
-          
+
           # If TTL is not nil, update the Time to Live everytime a transaction
           # is saved/updated
           if(EXPIRATION > 0)
