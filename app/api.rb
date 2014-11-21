@@ -270,7 +270,7 @@ module PRGMQ
 								 "attempting to enqueue the request with a unique transaction "+
 								 "id and returning said id."
 						post '/' do
-							user = allowed?(["webapp", "admin"])
+							user = allowed?(["prgov", "admin"])
 							# We store the IP of the system that made the direct request.
 							# even if they will forward the originating IP, we grab theirs
 							# in case we need to find out what server has been submitting
