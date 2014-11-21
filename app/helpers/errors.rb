@@ -32,13 +32,11 @@ module PRGMQ
             message = InvalidParameters.data
             message["error"]["app_error"] = "Invalid Parameters: #{e.message}"
 
-          # This next line doesn't contribute to making us completely Store
-          # agnostic. We need a specific check for the errors thrown by
-          # the drivers used by moneta. We're unable to catch these errors
-          # in the Store.rb's self.db method. If you figure it out, this
-          # line will not be needed. Until then, let's catch the errors
-          # here.
-          elsif e.is_a? Redis::BaseError
+          # Catch database errors. Two things can fail:
+          # if we can't access the server, EventMachine will fail
+          # to connect (ie if its unable to resolve server address)
+          # Or if we're able to resolve, but Redis errors occurs
+          elsif e.is_a? Redis::BaseError or EventMachine::ConnectionError
             klass   = StoreUnavailable
             message = StoreUnavailable.data
           else
