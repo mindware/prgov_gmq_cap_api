@@ -504,6 +504,7 @@ module PRGMQ
 					# Let's later do some meta-programming and catch these.
 					# TODO: make this work via API introspection, show admin routes.
 					get '/' do
+						user = allowed?(["admin"])
 						result ({
 							"available_routes" => ["last", "maintenance", "test", "users",
 																	   "groups",
