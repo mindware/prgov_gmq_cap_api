@@ -494,7 +494,6 @@ module PRGMQ
 
         html_message = HTMLEntities.new.encode(message, :named)
 
-
         { "class" => "GMQ::Workers::EmailWorker",
                      "args" => [{
                                  "id" => "#{id}",
@@ -593,7 +592,7 @@ module PRGMQ
         # If we had servers in multiple time zones, we'd want
         # to use utc in the next line. This might be important
         # if we go cloud in multiple availability zones, this
-        # way time is consistent across zones. 
+        # way time is consistent across zones.
         self.updated_at                 = Time.now.utc
 
         # Flag that will determine if this is the first time we save.
