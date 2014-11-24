@@ -132,6 +132,13 @@ module PRGMQ
 			## All the request below require a /v1/ before the resource, ie:
 			## GET /v1/cap/...
 			resources :cap do
+				desc 'Allows for sending email messages.'
+				get '/mail'
+						user = allowed?(["webapp"])
+						mail = Message.email(params)
+						result { :result => "ok" }
+				end
+
 				desc "Returns current version and status information. This is "+
 						 "mainly used to test credentials and in the future could be used "+
 						 "to see health information."
@@ -317,7 +324,6 @@ module PRGMQ
 							transaction.save
 							result present(transaction, with: Entities::Transaction)
 						end # end of review_complete
-
 
 						# PUT /v1/cap/transaction/certificate_ready
 						desc "Confirms that the enclosed base64 "+
