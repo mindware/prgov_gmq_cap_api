@@ -36,7 +36,7 @@ module PRGMQ
           # if we can't access the server, EventMachine will fail
           # to connect (ie if its unable to resolve server address)
           # Or if we're able to resolve, but Redis errors occurs
-          elsif e.is_a? Redis::BaseError or EventMachine::ConnectionError
+          elsif e.is_a? Redis::BaseError or e.is_a? EventMachine::ConnectionError
             klass   = StoreUnavailable
             message = StoreUnavailable.data
           else
@@ -329,6 +329,30 @@ module PRGMQ
       end
     end
 
+    class MissingFromAddress < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => {
+                        "http_error" => "400 Bad Request",
+                        "http_code" => 400,
+                        "app_error" => "Parameter: from is required.",
+                        "app_code" => 1019
+                      }
+        }
+      end
+    end
+
+    class MissingToAddress < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => {
+                        "http_error" => "400 Bad Request",
+                        "http_code" => 400,
+                        "app_error" => "Parameter: to is required.",
+                        "app_code" => 1020
+                      }
+        }
+      end
+    end
+
 
     ################################################################
     ########                   Invalid                      ########
@@ -374,17 +398,6 @@ module PRGMQ
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
                        "app_error" => "Invalid ssn provided.",
-                       "app_code" => 2002
-                    }
-        }
-      end
-    end
-
-    class InvalidSSN < PRGMQ::CAP::AppError
-      def self.data
-        { "error" => { "http_error" => "400 Bad Request",
-                       "http_code" => 400,
-                       "app_error" => "Invalid ssn provided.",
                        "app_code" => 2003
                     }
         }
@@ -412,7 +425,6 @@ module PRGMQ
         }
       end
     end
-
 
     class InvalidBirthDate < PRGMQ::CAP::AppError
       def self.data
@@ -569,6 +581,31 @@ module PRGMQ
         }
       end
     end
+
+
+    class InvalidFromAddress < PRGMQ::CAP::AppError
+        def self.data
+          { "error" => { "http_error" => "400 Bad Request",
+            "http_code" => 400,
+            "app_error" => "Invalid email address provided for the from field.",
+            "app_code" => 2020
+          }
+        }
+       end
+    end
+
+
+    class InvalidToAddress < PRGMQ::CAP::AppError
+        def self.data
+          { "error" => { "http_error" => "400 Bad Request",
+            "http_code" => 400,
+            "app_error" => "Invalid email address provided for the to field.",
+            "app_code" => 2021
+          }
+        }
+      end
+    end
+
 
 
     ################################################################
