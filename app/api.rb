@@ -21,6 +21,7 @@ require 'app/models/base'
 require 'app/models/transaction'
 require 'app/models/user'
 require 'app/models/statistics'
+require 'app/models/message'
 
 # Load our Entities. Grape-Entities are API representations of a Model:
 require 'app/entities/transaction'
@@ -133,10 +134,12 @@ module PRGMQ
 			## GET /v1/cap/...
 			resources :cap do
 				desc 'Allows for sending email messages.'
-				get '/mail'
-						user = allowed?(["webapp"])
+
+				# Allows for sending email messages
+				post '/mail' do
+						user = allowed?(["prgov", "admin", "worker"])
 						mail = Message.email(params)
-						result { :result => "ok" }
+						result ({ :status => "queued" })
 				end
 
 				desc "Returns current version and status information. This is "+
