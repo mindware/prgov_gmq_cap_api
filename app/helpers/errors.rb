@@ -329,7 +329,7 @@ module PRGMQ
       end
     end
 
-    class MissingFromAddress < PRGMQ::CAP::AppError
+    class MissingEmailFromAddress < PRGMQ::CAP::AppError
       def self.data
         { "error" => {
                         "http_error" => "400 Bad Request",
@@ -341,7 +341,7 @@ module PRGMQ
       end
     end
 
-    class MissingToAddress < PRGMQ::CAP::AppError
+    class MissingEmailToAddress < PRGMQ::CAP::AppError
       def self.data
         { "error" => {
                         "http_error" => "400 Bad Request",
@@ -352,6 +352,31 @@ module PRGMQ
         }
       end
     end
+
+    class MissingEmailSubject < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => {
+                        "http_error" => "400 Bad Request",
+                        "http_code" => 400,
+                        "app_error" => "Parameter: subject is required.",
+                        "app_code" => 1021
+                      }
+        }
+      end
+    end
+
+    class MissingEmailText < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => {
+                        "http_error" => "400 Bad Request",
+                        "http_code" => 400,
+                        "app_error" => "Parameter: text is required.",
+                        "app_code" => 1022
+                      }
+        }
+      end
+    end
+
 
 
     ################################################################
@@ -583,7 +608,7 @@ module PRGMQ
     end
 
 
-    class InvalidFromAddress < PRGMQ::CAP::AppError
+    class InvalidEmailFromAddress < PRGMQ::CAP::AppError
         def self.data
           { "error" => { "http_error" => "400 Bad Request",
             "http_code" => 400,
@@ -595,12 +620,23 @@ module PRGMQ
     end
 
 
-    class InvalidToAddress < PRGMQ::CAP::AppError
+    class InvalidEmailToAddress < PRGMQ::CAP::AppError
         def self.data
           { "error" => { "http_error" => "400 Bad Request",
             "http_code" => 400,
             "app_error" => "Invalid email address provided for the to field.",
             "app_code" => 2021
+          }
+        }
+      end
+    end
+
+    class InvalidEmailSubject < PRGMQ::CAP::AppError
+        def self.data
+          { "error" => { "http_error" => "400 Bad Request",
+            "http_code" => 400,
+            "app_error" => "Invalid email subject.",
+            "app_code" => 2022
           }
         }
       end
