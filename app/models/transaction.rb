@@ -23,18 +23,10 @@ require 'htmlentities'
 # May - 2014
 #
 require 'app/models/base'
-require 'app/helpers/validations'
 
 module PRGMQ
   module CAP
     class Transaction < PRGMQ::CAP::Base
-      # We use both class and instance methods
-      extend Validations
-      include Validations
-      include TransactionIdFactory
-      extend TransactionIdFactory
-      include LibraryHelper
-
       # A note on the expiration of transactions:
       # Transaction expiration means expiration from the DB
       # as in, disappearing from the system entirely. The system has been
@@ -498,8 +490,8 @@ module PRGMQ
                      "args" => [{
                                  "id" => "#{id}",
                                  "queued_at" => "#{Time.now}",
-				                         "text_message" => message,
-                                 "html_message" => html_message
+				                         "text" => message,
+                                 "html" => html_message
                                 }]
         }.to_json
       end
