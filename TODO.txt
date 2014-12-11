@@ -19,6 +19,7 @@ Pending:
 12. Confirm connection upon startup.
 13. Logger. IF logging is disabled, debug will print and logger will output to STDOUT. Well have double output. q
 14. Consider making authentication db.based on a future version.
+15. Add a job class that abstracts Resque and auto adds expiration
 Done:
 1. Basic Authentication
 2. Fiber-based connection to APMQ
