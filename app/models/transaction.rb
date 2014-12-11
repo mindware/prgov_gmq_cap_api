@@ -23,18 +23,10 @@ require 'htmlentities'
 # May - 2014
 #
 require 'app/models/base'
-require 'app/helpers/validations'
 
 module PRGMQ
   module CAP
     class Transaction < PRGMQ::CAP::Base
-      # We use both class and instance methods
-      extend Validations
-      include Validations
-      include TransactionIdFactory
-      extend TransactionIdFactory
-      include LibraryHelper
-
       # A note on the expiration of transactions:
       # Transaction expiration means expiration from the DB
       # as in, disappearing from the system entirely. The system has been
@@ -494,13 +486,12 @@ module PRGMQ
 
         html_message = HTMLEntities.new.encode(message, :named)
 
-
         { "class" => "GMQ::Workers::EmailWorker",
                      "args" => [{
                                  "id" => "#{id}",
                                  "queued_at" => "#{Time.now}",
-				                         "text_message" => message,
-                                 "html_message" => html_message
+				                         "text" => message,
+                                 "html" => html_message
                                 }]
         }.to_json
       end
@@ -593,7 +584,7 @@ module PRGMQ
         # If we had servers in multiple time zones, we'd want
         # to use utc in the next line. This might be important
         # if we go cloud in multiple availability zones, this
-        # way time is consistent across zones. 
+        # way time is consistent across zones.
         self.updated_at                 = Time.now.utc
 
         # Flag that will determine if this is the first time we save.

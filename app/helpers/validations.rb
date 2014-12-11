@@ -3,6 +3,7 @@
 require 'resolv'
 require 'date'
 require 'base64'                 # used to validate certificates
+require 'app/helpers/errors'		 # defines and catches errors
 
 # A module for methods used to validate data, such as valid
 # transaction parameters, social security numbers, emails and the like.
@@ -38,6 +39,23 @@ module PRGMQ
           raise InvalidTransactionId     if !validate_transaction_id(params["id"])
           raise MissingCertificateBase64 if params["certificate_base64"].to_s.length == 0
           raise InvalidCertificateBase64 if !validate_certificate_base64(params["certificate_base64"])
+          return params
+        end
+
+        # validates requests to send email messages through the GMQ
+        def validate_email_parameters(params, whitelist)
+          # delets all non-whitelisted params, and returns a safe list.
+          params = trim_whitelisted(params, whitelist)
+          # Check for missing parameters
+          raise MissingEmailFromAddress       if params["from"].to_s.length == 0
+          raise MissingEmailToAddress         if params["to"].to_s.length == 0
+          raise MissingEmailSubject           if params["subject"].to_s.length == 0
+          raise MissingEmailText              if params["text"].to_s.length == 0
+          # Perform validations
+          # raise InvalidEmailSubject          if <consider validations here>
+          raise InvalidEmailFromAddress        if !validate_email(params["from"])
+          raise InvalidEmailToAddress          if !validate_email(params["to"])
+
           return params
         end
 
@@ -80,7 +98,7 @@ module PRGMQ
           raise MissingLanguage        if params["language"].to_s.length == 0
 
           # Validate the Email
-          raise InvalidEmail           if validate_email(params["email"])
+          raise InvalidEmail           if !validate_email(params["email"])
 
           # Validate the SSN
           # we eliminate any potential dashes in ssn
@@ -201,18 +219,24 @@ module PRGMQ
         end
 
         # Check the email address
-        def validate_email(value)
+        # returns true if no errors
+        def validate_email(value, dns_check = false)
           # For email length, the source was:
           # http://www.rfc-editor.org/errata_search.php?rfc=3696&eid=1690
           #
           # Optionally we could force DNS lookups using ValidatesEmailFormatOf
           # by sending validate_email_format special options after the value
-          # such as mx=true (see gem's github), however, this requires dns
+          # such as :check_mx=true (see gem's github), however, this requires dns
           # availability 24/7, and we'd like this system to work a little more
           # independently, so for now simply check against the RFC 2822,
           # RFC 3696 and the filters in the gem.
-          return true if (ValidatesEmailFormatOf::validate_email_format(value).nil? and
-                   value.to_s.length > MAX_EMAIL_LENGTH )
+
+          # if longer than specified max length
+          if (value.to_s.length <= MAX_EMAIL_LENGTH )
+            # if no errors:
+            return true if (ValidatesEmailFormatOf::validate_email_format(value, { :check_mx => dns_check }).nil?)
+          end
+          # if errors:
           return false
         end
 
