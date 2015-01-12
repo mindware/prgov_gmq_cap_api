@@ -3,6 +3,7 @@
 *.bk
 /config/db.json
 /config/users.json
+/config/system.json
 passwords.list
 stdout
 .DS_Store
