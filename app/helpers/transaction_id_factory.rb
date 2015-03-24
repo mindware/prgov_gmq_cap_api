@@ -1,5 +1,7 @@
 require 'securerandom'
 
+require 'rubyflake'
+
 module PRGMQ
   module CAP
     module TransactionIdFactory
@@ -49,7 +51,7 @@ module PRGMQ
         #  xxx-[000] = API system that can validate
         #  PRG-001-&qerqwer0qerqe
         # "0" + SecureRandom.uuid.gsub("-", "").to_s #[0..16]
-        "PRGCAP" + self.generate_random_id
+        "PRGCAP" + self.generate_flake
       end
 
       # Generates a random string.
@@ -58,6 +60,12 @@ module PRGMQ
       # don't require an service identifier (ie validation requests)
       def self.generate_random_id
         return SecureRandom.uuid.gsub("-", "").to_s
+      end
+
+      # Generates a 64-bit ID.
+      # Safe to distribute.
+      def self.generate_flake
+        return Rubyflake.generate.to_s
       end
 
     end
