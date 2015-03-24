@@ -18,3 +18,5 @@ gem 'aasm', "~> 3.2.0"
 
 # For safely decoding and encoding strings to proper HTML
 gem 'htmlentities', "~> 4.3.2"
+
+gem 'rubyflake', "~> 0.1.1"
