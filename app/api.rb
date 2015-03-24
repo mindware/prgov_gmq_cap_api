@@ -22,6 +22,7 @@ require 'app/models/transaction'
 require 'app/models/user'
 require 'app/models/statistics'
 require 'app/models/message'
+require 'app/models/validator'
 
 # Load our Entities. Grape-Entities are API representations of a Model:
 require 'app/entities/transaction'
@@ -191,6 +192,57 @@ module PRGMQ
 							end
 						end
 
+
+						# group into ../transaction/validate/
+						group :validate do
+								# Validator:
+								# GET /v1/cap/transaction/validate/request
+								desc "Requests that a transaction id be verified to see if it "+
+										 "remains valid. This action will incorporate async requests to "+
+										 "an external system. As such, if all input is valid it will "+
+										 "return a request_id, whose status can be checked via other "+
+										 "validation resources."
+								params do
+									optional :tx_id, type: String, desc: "A valid transaction id."
+									optional :ssn, type: String, desc: "A valid ssn."
+									optional :passport, type: String, desc: "A valid passport."
+									optional :IP, type: String, desc: "A valid IP of the end user."
+								end
+								get '/request' do
+										user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
+										transaction = Validator.create(params)
+										# check if we are able to save it
+										if transaction.save
+											# result (present transaction, with: CAP::Entities::Validator) #, type: :hi
+											result transaction
+										else
+											# if the item is not found, raise an error that it could not be saved
+											raise TransactionNotFound
+										end
+								end
+
+								# GET /v1/cap/transaction/validate/response
+								desc "Requests that a validation's response be verified to see it "+
+										 "has completed by providing a validation's request_id."
+								params do
+									optional :id, type: String, desc: "A validation request id."
+								end
+								get '/reponse' do
+										user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
+										transaction = Validator.find(params)
+										result transaction
+										# result (present transaction, with: CAP::Entities::Validator) #, type: :hi
+								end
+
+								desc "Lists all available endpoints for this resource"
+								get '/' do
+										user = allowed?(["all"])
+										result({
+											"resources" => ["/response", "/request"]
+										})
+								end
+						end
+
 						## Resource cap/transaction/:id:
 						desc "Returns all available information on a specific "+
 								 "transaction id."
@@ -211,7 +263,7 @@ module PRGMQ
 										user = allowed?(["all"])
 										result ({
 										    "transaction" => {
-										        "id" => "0-123-456",
+										        "id" => "0-123-456-test",
 										        "current_error_count" => 0,
 										        "total_error_count" => 1,
 										        "action" => {
@@ -236,6 +288,17 @@ module PRGMQ
 									transaction = Transaction.find(params[:id])
 									result (present transaction, with: CAP::Entities::Transaction) #, type: :hi
 							end
+
+							# # PUT /v1/cap/transaction/validate/response
+							# desc "Updates a validation's response by its request_id."
+							# params do
+							# 	optional :request_id, type: String, desc: "A validation request id."
+							# end
+							# put do
+							# 		user = allowed?(["admin", "worker"])
+							# 		transaction = Transaction.validate_response(params[:response_id])
+							# 		# result (present transaction, with: CAP::Entities::Transaction) #, type: :hi
+							# end
 
 							# DELETE /v1/cap/transaction/:id
 							# TODO: code this
@@ -345,6 +408,7 @@ module PRGMQ
 							# Only allowed to be set when PRPD requests so through their
 							# action.
 						end
+
 						#
 						# # PUT /v1/cap/transaction/
 						# desc "Requests that the server update information for a given id. "+

@@ -14,6 +14,8 @@ module PRGMQ
         ##            Constants:               #
         ########################################
 
+        PASSPORT_MIN_LENGTH     = 9
+        PASSPORT_MAX_LENGTH     = 20
         SSN_LENGTH              = 9       # In 2014 SSN length was 9 digits.
         MAX_EMAIL_LENGTH        = 254     # IETF maximum length RFC3696/Errata ID: 1690
         DTOP_ID_MAX_LENGTH      = 20      # Arbitrarily selected length. Review this!
@@ -128,6 +130,34 @@ module PRGMQ
           return params
         end
 
+
+        # validates parameters for transaction validation requests
+        # used when users have the transaction id and want us to
+        # check if the transaction is really valid to us.
+        def validate_transaction_validation_parameters(params, whitelist)
+          # delets all non-whitelisted params, and returns a safe list.
+          params = trim_whitelisted(params, whitelist)
+
+          # Return proper errors if parameter is missing:
+          raise MissingTransactionTxId if params["tx_id"].to_s.length == 0
+          raise InvalidTransactionId   if !validate_transaction_id(params["tx_id"])
+          raise MissingPassportOrSSN   if (params["ssn"].to_s.length == 0 and
+                                           params["passport"].to_s.length == 0)
+          raise MissingClientIP        if params["IP"].to_s.length == 0
+          # Validate the SSN
+          # we eliminate any potential dashes in ssn
+          params["ssn"]  = params["ssn"].gsub("-", "").strip
+          raise InvalidSSN             if !validate_ssn(params["ssn"])
+          # Validate the Passport
+          # we eliminate any potential dashes in the passport before validation
+          params["passport"] = params["passport"].to_s.gsub("-", "").strip
+          raise InvalidPassport        if !validate_passport(params["ssn"])
+          # everything else:
+          raise InvalidClientIP        if !validate_ip(params["IP"])
+
+          return params
+        end
+
         # Validates that a user specified language has been added.
         def validate_language(params)
           if(params.to_s == "english" or params.to_s == "spanish")
@@ -163,7 +193,7 @@ module PRGMQ
             false
           end
         end
-        # Validates a date as UTC
+        # Validates a date
         def validate_date(date)
           begin
             Date.parse(date.to_s)
@@ -217,6 +247,18 @@ module PRGMQ
             return false
           end
         end
+
+      # Validate Passport number
+      def validate_passport(value)
+        return false if value.to_s.length == 0
+        # validates if its has proper length
+        if(value.length >= PASSPORT_MIN_LENGTH and
+           value.length <= PASSPORT_MAX_LENGTH)
+          return true
+        else
+          return false
+        end
+      end
 
         # Check the email address
         # returns true if no errors
