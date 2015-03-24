@@ -377,6 +377,27 @@ module PRGMQ
       end
     end
 
+    class MissingPassportOrSSN < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameters: ssn or passport are required.",
+                       "app_code" => 1023
+                    }
+        }
+      end
+    end
+
+    class MissingTransactionTxId < PRGMQ::CAP::AppError
+      def self.data
+        { "error" => { "http_error" => "400 Bad Request",
+                       "http_code" => 400,
+                       "app_error" => "Parameter: tx_id is required.",
+                       "app_code" => 1024
+                    }
+        }
+      end
+    end
 
 
     ################################################################
@@ -554,9 +575,8 @@ module PRGMQ
       def self.data
         { "error" => { "http_error" => "400 Bad Request",
                        "http_code" => 400,
-                       "app_error" => "Invalid analyst_approval_date. You must"+
-                                      " supply a valid utc timestamp (example:"+
-                                      " 2014-05-29 13:23:39 UTC).",
+                       "app_error" => "Invalid analyst_approval_date. You must "+
+                                      "supply a valid timestamp.",
                        "app_code" => 2015
                     }
         }
@@ -642,6 +662,16 @@ module PRGMQ
       end
     end
 
+    class InvalidPassport < PRGMQ::CAP::AppError
+        def self.data
+          { "error" => { "http_error" => "400 Bad Request",
+            "http_code" => 400,
+            "app_error" => "Invalid passport.",
+            "app_code" => 2023
+          }
+        }
+      end
+    end
 
 
     ################################################################
@@ -710,7 +740,7 @@ module PRGMQ
                         "http_code" => 404,
                         "app_error" => "The requested item could not be found."+
                         " The item might've expired, been deleted or may have "+
-                        "never existed.",
+                        "never existed (ie: failed to save).",
                         "app_code" => 5001
                     }
         }
@@ -725,7 +755,7 @@ module PRGMQ
                         "http_code" => 404,
                         "app_error" => "The requested item could not be found."+
                         " The item might've expired, been deleted or may have "+
-                        "never existed.",
+                        "never existed (ie: failed to save).",
                         "app_code" => 5001
                     }
         }

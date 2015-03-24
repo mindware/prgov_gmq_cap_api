@@ -37,7 +37,7 @@ module PRGMQ
         expose :analyst_id, documentation: { type: String,
                desc: "The id of the user of the PRPD analyst in the PRPD System (RCI)."}
         expose :analyst_approval_datetime, documentation: { type: String,
-               desc: "The date in UTC format when an analyst approved this "+
+               desc: "The date when an analyst approved this "+
                      "action in PRPD"}
         expose :analyst_transaction_id, documentation: { type: String,
                desc: "The internal PRPD System ID for this transaction."}

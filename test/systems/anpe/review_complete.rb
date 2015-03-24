@@ -6,7 +6,7 @@ user = "***REMOVED***"
 pass = "***REMOVED***"
 # Get the id from the console as argument, otherwise us a default
 # id that may or may not exist.
-if ARGV[0].to_s != "" 
+if ARGV[0].to_s != ""
 	id = ARGV[0]
 else
 	id = '0338ca35444694f18a'
@@ -17,7 +17,7 @@ analyst_internal_status_id      = "030" # the action's id in the system
 analyst_id 		                 = "123" # the id of the user in the db
 analyst_fullname	              = "Walter Lamela"
 analyst_transaction_id 		     = "analyst12345" # the id of the record in the db
-approval_date      	           = Time.now.utc
+approval_date      	           = Time.now
 decision           		         = "100"
 
 payload = {

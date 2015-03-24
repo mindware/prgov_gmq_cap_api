@@ -204,7 +204,7 @@ module PRGMQ
 
           # Add important system defined parameters here:
           tx.id                  = generate_key()
-          tx.created_at          = Time.now.utc
+          tx.created_at          = Time.now
           tx.status              = "received"
           tx.location            = "PR.gov GMQ"
           tx.state               = :new
@@ -401,6 +401,31 @@ module PRGMQ
           end
       end
 
+      # this needs to be a class method, we dont want to
+      # accidentally overwrite transaction values.
+      def self.validate_request(params)
+          # incase someone sent the id as tx_id
+          params["id"] = params["tx_id"] if !params["tx_id"].nil?
+
+          # The following parameters are allowed to be retrieved
+          # everything else will be discarded from the user params
+          # by the validation method
+          whitelist = [ "id", "ssn", "passport", "IP" ]
+
+          # Instead of trusting user input, let's extract *exactly* the
+          # values from the params hash. This way, additional values
+          # that may have been sneaked inside the params hash are ignored
+          # safely and never reach the Store. This is done by the validate
+          # method:
+          # validate all the parameters in the incoming payload
+          # throws valid errors if any are detected
+          # it will remove non-whitelisted params from the parameters.
+          params = validate_transaction_validation_parameters(params, whitelist)
+
+          params["request_id"] = generate_random_id()
+          self.job_request_certificate_validation(params)
+      end
+
       # Class method that returns a list of the last transactions in the system
       # TODO: check what this returns when db is empty.
       def self.last_transactions
@@ -449,36 +474,33 @@ module PRGMQ
 
         if language == "english"
           message = "Thank you for using PR.Gov's online services. You are "+
-                    "receiving this email because you or someone claiming to "+
-                    "be you, has requested a Goodstanding Certificate "+
-                    "from the Puerto Rico Police Department be develiered at "+
-                    "this email address "+
-                    "for #{full_name}.\n\n"+
-                    "The information is being checked against multiple systems"+
+                    "receiving this email because we have received a "+
+                    "request to validate submission information for a "+
+                    "Goodstanding Certificate for '#{full_name}'.\n\n"+
+                    "The information is being verified against multiple systems"+
                     "and data sources, including the Puerto Rico Police "+
-                    "Department, the Department of Transportion and Public "+
-                    "Works, and the Criminal Justice Information Division. "+
-                    "Once the check is completed, you will be receiving "+
-                    "additional communications from us regarding this request"+
-                    "\n\n"+
-                    "If you have not requested this "+
+                    "Department and the Criminal Justice Information Division.\n\n"+
+                    "As the validation progresses, you will be receiving "+
+                    "additional emails from us.\n\n"+
+                    "If you did not requested this "+
                     "certificate and believe it to be an error, we ask that you"+
                     "ignore and delete this and any related messages."
         else
           #spanish
           message = "Gracias por utilizar los servicios de PR.Gov. Está "+
-                    "recibiendo este correo por que usted o alguien "+
-                    "haciendose pasar por usted ha solicitado el que un "+
+                    "recibiendo este correo por que hemos recibido una "+
+                    "solicitud de validación de información para un "+
                     "certificado de Buena Conducta de la Policia de "+
-                    "de Puerto Rico, para #{full_name}, sea enviado a esta "+
-                    "dirección de correo electrónico}.\n\n"+
-                    "La solicitud está siendo revisada con sistemas "+
-                    "del Sistema Integrado de Justicia Criminal del "+
-                    "Departamento de Justicia, la Policia de Puerto Rico, "+
-                    "el Departamento de Obras Públicas entre otros. "+
-                    "Una vez completado la revisión estará "+
-                    "recibiendo otro comunicado de nuestra parte.\n\n"+
-                    "El número de la transacción es: #{id}\n\n"+
+                    "de Puerto Rico para "+
+                    "'#{full_name}'. Hemos comenzado el proceso de validación "+
+                    "de la solicitud.\n\n"+
+                    "El número de la transacción es:\n#{id}\n\n"+
+                    "En estos momentos la información de la solicitud "+
+                    "está siendo validada con los sistemas de Policia de "+
+                    "Puerto Rico, el Sistema Integrado de Justicia Criminal del "+
+                    "Departamento de Justicia y otras agencias de ley y orden.\n\n"+
+                    "Una vez completada la revisión estará "+
+                    "recibiendo otro comunicado de nuestra parte en este correo.\n\n"+
                     "Si entiende que esta solicitud fue en error, por favor "+
                     "ignore y elimine este, y cualquier correo relacionado al "+
                     "mismo."
@@ -516,6 +538,26 @@ module PRGMQ
         { "class" => "GMQ::Workers::CreateCertificate",
                      "args" => [{
                                  "id" => "#{id}",
+                                 "queued_at" => "#{Time.now}"
+                                }]
+        }.to_json
+      end
+
+      # class method for transaction validation.
+      # Here we request the transaction be validated against
+      # the remote system that is the source of all truths regarding
+      # certificates: RCI.
+      def self.job_request_certificate_validation(params)
+        # Here we create a hash of what the Resque system will expect in
+        # the redis queue under resque:queue:prgov_cap.
+        # Note: don't use single quotes for string values on JSON.
+        { "class" => "GMQ::Workers::CAPValidationWorker",
+                     "args" => [{
+                                 "request_id" => params["request_id"],
+                                 "id" => "#{params["id"]}",
+                                 "ssn" => "#{params["ssn"]}",
+                                 "passport" => "#{params["passport"]}",
+                                 "IP" => "#{params["IP"]}",
                                  "queued_at" => "#{Time.now}"
                                 }]
         }.to_json
@@ -585,7 +627,8 @@ module PRGMQ
         # to use utc in the next line. This might be important
         # if we go cloud in multiple availability zones, this
         # way time is consistent across zones.
-        self.updated_at                 = Time.now.utc
+        # self.updated_at                 = Time.now.utc
+        self.updated_at                 = Time.now
 
         # Flag that will determine if this is the first time we save.
         first_save = false
