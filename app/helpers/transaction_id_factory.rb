@@ -51,7 +51,7 @@ module PRGMQ
         #  xxx-[000] = API system that can validate
         #  PRG-001-&qerqwer0qerqe
         # "0" + SecureRandom.uuid.gsub("-", "").to_s #[0..16]
-        "PRGCAP" + self.generate_flake
+        "PRCAP" + self.generate_flake
       end
 
       # Generates a random string.
@@ -63,7 +63,7 @@ module PRGMQ
       end
 
       # Generates a 64-bit ID.
-      # Safe to distribute.
+      # Safe to use in a distributed fashion.
       def self.generate_flake
         return Rubyflake.generate.to_s
       end
