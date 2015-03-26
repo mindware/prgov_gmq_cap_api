@@ -248,57 +248,33 @@ module PRGMQ
           end
         end
 
-      # Validate Passport number
-      def validate_passport(value)
-        return false if value.to_s.length == 0
-        # validates if its has proper length
-        if(value.length >= PASSPORT_MIN_LENGTH and
-           value.length <= PASSPORT_MAX_LENGTH)
-          return true
-        else
-          return false
+        # Validate Passport number
+        def validate_passport(value)
+          return false if value.to_s.length == 0
+          # validates if its has proper length
+          if(value.length >= PASSPORT_MIN_LENGTH and
+             value.length <= PASSPORT_MAX_LENGTH)
+            return true
+          else
+            return false
+          end
         end
-      end
 
-      # Check the email address
-      # true if incorrect
-      # false if its ok
-      def validate_email(value)
-        # For email length, the source was:
-        # http://www.rfc-editor.org/errata_search.php?rfc=3696&eid=1690
-        #
-        # Optionally we could force DNS lookups using ValidatesEmailFormatOf
-        # by sending validate_email_format special options after the value
-        # such as mx=true (see gem's github), however, this requires dns
-        # availability 24/7, and we'd like this system to work a little more
-        # independently, so for now simply check against the RFC 2822,
-        # RFC 3696 and the filters in the gem.
-        return true if (ValidatesEmailFormatOf::validate_email_format(value).nil? and
-                 value.to_s.length > MAX_EMAIL_LENGTH )
-        return false
-      end
-      
-        # # Check the email address
-        # # returns true if no errors
-        # def validate_email(value, dns_check = false)
-        #   # For email length, the source was:
-        #   # http://www.rfc-editor.org/errata_search.php?rfc=3696&eid=1690
-        #   #
-        #   # Optionally we could force DNS lookups using ValidatesEmailFormatOf
-        #   # by sending validate_email_format special options after the value
-        #   # such as :check_mx=true (see gem's github), however, this requires dns
-        #   # availability 24/7, and we'd like this system to work a little more
-        #   # independently, so for now simply check against the RFC 2822,
-        #   # RFC 3696 and the filters in the gem.
-        #
-        #   # if longer than specified max length
-        #   if (value.to_s.length <= MAX_EMAIL_LENGTH )
-        #     # if no errors:
-        #     return true if (ValidatesEmailFormatOf::validate_email_format(value, { :check_mx => dns_check }).nil?)
-        #   end
-        #   # if errors:
-        #   return false
-        # end
+        # Check the email address
+        def validate_email(value)
+          # For email length, the source was:
+          # http://www.rfc-editor.org/errata_search.php?rfc=3696&eid=1690
+          #
+          # Optionally we could force DNS lookups using ValidatesEmailFormatOf
+          # by sending validate_email_format special options after the value
+          # such as mx=true (see gem's github), however, this requires dns
+          # availability 24/7, and we'd like this system to work a little more
+          # independently, so for now simply check against the RFC 2822,
+          # RFC 3696 and the filters in the gem.
+          return true if (ValidatesEmailFormatOf::validate_email_format(value).nil? and
+                   value.to_s.length < MAX_EMAIL_LENGTH ) #ok
+          return false #fail
+        end
 
         # validates if a string is an integer
         def validate_str_is_integer(value)
