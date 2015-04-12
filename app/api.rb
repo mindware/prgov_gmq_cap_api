@@ -566,10 +566,17 @@ module PRGMQ
 						if txs.class != Array
 							raise AppError
 						end
-						puts "We're going to process a data of length #{txs}" if txs.class != Array
-						txs.each do |x|
-							x = Transaction.find x
-							res << [ x.id, x.ip, x.created_at, x.reason]
+						debug "We're going to process a data of length #{txs}" if txs.class != Array
+						txs.each do |id|
+							begin
+								x = Transaction.find id
+								res << [ x.id, x.ip, x.created_at, x.reason]
+							rescue PRGMQ::CAP::TransactionNotFound
+								# Ignore items that have been deleted.
+								debug "Deleting a missing transaction #{id}..."
+								Transaction.remove_id_from_last_list(id)
+								debug "Deleted."
+							end
 						end
 						result(res)
 					end

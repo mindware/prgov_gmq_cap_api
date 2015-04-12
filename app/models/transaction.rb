@@ -568,6 +568,12 @@ module PRGMQ
         "resque:queue:prgov_cap"
       end
 
+
+      # Remove an item from recent transactions list
+      def self.remove_id_from_last_list(id)
+        Store.db.lrem(db_list, 0, id)
+      end
+
       # a method that creates fake transactions
       # for a massive stress test. This method is available
       # to the admin member group only and is available only
