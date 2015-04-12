@@ -477,13 +477,13 @@ module PRGMQ
                     "receiving this email because we have received a "+
                     "request to validate submission information for a "+
                     "Goodstanding Certificate for '#{full_name}'.\n\n"+
-                    "The information is being verified against multiple systems"+
+                    "The information is being verified against multiple systems "+
                     "and data sources, including the Puerto Rico Police "+
                     "Department and the Criminal Justice Information Division.\n\n"+
                     "As the validation progresses, you will be receiving "+
                     "additional emails from us.\n\n"+
                     "If you did not requested this "+
-                    "certificate and believe it to be an error, we ask that you"+
+                    "certificate and believe it to be an error, we ask that you "+
                     "ignore and delete this and any related messages."
         else
           #spanish
