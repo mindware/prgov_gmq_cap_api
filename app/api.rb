@@ -301,7 +301,6 @@ module PRGMQ
 							# end
 
 							# DELETE /v1/cap/transaction/:id
-							# TODO: code this
 							desc "Deletes a specific transaction id so it cannot be processed. "+
 									"This will likely move the transaction to an alternative "+
 									"repository in the future, in order to archive it. This is "+
@@ -311,9 +310,11 @@ module PRGMQ
 								requires :id, type: String, desc: "A valid transaction id."
 							end
 							delete do
-								user = allowed?(["admin", "worker"])
+								user = allowed?(["admin"])
+								transaction = Transaction.find(params["id"])
+								transaction.destroy
 								result ({
-										"0-123-456" => "deleted"
+										"#{params["id"]}" => "deleted"
 								})
 							end # end of DELETE
 						end # end of namespace: Resource cap/transaction/:id:

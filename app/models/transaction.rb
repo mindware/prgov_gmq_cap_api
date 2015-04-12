@@ -619,6 +619,11 @@ module PRGMQ
         end
       end
 
+      # Deletes this transaction
+      def destroy
+        Store.db.del(db_id)
+      end
+
       # The public method that allows this instance to be saved to the
       # database.
       def save
