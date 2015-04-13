@@ -570,7 +570,7 @@ module PRGMQ
 						txs.each do |id|
 							begin
 								x = Transaction.find id
-								res << [ x.id, x.ip, x.created_at, x.reason]
+								res << [ x.id, x.ip, x.created_at, x.reason, x.residency]
 							rescue PRGMQ::CAP::TransactionNotFound
 								# Ignore items that have been deleted.
 								debug "Deleting a missing transaction #{id}..."
