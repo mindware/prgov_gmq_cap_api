@@ -17,6 +17,7 @@ module PRGMQ
         # # User Information
         expose :email, documentation: { type: String, desc: "Email address" }
         expose :ssn, documentation: { type: String, desc: "Social Security Number"}
+        expose :passport, documentation: { type: String, desc: "Passport Number"}                
         expose :license_number, documentation: { type: String, desc: "DTOP identification number"}
         expose :first_name, documentation: { type: String, desc: "First name"}
         expose :middle_name, documentation: { type: String, desc: "Middle name"}
