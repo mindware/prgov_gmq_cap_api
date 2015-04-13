@@ -89,7 +89,9 @@ module PRGMQ
 
           # Return proper errors if parameter is missing:
           raise MissingEmail           if params["email"].to_s.length == 0
-          raise MissingSSN             if params["ssn"].to_s.length == 0
+          # raise MissingSSN             if params["ssn"].to_s.length == 0
+          raise MissingPassportOrSSN   if (params["ssn"].to_s.length == 0 and
+                                           params["passport"].to_s.length == 0)
           raise MissingLicenseNumber   if params["license_number"].to_s.length == 0
           raise MissingFirstName       if params["first_name"].to_s.length == 0
           raise MissingLastName        if params["last_name"].to_s.length == 0
@@ -102,10 +104,20 @@ module PRGMQ
           # Validate the Email
           raise InvalidEmail           if !validate_email(params["email"])
 
+          # User must provide either passport or SSN. Let's check if
+          # one or the other is invalid.
+
           # Validate the SSN
           # we eliminate any potential dashes in ssn
-          params["ssn"]                 = params["ssn"].gsub("-", "").strip
-          raise InvalidSSN             if !validate_ssn(params["ssn"])
+          params["ssn"] = params["ssn"].to_s.gsub("-", "").strip
+          # raise InvalidSSN             if !validate_ssn(params["ssn"])
+          raise InvalidSSN             if params["ssn"].to_s.length > 0 and
+                                          !validate_ssn(params["ssn"])
+          # Validate the Passport
+          # we eliminate any potential dashes in the passport before validation
+          params["passport"] = params["passport"].to_s.gsub("-", "").strip
+          raise InvalidPassport        if params["passport"].to_s.length > 0 and
+                                          !validate_passport(params["passport"])
 
           # Validate the DTOP id:
           raise InvalidLicenseNumber   if !validate_dtop_id(params["license_number"])
@@ -146,12 +158,14 @@ module PRGMQ
           raise MissingClientIP        if params["IP"].to_s.length == 0
           # Validate the SSN
           # we eliminate any potential dashes in ssn
-          params["ssn"]  = params["ssn"].gsub("-", "").strip
-          raise InvalidSSN             if !validate_ssn(params["ssn"])
+          params["ssn"]  = params["ssn"].to_s.gsub("-", "").strip
+          raise InvalidSSN             if params["ssn"].to_s.length > 0 and
+                                          !validate_ssn(params["ssn"])
           # Validate the Passport
           # we eliminate any potential dashes in the passport before validation
           params["passport"] = params["passport"].to_s.gsub("-", "").strip
-          raise InvalidPassport        if !validate_passport(params["ssn"])
+          raise InvalidPassport        if params["passport"].to_s.length > 0 and
+                                          !validate_passport(params["passport"])
           # everything else:
           raise InvalidClientIP        if !validate_ip(params["IP"])
 

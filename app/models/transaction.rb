@@ -97,6 +97,7 @@ module PRGMQ
       attr_accessor :id,     # our transaction id
                     :email,                # user email
                     :ssn,                  # social security number
+                    :passport,             # passport number
                     :license_number,       # valid dtop identification
                     :first_name,           # user's first name
                     :middle_name,          # user's middle name
@@ -199,7 +200,7 @@ module PRGMQ
           # The following parameters are allowed to be retrieved
           # everything else will be discarded from the user params
           # by the validate_transaction_creation_parameters() method
-          whitelist = ["email", "ssn", "license_number",
+          whitelist = ["email", "ssn", "passport", "license_number",
           "first_name", "middle_name", "last_name", "mother_last_name",
           "residency", "birth_date", "IP", "reason", "system_address",
           "created_by", "language" ]
@@ -251,6 +252,7 @@ module PRGMQ
               self.id                         = params["id"]
               self.email                      = params["email"]
               self.ssn                        = params["ssn"]
+              self.passport                   = params["passport"]
               self.license_number             = params["license_number"]
               self.first_name                 = params["first_name"]
               self.middle_name                = params["middle_name"]
@@ -294,6 +296,7 @@ module PRGMQ
           @id = nil
           @email = nil
           @ssn = nil
+          @passport = nil
           @license_number = nil
           @first_name = nil
           @middle_name = nil
@@ -554,11 +557,21 @@ module PRGMQ
                                  "id" => "#{id}",
                                  "queued_at" => "#{Time.now}",
 				                         "text" => message,
-                                 "html" => html_message
+                                 "html" => html_message,
+                                 "request_rapsheet" => true,
                                 }]
         }.to_json
       end
 
+      # We no longer enqueue this simultaneously as the notification
+      # email, as the inter-government system was processing faster
+      # than the simple email that sent a message. So many times the
+      # certificate would arrive before the first notification.
+      # To undo this, we simply forced the validation to be called
+      # not from the API but from the first notification worker in the
+      # GMQ.
+      # In other words, this next method is unused and let here for
+      # academic reasons.
       def job_rapsheet_validation_data
         # Here we create a hash of what the Resque system will expect in
         # the redis queue under resque:queue:prgov_cap.
@@ -761,7 +774,7 @@ module PRGMQ
             # Enqueue a email notification job
             db_connection.rpush(queue_pending, job_notification_data)
             # Enqueue a rapsheet validation job
-            db_connection.rpush(queue_pending, job_rapsheet_validation_data)
+            # db_connection.rpush(queue_pending, job_rapsheet_validation_data)
 
             # We can't use any method that uses Store.db here
             # because that would cause us to checkout a db connection from the
