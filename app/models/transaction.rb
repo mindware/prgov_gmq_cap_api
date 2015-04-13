@@ -176,8 +176,23 @@ module PRGMQ
                                                 # RCI when it determines
                                                 # it has enough data to make a
                                                 # decision.
-                    :certificate_path           # The temporary file path to the
+                    :certificate_path,          # The temporary file path to the
                                                 # certificate in disk.
+                    :error_count,               # A total count of generic
+                                                # errors that can be counted,
+                                                # relating to the management of
+                                                # this transaction, when this
+                                                # transaction is accessible to
+                                                # other systems, such as gmq
+                                                # workers validating against rci.
+                    :rci_error_count,           # Rci connection errors.
+                    :rci_error_date,            # Last date that had an rci
+                                                # connection error
+                    :email_error_count,         # Email connection errors.
+                    :email_error_date,          # Last date of email error.
+                    :last_error_type,           # Exception name of Last error
+                    :last_error_date            # Date of last error.
+
       # Newly created Transactions
       def self.create(params)
 
@@ -209,8 +224,20 @@ module PRGMQ
           tx.location            = "PR.gov GMQ"
           tx.state               = :new
 
+          tx.error_count         = 0
+          tx.rci_error_count     = 0
+          tx.rci_error_date      = ""
+          tx.email_error_count   = 0
+          tx.email_error_date    = ""
+          tx.last_error_type     = ""
+          tx.last_error_date     = ""
+
           # Pending stuff that we've yet to develop:
-          # tx["history"]           = { "received" => { Time.now }}
+          # tx["history"]           = {
+          #                             "received" => {
+          #                                             "date" => Time.now
+          #                                           }
+          #                           }
           # attribute :action, Hash
           # attribute :action_id, Integer
           # attribute :action_description, String
@@ -251,6 +278,13 @@ module PRGMQ
               self.identity_validated         = params["identity_validated"]
               self.emit_certificate_type      = params["emit_certificate_type"]
               self.certificate_path           = params["certificate_path"]
+              self.error_count                = params["error_count"]
+              self.rci_error_count            = params["rci_error_count"]
+              self.rci_error_date             = params["rci_error_date"]
+              self.email_error_count          = params["email_error_count"]
+              self.email_error_date           = params["email_error_date"]
+              self.last_error_type            = params["last_error_type"]
+              self.last_error_date            = params["last_error_date"]
           end
           return self
       end
@@ -288,6 +322,13 @@ module PRGMQ
           @identity_validated = nil
           @emit_certificate_type = nil
           @certificate_path = nil
+          @error_count = nil
+          @rci_error_count = nil
+          @rci_error_date = nil
+          @email_error_count = nil
+          @email_error_date = nil
+          @last_error_type = nil
+          @last_error_date = nil
       end
 
       def to_hash
