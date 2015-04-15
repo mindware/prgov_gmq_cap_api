@@ -20,7 +20,7 @@ module PRGMQ
         # # User Information
         expose :email, documentation: { type: String, desc: "Email address" }
         expose :ssn, documentation: { type: String, desc: "Social Security Number"}
-        expose :passport, documentation: { type: String, desc: "Passport Number"}        
+        expose :passport, documentation: { type: String, desc: "Passport Number"}
         expose :license_number, documentation: { type: String, desc: "DTOP identification number"}
         expose :first_name, documentation: { type: String, desc: "First name"}
         expose :middle_name, documentation: { type: String, desc: "Middle name"}
@@ -64,20 +64,13 @@ module PRGMQ
         expose :identity_validated
         expose :emit_certificate_type
         expose :certificate_path
-        # expose :total_error_count
-        # expose :action do
-        #     expose :action_id
-        #     expose :action_description
-        # end
-        # expose :history, using: PRGMQ::CAP::API
-        # expose :location, documentation: { type: String, desc: "Last known location "+
-                                                              #  "of the transaction"}
-
-        # expose :text, documentation: { type: "string", desc: "Status update text." }
-        # expose :ip, if: { type: :full }
-        # expose :user_type, user_id, if: lambda { |status, options| status.user.public? }
-        # expose :digest { |status, options| Digest::MD5.hexdigest(status.txt) }
-        # expose :replies, using: API::Status, as: :replies
+        expose :error_count
+        expose :rci_error_count
+        expose :rci_error_date
+        expose :email_error_count
+        expose :email_error_date
+        expose :last_error_type
+        expose :last_error_date  
       end
     end
   end
