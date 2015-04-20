@@ -18,10 +18,9 @@ require 'app/models/base'
 module PRGMQ
   module CAP
     class Validator < PRGMQ::CAP::Base
-      # A note on the expiration of transactions:
-      # Transaction expiration means expiration from the DB
-      # as in, disappearing from the system entirely. The system has been
-      # designed to expire Transactions after time. The backup strategy
+      # A note on the expiration:
+      # The system has been designed to expire
+      # requests after time. The backup strategy
       # implemented by the system administrators will determine the longrevity
       # of the data in an alternate medium, and such will be the strategy for
       # compliance for audits that span a period of time longer than the
@@ -31,11 +30,6 @@ module PRGMQ
       # version of the system.
 
       MINUTES_TO_EXPIRATION_OF_TRANSACTION = 15
-      # The expiration is going to be Z months, in seconds.
-      # Time To Live - Math:
-      # 604800 seconds in a week X 4 weeks = 1 month in seconds
-      # We multiply this amount for the Z amount of months that a transaction
-      # can last before expiring.
       EXPIRATION = (60 * MINUTES_TO_EXPIRATION_OF_TRANSACTION)
 
       LAST_TRANSACTIONS_TO_KEEP_IN_CACHE = 50
@@ -169,11 +163,14 @@ module PRGMQ
       end
 
       # Tries to find and setup a validation object by request_id (id)
-      def self.find(request_id)
+      def self.find(params)
           # if the record wasn't found
-          false if request_id.nil?
+          false if params["id"].nil?
+
+          request_id = params["id"]
 
           if(!data = Store.db.get(db_id(request_id)))
+            puts db_id(request_id)
             raise TransactionNotFound
           else
             begin

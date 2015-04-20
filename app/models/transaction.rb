@@ -628,57 +628,6 @@ module PRGMQ
         Store.db.lrem(db_list, 0, id)
       end
 
-      # a method that creates fake transactions
-      # for a massive stress test. This method is available
-      # to the admin member group only and is available only
-      # to stress test the system. This was necessary in order
-      # to perform a GET request that results in the equivalent
-      # of a POST in the system. This becomes disabled in production
-      # automatically.
-      def self.stress_test_save
-        # this works only in test and development environments
-        if Config.environment == "test" or Config.environment == "development"
-            param = JSON.parse('{
-            "email":"acolon@ogp.pr.gov",
-            "ssn":"111223333",
-            "license_number":"123456789",
-            "first_name":"Andrés",
-            "middle_name":null,
-            "last_name":"Colón",
-            "mother_last_name":"Pérez",
-            "IP":"192.168.1.2",
-            "birth_date":"01/01/1982",
-            "residency":"San Juan",
-            "reason":"STRESS TEST",
-            "language":"spanish",
-            "location":"PR.gov GMQ",
-            "history":null,
-            "state":"started",
-            "status":"received",
-            "system_address":"127.0.0.1",
-            "created_at":"2014-08-15T19:50:45.868Z",
-            "updated_at":"2014-08-15T19:50:45.868Z",
-            "created_by":"***REMOVED***",
-            "certificate_base64":null,
-            "analyst_fullname":null,
-            "analyst_id":null,
-            "analyst_approval_datetime":null,
-            "analyst_transaction_id":null,
-            "analyst_internal_status_id":null,
-            "decision_code":null,
-            "identity_validated":null,
-            "emit_certificate_type":null,
-            "certificate_path":null}')
-            tx = Transaction.create(param)
-            tx.save
-            return tx
-        else
-          # this won't be available when we're
-          # not in debug mode.
-          raise ResourceNotFound
-        end
-      end
-
       # Deletes this transaction
       def destroy
         Store.db.del(db_id)

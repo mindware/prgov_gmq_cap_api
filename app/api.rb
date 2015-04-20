@@ -210,11 +210,11 @@ module PRGMQ
 								end
 								get '/request' do
 										user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
-										transaction = Validator.create(params)
+										validation = Validator.create(params)
 										# check if we are able to save it
-										if transaction.save
+										if validation.save
 											# result (present transaction, with: CAP::Entities::Validator) #, type: :hi
-											result transaction
+											result validation
 										else
 											# if the item is not found, raise an error that it could not be saved
 											raise TransactionNotFound
@@ -227,7 +227,7 @@ module PRGMQ
 								params do
 									optional :id, type: String, desc: "A validation request id."
 								end
-								get '/reponse' do
+								get '/response' do
 										user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
 										transaction = Validator.find(params)
 										result transaction
@@ -553,7 +553,7 @@ module PRGMQ
 
 					desc "Lists the last incoming transactions"
 					get '/last' do
-						user = allowed?(["admin"])
+						user = allowed?(["admin", "data"])
 						txs = last_transactions
 						res = []
 
