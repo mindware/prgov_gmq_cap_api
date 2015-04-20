@@ -227,7 +227,7 @@ module PRGMQ
 								params do
 									optional :id, type: String, desc: "A validation request id."
 								end
-								get '/reponse' do
+								get '/response' do
 										user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
 										transaction = Validator.find(params)
 										result transaction

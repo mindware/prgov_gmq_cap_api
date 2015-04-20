@@ -29,7 +29,7 @@ module PRGMQ
       # database for inspection, but this is left as an exercise for a future
       # version of the system.
 
-      MINUTES_TO_EXPIRATION_OF_TRANSACTION = 15      
+      MINUTES_TO_EXPIRATION_OF_TRANSACTION = 15
       EXPIRATION = (60 * MINUTES_TO_EXPIRATION_OF_TRANSACTION)
 
       LAST_TRANSACTIONS_TO_KEEP_IN_CACHE = 50
@@ -163,11 +163,14 @@ module PRGMQ
       end
 
       # Tries to find and setup a validation object by request_id (id)
-      def self.find(request_id)
+      def self.find(params)
           # if the record wasn't found
-          false if request_id.nil?
+          false if params["id"].nil?
+
+          request_id = params["id"]
 
           if(!data = Store.db.get(db_id(request_id)))
+            puts db_id(request_id)
             raise TransactionNotFound
           else
             begin
