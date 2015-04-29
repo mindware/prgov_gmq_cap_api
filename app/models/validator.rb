@@ -39,7 +39,7 @@ module PRGMQ
       ######################################################
 
       # If you add an attribute, update the initialize method and to_hash method
-      attr_accessor :request_id,           # the id of this request in the db
+      attr_accessor :id,                   # the id of this request in the db
                     :tx_id,                # the id of the transaction we're validating,
                     :ssn,                  # optional social security number
                     :passport,             # optional passport number
@@ -51,6 +51,9 @@ module PRGMQ
                                            # requested.
                     :location,             # the system that was last assigned
                                            # the Tx to
+                    :error_count,          # error count
+                    :last_error_type,      # the last error
+                    :last_error_date,      # and when it ocurred
                     :created_at,           # creation date
                     :updated_at,           # last update
                     :created_by,           # the user that created this
@@ -102,6 +105,9 @@ module PRGMQ
               self.created_by                 = params["created_by"]
               self.updated_at                 = params["updated_at"]
               self.certificate_base64         = params["certificate_base64"]
+              self.error_count                = params["error_count"]
+              self.last_error_type            = params["last_error_type"]
+              self.last_error_date            = params["last_error_date"]
           end
           return self
       end
@@ -120,6 +126,9 @@ module PRGMQ
           @updated_at = nil
           @created_by = nil
           @certificate_base64 = false
+          @error_count = nil
+          @last_error_type = nil
+          @last_error_date = nil
       end
 
       def to_hash

@@ -154,7 +154,10 @@ module PRGMQ
 
           # Return proper errors if parameter is missing:
           raise MissingTransactionTxId if params["tx_id"].to_s.length == 0
-          raise InvalidTransactionId   if !validate_transaction_id(params["tx_id"])
+          # raise InvalidTransactionId   if !validate_transaction_id(params["tx_id"])
+          # We're not going to use the same transaction validation as this
+          # id may or may not match PRgov's schema. It may be SIJC's schema.
+          raise InvalidTransactionId   if !validate_transaction_id_multiagency(params["tx_id"])
           raise MissingPassportOrSSN   if (params["ssn"].to_s.length == 0 and
                                            params["passport"].to_s.length == 0)
           raise MissingClientIP        if params["IP"].to_s.length == 0
@@ -245,6 +248,35 @@ module PRGMQ
             return false
           end
         end
+
+        # Generic validation, will tolerate validation of transaction ids
+        # that dont necessarily conform to PR.gov's validation
+        def validate_transaction_id_multiagency(id)
+          # If this id starts with this systems's service_id
+          puts "validating multiagency"
+          if(id.to_s.strip.start_with? TransactionIdFactory.service_id)
+            puts "prgov transaction"
+              if(id.to_s.strip.length == TransactionIdFactory.transaction_key_length())
+                 return true
+              end
+              puts "invalid key length"
+              return false
+          # If this id starts with this rci's service_id
+          elsif(id.to_s.strip.start_with? TransactionIdFactory.rci_service_id)
+              puts "RCI transaction"
+              # if it conforms to the RCI transaction length
+              # and it isnt longer than 20 characters
+              if(id.to_s.strip.length >= TransactionIdFactory.rci_transaction_key_length() and
+                 id.to_s.strip.length <= 36)
+                return true
+              end
+              puts "improper legnth"
+              return false
+          end
+          puts "unknown agency id"
+          return false
+        end
+
         def validate_transaction_id(id)
           # if(puts "#{id.length} vs #{TransactionIdFactory.transaction_key_length()}")
           if(id.to_s.strip.length == TransactionIdFactory.transaction_key_length())

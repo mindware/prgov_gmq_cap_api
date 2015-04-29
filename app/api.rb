@@ -27,6 +27,7 @@ require 'app/models/validator'
 # Load our Entities. Grape-Entities are API representations of a Model:
 require 'app/entities/transaction'
 require 'app/entities/transaction_created'
+require 'app/entities/validator'
 
 module PRGMQ
 	module CAP
@@ -166,9 +167,107 @@ module PRGMQ
 					result ({ :storage_online => Store.connected?, :maintenance_mode => Config.downtime })
 				end
 
+				# Resource cap/stats:
+				group :stats do
+					# Resource cap/stats/last:
+					desc "Lists the last incoming transactions"
+					get '/global' do
+						user = allowed?(["admin", "data", "prgov", "rci"])
+						result({
+							"transactions" =>
+							{
+									:pending => total_pending,
+									:completed => total_completed,
+									:visits => total_visits
+							}
+						})
+					end
+					get '/last' do
+						user = allowed?(["admin", "data", "prgov", "rci"])
+						txs = last_transactions
+						res = []
+
+						# TODO: BUG:
+						# This should not ocurr on Syncrhony driver. We shouldn't receive
+						# a fixnum when we're doing a parallel request to Redis. However,
+						# for some reason we are.
+						#
+						# If an error ocurred in parallel requests and the data is not an Array
+						if txs.class != Array
+							raise AppError
+						end
+						debug "We're going to process a data of length #{txs}" if txs.class != Array
+						txs.each do |id|
+							begin
+								x = Transaction.find id
+								res <<  {
+													"language" => x.language,
+													"created_at" => x.created_at,
+													"reason" => x.reason,
+													"residency" => x.residency
+												}
+							rescue PRGMQ::CAP::TransactionNotFound
+								# Ignore items that have been deleted.
+								debug "Deleting a missing transaction #{id}..."
+								Transaction.remove_id_from_last_list(id)
+								debug "Deleted."
+							end
+						end
+						result(res)
+					end
+				end
+
+
+				# group into ../validate/
+				group :validate do
+						# Validator:
+						# GET /v1/cap/validate/request
+						desc "Requests that a transaction id be verified to see if it "+
+								 "remains valid. This action will incorporate async requests to "+
+								 "an external system. As such, if all input is valid it will "+
+								 "return a request_id, whose status can be checked via other "+
+								 "validation resources."
+						params do
+							optional :tx_id, type: String, desc: "A valid transaction id."
+							optional :ssn, type: String, desc: "A valid ssn."
+							optional :passport, type: String, desc: "A valid passport."
+							optional :IP, type: String, desc: "A valid IP of the end user."
+						end
+						get '/request' do
+								user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
+								validation = Validator.create(params)
+								# check if we are able to save it
+								if validation.save
+									result (present validation, with: Entities::Validator)
+								else
+									# if the item is not found, raise an error that it could not be saved
+									raise TransactionNotFound
+								end
+						end
+
+						# GET /v1/cap/validate/response
+						desc "Requests that a validation's response be verified to see it "+
+								 "has completed by providing a validation's request_id."
+						params do
+							optional :id, type: String, desc: "A validation request id."
+						end
+						get '/response' do
+								user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
+								validation = Validator.find(params)
+								result (present validation, with: Entities::Validator)
+						end
+
+						desc "Lists all available endpoints for this resource"
+						get '/' do
+								user = allowed?(["all"])
+								result({
+									"resources" => ["/response", "/request"]
+								})
+						end
+				end
+
 				## Resource cap/transaction:
 				group :transaction do
-
 						## Resource cap/transaction/status:
 						group :status do
 							# GET cap/transaction/status/:status:
@@ -190,57 +289,6 @@ module PRGMQ
 										     }
 											})
 							end
-						end
-
-
-						# group into ../transaction/validate/
-						group :validate do
-								# Validator:
-								# GET /v1/cap/transaction/validate/request
-								desc "Requests that a transaction id be verified to see if it "+
-										 "remains valid. This action will incorporate async requests to "+
-										 "an external system. As such, if all input is valid it will "+
-										 "return a request_id, whose status can be checked via other "+
-										 "validation resources."
-								params do
-									optional :tx_id, type: String, desc: "A valid transaction id."
-									optional :ssn, type: String, desc: "A valid ssn."
-									optional :passport, type: String, desc: "A valid passport."
-									optional :IP, type: String, desc: "A valid IP of the end user."
-								end
-								get '/request' do
-										user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
-										validation = Validator.create(params)
-										# check if we are able to save it
-										if validation.save
-											# result (present transaction, with: CAP::Entities::Validator) #, type: :hi
-											result validation
-										else
-											# if the item is not found, raise an error that it could not be saved
-											raise TransactionNotFound
-										end
-								end
-
-								# GET /v1/cap/transaction/validate/response
-								desc "Requests that a validation's response be verified to see it "+
-										 "has completed by providing a validation's request_id."
-								params do
-									optional :id, type: String, desc: "A validation request id."
-								end
-								get '/response' do
-										user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
-										transaction = Validator.find(params)
-										result transaction
-										# result (present transaction, with: CAP::Entities::Validator) #, type: :hi
-								end
-
-								desc "Lists all available endpoints for this resource"
-								get '/' do
-										user = allowed?(["all"])
-										result({
-											"resources" => ["/response", "/request"]
-										})
-								end
 						end
 
 						## Resource cap/transaction/:id:
@@ -570,7 +618,8 @@ module PRGMQ
 						txs.each do |id|
 							begin
 								x = Transaction.find id
-								res << [ x.id, x.ip, x.created_at, x.reason, x.residency]
+								res <<  { "tx_id" => x.id, "IP" => x.ip, "created_at" => x.created_at,
+													"reason" => x.reason, "Residency" => x.residency }
 							rescue PRGMQ::CAP::TransactionNotFound
 								# Ignore items that have been deleted.
 								debug "Deleting a missing transaction #{id}..."

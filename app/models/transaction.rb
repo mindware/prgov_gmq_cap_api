@@ -87,7 +87,7 @@ module PRGMQ
       # can last before expiring.
       EXPIRATION = (604800 * 4) * MONTHS_TO_EXPIRATION_OF_TRANSACTION
 
-      LAST_TRANSACTIONS_TO_KEEP_IN_CACHE = 50
+      LAST_TRANSACTIONS_TO_KEEP_IN_CACHE = 5000
 
       ######################################################
       # A transaction generally consists of the following: #
@@ -607,8 +607,8 @@ module PRGMQ
         # Note: don't use single quotes for string values on JSON.
         { "class" => "GMQ::Workers::CAPValidationWorker",
                      "args" => [{
-                                 "request_id" => params["request_id"],
-                                 "id" => "#{params["id"]}",
+                                 "id" => params["id"],
+                                 "tx_id" => "#{params["tx_id"]}",
                                  "ssn" => "#{params["ssn"]}",
                                  "passport" => "#{params["passport"]}",
                                  "IP" => "#{params["IP"]}",
