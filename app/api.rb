@@ -166,6 +166,56 @@ module PRGMQ
 					result ({ :storage_online => Store.connected?, :maintenance_mode => Config.downtime })
 				end
 
+				# Resource cap/stats:
+				group :stats do
+					# Resource cap/stats/last:
+					desc "Lists the last incoming transactions"
+					get '/global' do
+						user = allowed?(["admin", "data", "prgov", "rci"])
+						result({
+							"transactions" =>
+							{
+									:pending => total_pending,
+									:completed => total_completed,
+									:visits => total_visits
+							}
+						})
+					end
+					get '/last' do
+						user = allowed?(["admin", "data", "prgov", "rci"])
+						txs = last_transactions
+						res = []
+
+						# TODO: BUG:
+						# This should not ocurr on Syncrhony driver. We shouldn't receive
+						# a fixnum when we're doing a parallel request to Redis. However,
+						# for some reason we are.
+						#
+						# If an error ocurred in parallel requests and the data is not an Array
+						if txs.class != Array
+							raise AppError
+						end
+						debug "We're going to process a data of length #{txs}" if txs.class != Array
+						txs.each do |id|
+							begin
+								x = Transaction.find id
+								res <<  {
+													"language" => x.language,
+													"created_at" => x.created_at,
+													"reason" => x.reason,
+													"residency" => x.residency
+												}
+							rescue PRGMQ::CAP::TransactionNotFound
+								# Ignore items that have been deleted.
+								debug "Deleting a missing transaction #{id}..."
+								Transaction.remove_id_from_last_list(id)
+								debug "Deleted."
+							end
+						end
+						result(res)
+					end
+				end
+
 
 				# group into ../validate/
 				group :validate do
@@ -219,7 +269,6 @@ module PRGMQ
 
 				## Resource cap/transaction:
 				group :transaction do
-
 						## Resource cap/transaction/status:
 						group :status do
 							# GET cap/transaction/status/:status:
@@ -570,7 +619,8 @@ module PRGMQ
 						txs.each do |id|
 							begin
 								x = Transaction.find id
-								res << [ x.id, x.ip, x.created_at, x.reason, x.residency]
+								res <<  { "tx_id" => x.id, "IP" => x.ip, "created_at" => x.created_at,
+													"reason" => x.reason, "Residency" => x.residency }
 							rescue PRGMQ::CAP::TransactionNotFound
 								# Ignore items that have been deleted.
 								debug "Deleting a missing transaction #{id}..."
