@@ -27,6 +27,7 @@ require 'app/models/validator'
 # Load our Entities. Grape-Entities are API representations of a Model:
 require 'app/entities/transaction'
 require 'app/entities/transaction_created'
+require 'app/entities/validator'
 
 module PRGMQ
 	module CAP
@@ -237,8 +238,7 @@ module PRGMQ
 								validation = Validator.create(params)
 								# check if we are able to save it
 								if validation.save
-									# result (present transaction, with: CAP::Entities::Validator) #, type: :hi
-									result validation
+									result (present validation, with: Entities::Validator)
 								else
 									# if the item is not found, raise an error that it could not be saved
 									raise TransactionNotFound
@@ -253,9 +253,8 @@ module PRGMQ
 						end
 						get '/response' do
 								user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
-								transaction = Validator.find(params)
-								result transaction
-								# result (present transaction, with: CAP::Entities::Validator) #, type: :hi
+								validation = Validator.find(params)
+								result (present validation, with: Entities::Validator)
 						end
 
 						desc "Lists all available endpoints for this resource"

@@ -607,8 +607,8 @@ module PRGMQ
         # Note: don't use single quotes for string values on JSON.
         { "class" => "GMQ::Workers::CAPValidationWorker",
                      "args" => [{
-                                 "request_id" => params["request_id"],
-                                 "id" => "#{params["id"]}",
+                                 "id" => params["id"],
+                                 "tx_id" => "#{params["tx_id"]}",
                                  "ssn" => "#{params["ssn"]}",
                                  "passport" => "#{params["passport"]}",
                                  "IP" => "#{params["IP"]}",

@@ -6,6 +6,16 @@ module PRGMQ
   module CAP
     module TransactionIdFactory
 
+      # To be appended to all certificates requested through
+      # this PRGOV service.
+      # SERVICE_ID Convention:
+      # First two letters represents agency/organization/platform
+      # (PR == PR.gov)
+      # The next three characters reprents the related API (ie CAP)
+      # So this means that this is a certificate of the PR service that
+      # is validated with the CAP API.
+      SERVICE_ID = "PRCAP"
+
       # the transaction list will always have the same name
       # this is used for certificate transactions
       def generate_key
@@ -51,7 +61,7 @@ module PRGMQ
         #  xxx-[000] = API system that can validate
         #  PRG-001-&qerqwer0qerqe
         # "0" + SecureRandom.uuid.gsub("-", "").to_s #[0..16]
-        "PRCAP" + self.generate_flake
+        "#{self.service_id}" + self.generate_flake
       end
 
       # Generates a random string.
@@ -66,6 +76,22 @@ module PRGMQ
       # Safe to use in a distributed fashion.
       def self.generate_flake
         return Rubyflake.generate.to_s
+      end
+
+      # A method that returns the service_id constant value.
+      def self.service_id
+        return SERVICE_ID
+      end
+
+      # RCI's service_id. TODO: ask RCI to update their service_id to something
+      # decent, such as RCCAP
+      def self.rci_service_id
+        return "1"
+      end
+
+      # RCI's transaction length. TODO: use the actual length
+      def self.rci_transaction_key_length
+        return 5
       end
 
     end
