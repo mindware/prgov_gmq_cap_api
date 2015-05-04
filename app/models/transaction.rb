@@ -478,10 +478,13 @@ module PRGMQ
 
       # Generates a full name based on aggregating transaction citizen name data
       def full_name
-          name = first_name # required
-          name << " #{middle_name}" if !middle_name.nil?
-          name << " #{last_name}" # required
-          name << " #{mother_last_name}" if !mother_last_name.nil?
+          name = first_name.strip # required
+          name << " #{middle_name.strip}" if !middle_name.nil?
+          name << " #{last_name.strip}" # required
+          name << " #{mother_last_name.strip}" if !mother_last_name.nil?
+
+          # capitalize each word and return the capitalized version
+          name.split.map(&:capitalize).join(' ')
       end
 
 
@@ -517,10 +520,12 @@ module PRGMQ
         # message = Config.all["messages"]["initial_confirmation"]
 
         if language == "english"
+          subject = "PR.Gov Good Standing Certificate Request"
           message = "Thank you for using PR.Gov's online services. You are "+
                     "receiving this email because we have received a "+
                     "request to validate submission information for a "+
                     "Goodstanding Certificate for '#{full_name}'.\n\n"+
+                    "The transaction number is:\n'#{id}'.\n\n"+
                     "The information is being verified against multiple systems "+
                     "and data sources, including the Puerto Rico Police "+
                     "Department and the Criminal Justice Information Division.\n\n"+
@@ -531,32 +536,36 @@ module PRGMQ
                     "ignore and delete this and any related messages."
         else
           #spanish
+          subject = "Solicitud de Certificado de Antecedentes Penales de PR.Gov"
           message = "Gracias por utilizar los servicios de PR.Gov. Está "+
                     "recibiendo este correo por que hemos recibido una "+
                     "solicitud de validación de información para un "+
-                    "certificado de Buena Conducta de la Policia de "+
+                    "certificado de Buena Conducta de la Policía de "+
                     "de Puerto Rico para "+
                     "'#{full_name}'. Hemos comenzado el proceso de validación "+
                     "de la solicitud.\n\n"+
-                    "El número de la transacción es:\n#{id}\n\n"+
+                    "El número de la transacción es:\n'#{id}'.\n\n"+
                     "En estos momentos la información de la solicitud "+
                     "está siendo validada con los sistemas de Policia de "+
                     "Puerto Rico, el Sistema Integrado de Justicia Criminal del "+
                     "Departamento de Justicia y otras agencias de ley y orden.\n\n"+
                     "Una vez completada la revisión estará "+
-                    "recibiendo otro comunicado de nuestra parte en este correo.\n\n"+
+                    "recibiendo otro comunicado de nuestra parte a esta dirección.\n\n"+
                     "Si entiende que esta solicitud fue en error, por favor "+
                     "ignore y elimine este, y cualquier correo relacionado al "+
                     "mismo."
         end
 
-        html_message = HTMLEntities.new.encode(message, :named)
+        html_message = "<html><body>"
+        html_message << HTMLEntities.new.encode(message, :named).gsub("\n", "<br>")
+        html_message << "</body></html>"
 
         { "class" => "GMQ::Workers::EmailWorker",
                      "args" => [{
                                  "id" => "#{id}",
                                  "queued_at" => "#{Time.now}",
 				                         "text" => message,
+                                 "subject" => subject,
                                  "html" => html_message,
                                  "request_rapsheet" => true,
                                 }]
