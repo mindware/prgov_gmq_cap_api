@@ -47,6 +47,7 @@ module PRGMQ
                                            # claimed/forwarded by client system
                     :result,               # the result from the remote system
                     :status,               # the status pending proceessing etc
+                    :state,                # the state of the machine
                     :count,                # the amounts of times this has been
                                            # requested.
                     :location,             # the system that was last assigned
@@ -100,6 +101,7 @@ module PRGMQ
               self.IP                         = params["IP"]
               self.result                     = params["result"]
               self.status                     = params["status"]
+              self.state                      = params["state"]
               self.location                   = params["location"]
               self.created_at                 = params["created_at"]
               self.created_by                 = params["created_by"]
@@ -122,6 +124,7 @@ module PRGMQ
           @result = nil
           @location = nil
           @status = nil
+          @state = nil
           @created_at = nil
           @updated_at = nil
           @created_by = nil
@@ -317,7 +320,7 @@ module PRGMQ
               # LibraryHelper method supports receiving an existing db connection
               # which makes it safe for the underlying classes to perform
               # database requests, appending them to this pipeline block.
-              add_pending(db_connection)
+              # add_pending(db_connection)
             end # end of first_save for new transactions
           end
           debug "Saved!".bold.green
