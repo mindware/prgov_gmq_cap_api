@@ -25,7 +25,8 @@ module PRGMQ
         expose :certificate_base64, documentation: { type: String, desc: "Base64 Certificate"}
         # # Status Information
         expose :result, documentation: { type: String, desc: "The result from the remote system regarding the validation"}
-        expose :status, documentation: { type: String, desc: "Status identification for the request"}
+        expose :state, documentation: { type: String, desc: "The state machine of the request"}
+        expose :status, documentation: { type: String, desc: "Status for the request (processing, completed, waiting)"}
         expose :created_at
         expose :updated_at
         expose :created_by
