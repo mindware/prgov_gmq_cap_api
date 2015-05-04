@@ -253,7 +253,7 @@ module PRGMQ
 						end
 						get '/response' do
 								user = allowed?(["admin", "worker", "prgov", "prgov_validation"])
-								validation = Validator.find(params)
+								validation = Validator.find(params["id"])
 								result (present validation, with: Entities::Validator)
 						end
 

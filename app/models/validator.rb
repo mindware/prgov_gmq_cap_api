@@ -175,18 +175,15 @@ module PRGMQ
       end
 
       # Tries to find and setup a validation object by request_id (id)
-      def self.find(params)
+      def self.find(id)
           # if the record wasn't found
-          false if params["id"].nil?
-
-          request_id = params["id"]
-
-          if(!data = Store.db.get(db_id(request_id)))
-            puts db_id(request_id)
+          false if id.nil?
+          if(!data = Store.db.get(db_id(id)))
+            puts db_id(id)
             raise TransactionNotFound
           else
             begin
-              # grab the JSON from this transaction id
+              # grab the JSON from this validation id
               data = JSON.parse(data)
               # set it up into this object's variables
             rescue Exception => e
