@@ -76,7 +76,7 @@ module PRGMQ
                               :port =>     Config.db_port,
                               :driver =>   Config.db_driver,
                               :db     =>   Config.db_id,
-			      :password => Config.db_password)
+	                            :password => Config.db_password)
               end
           else
               @db
