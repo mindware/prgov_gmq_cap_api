@@ -524,7 +524,7 @@ module PRGMQ
           message = "Thank you for using PR.Gov's online services. You are "+
                     "receiving this email because we have received a "+
                     "request to validate submission information for a "+
-                    "Goodstanding Certificate for '#{full_name}'.\n\n"+
+                    "Good Standing Certificate for '#{full_name}'.\n\n"+
                     "The transaction number is:\n'#{id}'.\n\n"+
                     "The information is being verified against multiple systems "+
                     "and data sources, including the Puerto Rico Police "+
