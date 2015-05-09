@@ -2,9 +2,9 @@
   "logging"               : true,
   "logs_max_bytes"        : 10024000,
   "logs_max_retention"    : 10,
-  "debug"                 : true,
+  "debug"                 : false,
   "backtrace_errors"      : false,
-  "display_results"       : true,
+  "display_results"       : false,
   "display_certificates"  : false,
   "display_hints"         : false,
   "downtime"              : false
