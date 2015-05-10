@@ -187,11 +187,6 @@ module PRGMQ
 						txs = last_transactions
 						res = []
 
-						# TODO: BUG:
-						# This should not ocurr on Syncrhony driver. We shouldn't receive
-						# a fixnum when we're doing a parallel request to Redis. However,
-						# for some reason we are.
-						#
 						# If an error ocurred in parallel requests and the data is not an Array
 						if txs.class != Array
 							raise AppError
@@ -605,11 +600,6 @@ module PRGMQ
 						txs = last_transactions
 						res = []
 
-						# TODO: BUG:
-						# This should not ocurr on Syncrhony driver. We shouldn't receive
-						# a fixnum when we're doing a parallel request to Redis. However,
-						# for some reason we are.
-						#
 						# If an error ocurred in parallel requests and the data is not an Array
 						if txs.class != Array
 							raise AppError
