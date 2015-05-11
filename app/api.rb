@@ -224,7 +224,7 @@ module PRGMQ
 								 "validation resources."
 						params do
 							optional :tx_id, type: String, desc: "A valid transaction id."
-							optional :ssn, type: String, desc: "A valid ssn."
+							optional :ssn, type: String, desc: "A four digit valid ssn."
 							optional :passport, type: String, desc: "A valid passport."
 							optional :IP, type: String, desc: "A valid IP of the end user."
 						end

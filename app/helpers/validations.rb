@@ -164,8 +164,9 @@ module PRGMQ
           # Validate the SSN
           # we eliminate any potential dashes in ssn
           params["ssn"]  = params["ssn"].to_s.gsub("-", "").strip
+          # Validate only the four digits of the SSN
           raise InvalidSSN             if params["ssn"].to_s.length > 0 and
-                                          !validate_ssn(params["ssn"])
+                                          !validate_ssn(params["ssn"], 4)
           # Validate the Passport
           # we eliminate any potential dashes in the passport before validation
           params["passport"] = params["passport"].to_s.gsub("-", "").strip
@@ -286,10 +287,10 @@ module PRGMQ
         end
 
         # Validate Social Security Number
-        def validate_ssn(value)
+        def validate_ssn(value, the_length=SSN_LENGTH)
           value = value.to_s
           # validates if its an integer
-          if(validate_str_is_integer(value) and value.length == SSN_LENGTH)
+          if(validate_str_is_integer(value) and value.length == the_length)
             return true
           else
             return false
