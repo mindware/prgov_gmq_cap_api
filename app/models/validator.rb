@@ -29,7 +29,7 @@ module PRGMQ
       # database for inspection, but this is left as an exercise for a future
       # version of the system.
 
-      MINUTES_TO_EXPIRATION_OF_TRANSACTION = 15
+      MINUTES_TO_EXPIRATION_OF_TRANSACTION = 6
       EXPIRATION = (60 * MINUTES_TO_EXPIRATION_OF_TRANSACTION)
 
       LAST_TRANSACTIONS_TO_KEEP_IN_CACHE = 50
@@ -235,7 +235,7 @@ module PRGMQ
         # if this was just received, this is the first save
         if self.status == "received"
             first_save = true
-            self.status = "processing"
+            self.status = "waiting"
         end
 
         # Now lets convert the transaction object to a json. Note:
