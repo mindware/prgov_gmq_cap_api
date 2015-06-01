@@ -23,6 +23,7 @@ require 'htmlentities'
 # May - 2014
 #
 require 'app/models/base'
+require 'digest'
 
 module PRGMQ
   module CAP
@@ -642,6 +643,12 @@ module PRGMQ
         Store.db.del(db_id)
       end
 
+
+      def hash_id
+          salt = "123456789dhjqhierq1!@3zxcvbnm,.asdfghjkl;qwertyuiop"
+          Digest::SHA256.hexdigest "#{self.id}#{self.created_at}#{salt}"
+      end
+
       # The public method that allows this instance to be saved to the
       # database.
       def save
@@ -756,11 +763,12 @@ module PRGMQ
       def certificate_ready(params)
           # validate these parameters. If this passes, we can safely import
           params = validate_certificate_ready_parameters(params)
+          # since we may turn off displaying results for production server
+          # in order to skip displaying base64 certificates in logs and
+          # console, here we display a notification to make sure we
+          # show what transaction we're processing
+          puts "Processing certificate for transaction #{params['id']}"
           self.certificate_base64          = params["certificate_base64"]
-          # to reduce memory usage, we no longer store the base64 cert, we
-          # merely mark it as received, and look it up in SIJC's RCI when
-          # we're ready to send it via email.
-          # self.certificate_base64            = true
           # Generate the Certificate job:
           Store.db.rpush(queue_pending, job_generate_negative_certificate_data)
       end

@@ -29,6 +29,9 @@ require 'app/entities/transaction'
 require 'app/entities/transaction_created'
 require 'app/entities/validator'
 
+# For hashing ids for anonimized stats
+require 'digest/sha1'
+
 module PRGMQ
 	module CAP
 		class API < Grape::API
@@ -196,6 +199,7 @@ module PRGMQ
 							begin
 								x = Transaction.find id
 								res <<  {
+													"stamp" => x.hash_id,
 													"language" => x.language,
 													"created_at" => x.created_at,
 													"reason" => x.reason,
