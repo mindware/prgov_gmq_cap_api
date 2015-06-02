@@ -199,7 +199,7 @@ module PRGMQ
 							begin
 								x = Transaction.find id
 								res <<  {
-													"stamp" => x.hash_id,
+													"stamp" => x.get_numeric_id,
 													"language" => x.language,
 													"created_at" => x.created_at,
 													"reason" => x.reason,
