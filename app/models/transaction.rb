@@ -95,6 +95,7 @@ module PRGMQ
 
       # If you add an attribute, update the initialize method and to_hash method
       attr_accessor :id,     # our transaction id
+                    :numeric_id,           # A numeric id
                     :email,                # user email
                     :ssn,                  # social security number
                     :passport,             # passport number
@@ -287,6 +288,7 @@ module PRGMQ
               self.email_error_date           = params["email_error_date"]
               self.last_error_type            = params["last_error_type"]
               self.last_error_date            = params["last_error_date"]
+              self.numeric_id                 = params["numeric_id"]
           end
           return self
       end
@@ -332,6 +334,7 @@ module PRGMQ
           @email_error_date = nil
           @last_error_type = nil
           @last_error_date = nil
+          @numeric_id = nil
       end
 
       def to_hash
@@ -659,7 +662,12 @@ module PRGMQ
         if(@state == :new)
           @state = :started
           first_save = true
+          # if new, grab a numeric id and assign it to this object
+          if(@numeric_id == nil)
+             @numeric_id = Store.db.incr("#{Transaction.db_global_prefix}:numeric_id_count")
+          end
         end
+
         # Now lets convert the transaction object to a json. Note:
         # We have to retrieve this here, incase we ever need values here
         # from the Store. If we do it inside the multi or pipelined
@@ -681,6 +689,33 @@ module PRGMQ
                 "#{"Hint".green}: View the last item in the pending queue using: LINDEX #{queue_pending} 0"
         end
         return true
+    end
+
+
+    # This method returns a numeric id as expected by data.pr.gov
+    # unfotunately, data.pr.gov cannot handle our previous hashed and salted
+    # version of our transactions ids which we customized for them, thus
+    # we removed that code and resorted to creating a global counter of numeric
+    # ids. These ids are visible by the endpoint that shows stats, used by
+    # our data extractor (cap_script.py), which retrives our API data
+    # and stores it as a csv, which is later uploaded to data.pr.gov.
+    #
+    # This instance method checks if this object has a numeric_id.
+    # The numeric_id is retrieved from a global counter and is set the
+    # first time a transaction is saved. Since we have 32k legacy transactions
+    # that do not have an id, we created this method as the proper way to access
+    # and update those transactions when they show up no the stats list,
+    # and return a numeric id.
+    def get_numeric_id
+        # if no numeric_id found, grab one from the store
+        if(@numeric_id == nil)
+           @numeric_id = Store.db.incr("#{Transaction.db_global_prefix}:numeric_id_count")
+           # update the transaction in the store
+           save
+        end
+        # return the transaction numeric id
+        # return 'hi'
+        return @numeric_id
     end
 
     # This is the
@@ -756,11 +791,12 @@ module PRGMQ
       def certificate_ready(params)
           # validate these parameters. If this passes, we can safely import
           params = validate_certificate_ready_parameters(params)
+          # since we may turn off displaying results for production server
+          # in order to skip displaying base64 certificates in logs and
+          # console, here we display a notification to make sure we
+          # show what transaction we're processing
+          puts "Processing certificate for transaction #{params['id']}"
           self.certificate_base64          = params["certificate_base64"]
-          # to reduce memory usage, we no longer store the base64 cert, we
-          # merely mark it as received, and look it up in SIJC's RCI when
-          # we're ready to send it via email.
-          # self.certificate_base64            = true
           # Generate the Certificate job:
           Store.db.rpush(queue_pending, job_generate_negative_certificate_data)
       end
