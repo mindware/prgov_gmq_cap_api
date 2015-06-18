@@ -239,7 +239,8 @@ module PRGMQ
 								if validation.save
 									result (present validation, with: Entities::Validator)
 								else
-									# if the item is not found, raise an error that it could not be saved
+									# if the item is not found, raise an error that it could
+									# not be saved
 									raise TransactionNotFound
 								end
 						end
@@ -321,6 +322,25 @@ module PRGMQ
 										        "location" => "prgmq_email_certificate_queue",
 										    }
 										})
+								end
+							end
+
+							## Resource cap/transaction/:id/retry:
+							# Force a transaction to be re-enqueued
+							group :retry do
+								# GET cap/transaction/:id/retry
+								desc "Re-enqueues a transaction for rapsheet validation."
+								get "/" do
+									user = allowed?(["all"])
+									transaction = Transaction.find(params[:id])
+									result = transaction.requeue_rapsheet_job
+									result ({
+											     :id => "#{transaction.id}",
+													 :enqueued => result,
+													 :status => transaction.status,
+													 :location => transaction.location,
+													 :updated_at => transaction.updated_at
+												})
 								end
 							end
 

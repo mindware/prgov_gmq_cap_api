@@ -1,3 +1,20 @@
+
+# This is the old state machine for the initial prototype.
+# After the design changes that eliminated the PRPD API component
+# and we centralized everything at RCI, this state machine became
+# obsolete, and serves simply as a reference.
+#
+# Current states:
+# ---------------
+#                                        # action       http response
+# :validating_rapsheet_with_sijc         # processing   -   (requesting validation)
+# :validating_rapsheet_with_sijc         # requeued     -   (forced re-requesting validation)
+# :waiting_for_sijc_to_generate_cert     # waiting     200s (waiting for cert)
+# :submitted_to_analyst_for_review       # waiting     400s (waiting for analyst)
+# :failed_validating_rapsheet_with_sijc  # completed   400s (id did not validate)
+# :error_validating_rapsheet_with_sijc   # retrying    500s (internal errors - retrying)
+# :mailing_certificate                   # done        -    (email sent or sending)
+#
 module PRGMQ
   module CAP
     class TransactionMachine < PRGMQ::CAP::Base
