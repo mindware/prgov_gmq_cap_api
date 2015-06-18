@@ -154,9 +154,12 @@ module PRGMQ
 
           # Return proper errors if parameter is missing:
           raise MissingTransactionTxId if params["tx_id"].to_s.length == 0
+
+          # We comment the next line as we're now not just validating PR.gov
+          # ids, but also that of multiple systems/agencies (SIJC, PRgov):
           # raise InvalidTransactionId   if !validate_transaction_id(params["tx_id"])
-          # We're not going to use the same transaction validation as this
-          # id may or may not match PRgov's schema. It may be SIJC's schema.
+
+          # Now validate the id using the multagency validation
           raise InvalidTransactionId   if !validate_transaction_id_multiagency(params["tx_id"])
           raise MissingPassportOrSSN   if (params["ssn"].to_s.length == 0 and
                                            params["passport"].to_s.length == 0)
