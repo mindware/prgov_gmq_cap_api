@@ -266,6 +266,13 @@ module PRGMQ
               puts "invalid key length"
               return false
           # If this id starts with this rci's service_id
+	  # It was agreed upon that all RCI ids would have the same 
+	  # identifier for the transaction id. Initially it was '1', however
+	  # RCI's CJIS LoS hired new developers and they deviated from this 
+	  # standard in a specic case, when PRPD supervisores emit a manually 
+	  # created certificate. Those certificates have a UUID that doesn't
+	  # necessarily conform to this specification. In those cases, 
+	  # the validation fails. 
           elsif(id.to_s.strip.start_with? TransactionIdFactory.rci_service_id)
               puts "RCI transaction"
               # if it conforms to the RCI transaction length
@@ -276,6 +283,9 @@ module PRGMQ
               end
               puts "improper legnth"
               return false
+	 # catch any UUID type-4 from CJIS
+	  elsif(!(id.to_s.strip =~ /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$/).nil?) 
+		return true	
           end
           puts "unknown agency id"
           return false
