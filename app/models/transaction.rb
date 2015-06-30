@@ -807,6 +807,7 @@ module PRGMQ
         # update the status
         @status = "requeued"
         @location = "PR.gov GMQ"
+        @state = :validating_rapsheet_with_sijc
         # save the transaction state
         save
         return true
