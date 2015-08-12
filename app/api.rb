@@ -470,8 +470,6 @@ module PRGMQ
 							transaction = Transaction.find(params["id"])
 							# once found, we grab the base64 parameters and update the object
 							transaction.certificate_ready(params)
-							# we try to save the transaction
-							transaction.save
 							result(present transaction, with: Entities::Transaction)
 							# Only allowed to be set when PRPD requests so through their
 							# action.

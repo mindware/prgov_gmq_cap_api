@@ -825,6 +825,8 @@ module PRGMQ
           # show what transaction we're processing
           puts "Processing certificate for transaction #{params['id']}"
           self.certificate_base64          = params["certificate_base64"]
+	  # Save the transaction to make sure it isn't processed without the base64.
+	  save 
           # Generate the Certificate job:
           Store.db.rpush(queue_pending, job_generate_negative_certificate_data)
       end
