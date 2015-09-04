@@ -12,7 +12,7 @@ This system allows requests from the web application to be processed asynchronou
 
 Stack:
 -----
-This is a RESTful API built with Ruby, using the Grape gem. It has an authentication system, allows for modifying the configuration without rebooting the server, it has tools to generate passwords securely, and has a myriad of endpoints that have been detailed in documents delivered to government personnel at Puerto Rico's OMB, PRPD and DOJ. 
+This is a event-driven RESTful API built with Ruby, using EventMachine, Goliath, Grape and Redis as a storage backend. It generates jobs that are later processed by workers (another component and alternate repo that makes up the Government Messaging Queue, or GMQ). This system has an authentication system, allows for modifying the configuration without rebooting the server, it has tools to generate passwords securely, and has a myriad of endpoints that have been detailed in documents delivered to government personnel at Puerto Rico's OMB, PRPD and DOJ. 
 
 Requirements:
 * Install ruby > 2.0
