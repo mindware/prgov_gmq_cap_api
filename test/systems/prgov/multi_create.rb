@@ -1,8 +1,8 @@
 require '../lib/rest'
 
 def setup
-user = "***REMOVED***"
-pass = "***REMOVED***"
+user = "user"
+pass = "super-complex-password"
 # credentials via basic auth
 url = "http://localhost:9000/v1/cap/transaction/"
 first_name = 'Andrés' 

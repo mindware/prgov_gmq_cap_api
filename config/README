@@ -25,7 +25,7 @@ What follows is an example of a properly formatted 'users.json' file:
                     "groups" : ["prgov"] },
   "cap_worker"	: { "passkey" : "299a18a088f2e1e08074863cc03f6b699307eb895fdcd5c2c404e294",
                     "groups" : ["worker"] },
-  "***REMOVED***"   : { "passkey" : "759528379170710b70d0e17e62cd142931db535d07bcb8cb4bffe6d9",
+  "cap_admin"   : { "passkey" : "759528379170710b70d0e17e62cd142931db535d07bcb8cb4bffe6d9",
 		    "groups" : ["admin"] }
 }
 

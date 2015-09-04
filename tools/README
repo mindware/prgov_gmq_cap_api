@@ -69,7 +69,7 @@ Example /api/config/users.json:
                     "groups"  : ["webapp"] },
   "cap_worker"	: { "passkey" : "8db7ec2e5b82a85bb70d5f245a6f20e9544e2d169c47d3b6935f818a",
                     "groups"  : ["worker"] },
-  "***REMOVED***"   : { "passkey" : "759528379170710b70d0e17e62cd142931db535d07bcb8cb4bffe6d9",
+  "cap_admin"   : { "passkey" : "759528379170710b70d0e17e62cd142931db535d07bcb8cb4bffe6d9",
 		                "groups"  : ["admin"]  }
 }
 
