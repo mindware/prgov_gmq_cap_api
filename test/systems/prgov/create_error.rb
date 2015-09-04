@@ -1,6 +1,6 @@
 require '../lib/rest'
-user = "***REMOVED***"
-pass = "***REMOVED***"
+user = "user"
+pass = "password"
 # credentials via basic auth
 url = "http://localhost:9000/v1/cap/transaction/"
 first_name = 'Andrés'
@@ -18,8 +18,7 @@ ssn =	'111-22-3333'
 license = '123456789'
 #license = '123456789' * 100
 #license = ''
-#birth_date = '01/01/1982'
-birth_date = '01/23/1982'
+birth_date = '01/01/1982'
 #birth_date = '01/01/1982' * 100 
 #birth_date = ''
 residency  = 'San Juan'
