@@ -1,7 +1,7 @@
 Good Standing Certificate API
 ------------------------------
 
-This is a RESTful API component of the Government Messaging Queue, an asynchronous, inter-government messaging system used for generating a good standing certificate. 
+This is a RESTful API component of the Government Messaging Queue, an asynchronous, inter-government messaging system used for generating a good standing certificate. On its first months in production it had already processed over a million government messages and continues processing an average of 8 requests per second to this day. It has been hammered with 80 requests per second in the past during tests. 
 
 This system allows requests from the web application to be processed asynchronously, such as to: 
 - request jobs to send emails
