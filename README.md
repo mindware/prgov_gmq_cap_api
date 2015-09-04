@@ -1,3 +1,19 @@
+Good Standing Certificate API
+------------------------------
+
+This is a RESTful API component of the Government Messaging Queue, an asynchronous, inter-government messaging system used for generating a good standing certificate. 
+
+This system allows requests from the web application to be processed asynchronously, such as to: 
+- request jobs to send emails
+- validate and save transactions
+- communicate with the criminal justice information system of the DOJ and Police Department in order to validate citizen identity and criminal records.
+- allow the asynchrous delivery of certificates
+- validate existing government certificates 
+
+Stack:
+-----
+This is a RESTful API built with Ruby, using the Grape gem. It has an authentication system, allows for modifying the configuration without rebooting the server, it has tools to generate passwords securely, and has a myriad of endpoints that have been detailed in documents delivered to government personnel at Puerto Rico's OMB, PRPD and DOJ. 
+
 Requirements:
 * Install ruby > 2.0
 * Install rubygems
@@ -7,9 +23,8 @@ To start the Server:
 * foreman start
 
 
-Use of the Redis Gems:
+Regarding the use of the Redis Gems:
 We use Redis-rb, whose synchrony driver adds support for em-synchrony. This makes redis-rb work with EventMachine's asynchronous I/O, while not changing the exposed API. The hiredis gem needs to be available as well, because the synchrony driver uses hiredis for parsing the Redis protocol.
-
 
 License:
 --------
